@@ -1,8 +1,5 @@
 User-agent: *
 Allow: /
 
-Disallow: /baidu_verify_sZlVncOSc1.html
-Disallow: /google20392300e6dffca5.html
-
 Sitemap: https://yuerer.com/sitemap.xml
 Sitemap: https://yuerer.com/baidusitemap.xml
