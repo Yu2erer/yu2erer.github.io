@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yuerer.com/"/>
-  <updated>2018-12-04T07:59:07.000Z</updated>
+  <updated>2018-12-05T11:04:36.000Z</updated>
   <id>https://yuerer.com/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>操作系统之 进程控制</title>
+    <link href="https://yuerer.com/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6/"/>
+    <id>https://yuerer.com/操作系统之-进程控制/</id>
+    <published>2018-12-05T05:27:20.000Z</published>
+    <updated>2018-12-05T11:04:36.000Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="进程切换-上下文切换"><a href="#进程切换-上下文切换" class="headerlink" title="进程切换 (上下文切换)"></a>进程切换 (上下文切换)</h3><ol><li>暂停当前运行进程 从运行状态变成其他状态</li><li>调度另一个进程从就绪状态变成运行状态</li></ol><h4 id="进程切换的要求"><a href="#进程切换的要求" class="headerlink" title="进程切换的要求"></a>进程切换的要求</h4><ul><li>切换前 保存进程上下文(寄存器 CPU状态 内存地址空间(大部分不用保存 因为两个进程的内存地址空间不会被覆盖))</li><li>切换后 恢复进程上下文</li><li>快速切换</li></ul><a id="more"></a><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">进程 P0 因为时间片用完 进入时钟中断服务例程</span><br><span class="line">保存 进程状态到 PCB 0 后 从 PCB 1 恢复进程状态继续执行 进程 P1</span><br><span class="line">暂停 进程 P0</span><br></pre></td></tr></table></figure><p><img src="/images/context_switch.png" alt="context_switch"></p><h4 id="进程状态记录-PCB-过程"><a href="#进程状态记录-PCB-过程" class="headerlink" title="进程状态记录 PCB 过程"></a>进程状态记录 PCB 过程</h4><ul><li>内核为每个进程 维护 对应的进程控制块(PCB)</li><li>内核将相同状态的 进程的PCB 放置在同一队列</li></ul><p><img src="/images/PCB_queue.png" alt="PCB_queue"></p><h3 id="进程创建"><a href="#进程创建" class="headerlink" title="进程创建"></a>进程创建</h3><ul><li>Windows进程创建Api CreateProcess()</li><li>Unix进程创建系统调用 fork/exec<ul><li>fork() 把一个进程复制成两个进程 父子进程的PID不同</li><li>exec() 用新程序来重写当前进程 PID 不变</li></ul></li></ul><h4 id="进程复制-fork"><a href="#进程复制-fork" class="headerlink" title="进程复制 fork"></a>进程复制 fork</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> pid = fork()；<span class="comment">// 创建子进程</span></span><br><span class="line"><span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;<span class="comment">// 子进程在这里继续</span></span><br><span class="line">    exec(“program”, argc, argv0, argv1, …);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><ul><li>fork() 创建一个继承的子进程<ul><li>复制父进程的所有变量和内存</li><li>复制父进程的所有 CPU 寄存器(一个寄存器例外 是用来识别父进程和子进程的)</li></ul></li><li>fork() 的返回值<ul><li>子进程的 fork() 返回值 为 0</li><li>父进程的 fork() 返回值为 子进程标识符</li><li>子进程可使用 getpid() 获取 PID</li></ul></li></ul><h5 id="fork-地址空间复制"><a href="#fork-地址空间复制" class="headerlink" title="fork 地址空间复制"></a>fork 地址空间复制</h5><p>fork() 执行过程对于 子进程来说 是在调用时间 对父进程地址空间的一次复制(父进程 fork() 返回值为 子进程标识符 子进程 fork() 返回值为 0)</p><p><img src="/images/fork.png" alt="fork"></p><h5 id="fork-循环调用示例"><a href="#fork-循环调用示例" class="headerlink" title="fork 循环调用示例"></a>fork 循环调用示例</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">0</span>;  i&lt;LOOP;  i++) &#123;</span><br><span class="line">        pid = fork();</span><br><span class="line">        <span class="keyword">if</span> (pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, “Fork Failed”);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>,  “i=%d,  pid=%d,  parent  pid=%d\n”,I,      </span><br><span class="line">                getpid() ,getppid());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    wait(<span class="literal">NULL</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>每次循环 都会 fork 一个新的子进程 同时原来被 fork 出来的子进程 也会去 fork 一个新的子进程 这里一共循环了 3次 共有 8个 进程</p><p><img src="/images/fork_loop.png" alt="fork_loop"></p><h5 id="fork-的开销"><a href="#fork-的开销" class="headerlink" title="fork 的开销"></a>fork 的开销</h5><ul><li>对子进程分配内存</li><li>复制父进程的内存和CPU寄存器到子进程</li></ul><p>在大多数情况下 调用了 fork() 以后 会调用 exec() 将 fork() 复制出来的子进程的内存给覆盖掉 fork() 复制父进程的内存的开销是可以节约的<br>因此 Windows 下 通过一个系统调用 来完成进程的创建和加载</p><p>早期 Unix的 <code>vfork()</code> 也做类似的事情 创建进程时 不再创建一个同样的内存映像 称之为轻量级 fork() 子进程应该立即调用 exec() 现在使用 Copy on Write (COW 写时拷贝) 技术</p><h4 id="进程加载和执行-exec"><a href="#进程加载和执行-exec" class="headerlink" title="进程加载和执行 exec"></a>进程加载和执行 exec</h4><p>系统调用 exec() 加载新程序取代当前运行程序</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fork() 创建一个继承的子进程 并复制 父进程的内存地址空间和CPU寄存器</span><br><span class="line">exec() 加载新程序 并 覆盖原来的内存地址空间 取代当前运行程序</span><br></pre></td></tr></table></figure><p><img src="/images/fork_exec_pcb.png" alt="fork_exec_pcb"></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;进程切换-上下文切换&quot;&gt;&lt;a href=&quot;#进程切换-上下文切换&quot; class=&quot;headerlink&quot; title=&quot;进程切换 (上下文切换)&quot;&gt;&lt;/a&gt;进程切换 (上下文切换)&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;暂停当前运行进程 从运行状态变成其他状态&lt;/li&gt;
+&lt;li&gt;调度另一个进程从就绪状态变成运行状态&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&quot;进程切换的要求&quot;&gt;&lt;a href=&quot;#进程切换的要求&quot; class=&quot;headerlink&quot; title=&quot;进程切换的要求&quot;&gt;&lt;/a&gt;进程切换的要求&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;切换前 保存进程上下文(寄存器 CPU状态 内存地址空间(大部分不用保存 因为两个进程的内存地址空间不会被覆盖))&lt;/li&gt;
+&lt;li&gt;切换后 恢复进程上下文&lt;/li&gt;
+&lt;li&gt;快速切换&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="操作系统" scheme="https://yuerer.com/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>操作系统之 进程和线程</title>
