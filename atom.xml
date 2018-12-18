@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yuerer.com/"/>
-  <updated>2018-12-13T07:57:00.000Z</updated>
+  <updated>2018-12-18T13:13:18.209Z</updated>
   <id>https://yuerer.com/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>操作系统之 处理机调度</title>
+    <link href="https://yuerer.com/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E5%A4%84%E7%90%86%E6%9C%BA%E8%B0%83%E5%BA%A6/"/>
+    <id>https://yuerer.com/操作系统之-处理机调度/</id>
+    <published>2018-12-18T05:14:20.000Z</published>
+    <updated>2018-12-18T13:13:18.209Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="CPU资源的时分复用"><a href="#CPU资源的时分复用" class="headerlink" title="CPU资源的时分复用"></a>CPU资源的时分复用</h2><p>进程切换 CPU资源的当前占用者的切换</p><ul><li>保存当前进程在 PCB中的执行上下文(CPU状态)</li><li>恢复下一个进程的执行上下文</li></ul><h3 id="处理机调度"><a href="#处理机调度" class="headerlink" title="处理机调度"></a>处理机调度</h3><ul><li>从就绪队列中挑选出下一个占用CPU运行的进程</li><li>从多个可用CPU中挑选就绪进程可使用的CPU资源</li></ul><a id="more"></a><h4 id="调度程序"><a href="#调度程序" class="headerlink" title="调度程序"></a>调度程序</h4><p>挑选就绪进程的内核函数 (若为多CPU 则还有挑选处理机的功能)</p><h5 id="调度时机"><a href="#调度时机" class="headerlink" title="调度时机"></a>调度时机</h5><p>内核运行调度程序的条件</p><ul><li>进程从 运行状态 切换到 等待状态 (等待某个事件)</li><li>进程结束</li></ul><h5 id="非抢占系统"><a href="#非抢占系统" class="headerlink" title="非抢占系统"></a>非抢占系统</h5><p>当前进程主动放弃CPU</p><h5 id="可抢占系统"><a href="#可抢占系统" class="headerlink" title="可抢占系统"></a>可抢占系统</h5><ul><li>中断请求被服务例程响应完成时<ul><li>进程从 运行状态 切换到 就绪状态</li></ul></li><li>当前进程被抢占<ul><li>进程时间片用完</li><li>某进程从 等待状态 切换到 就绪状态 (它的优先级更高 则抢占)</li></ul></li></ul><p><img src="/images/process_control_with_process_state.png" alt="process_control_with_process_state"></p><h3 id="处理机资源使用模式"><a href="#处理机资源使用模式" class="headerlink" title="处理机资源使用模式"></a>处理机资源使用模式</h3><p>进程在 CPU计算 和 I/O操作 间交替</p><ul><li>在时间片机制下 进程可能在结束 当前CPU计算前 被迫放弃 CPU</li><li>应选择一个合适的 时间尺度 来作为 时间片的基本单位</li></ul><p><img src="/images/cpu_io_mode.png" alt="cpu_io_mode"></p><h4 id="比较调度算法的准则"><a href="#比较调度算法的准则" class="headerlink" title="比较调度算法的准则"></a>比较调度算法的准则</h4><ul><li>CPU利用率<ul><li>CPU 处于忙状态的 时间百分比</li></ul></li><li>吞吐量<ul><li>单位时间内完成的 进程数量</li></ul></li><li>周转时间<ul><li>进程从 初始化 到 结束(包括等待)的总时间</li></ul></li><li>等待时间<ul><li>进程在 就绪队列中 的总时间</li></ul></li><li>响应时间<ul><li>从提交请求到产生响应所花费的总时间</li></ul></li></ul><h4 id="处理机调度策略的目标"><a href="#处理机调度策略的目标" class="headerlink" title="处理机调度策略的目标"></a>处理机调度策略的目标</h4><ul><li>响应时间</li><li>吞吐量</li><li>公平性</li></ul><h5 id="处理机调度策略响应时间目标"><a href="#处理机调度策略响应时间目标" class="headerlink" title="处理机调度策略响应时间目标"></a>处理机调度策略响应时间目标</h5><p>响应时间是操作系统的计算延迟</p><ul><li>减少响应时间<ul><li>及时处理用户的输入请求 尽快将输出反馈给用户</li></ul></li><li>减少平均响应时间的波动<ul><li>在交互系统中 可预测性比高差异低平均更重要</li></ul></li></ul><h5 id="处理机调度策略吞吐量目标"><a href="#处理机调度策略吞吐量目标" class="headerlink" title="处理机调度策略吞吐量目标"></a>处理机调度策略吞吐量目标</h5><p>吞吐量是操作系统的计算带宽 (单位时间内 尽可能多的完成进程数量)</p><ul><li>增加吞吐量<ul><li>减少开销(操作系统开销 上下文切换)</li><li>提高系统资源的利用率(CPU I/O设备)</li></ul></li><li>减少等待时间<ul><li>减少每个进程的等待时间</li></ul></li></ul><h5 id="处理机调度策略公平性目标"><a href="#处理机调度策略公平性目标" class="headerlink" title="处理机调度策略公平性目标"></a>处理机调度策略公平性目标</h5><p>保证每个进程的等待时间相同 (公平通常会增加平均响应时间)</p><h2 id="调度算法"><a href="#调度算法" class="headerlink" title="调度算法"></a>调度算法</h2><ul><li>先来先服务算法<ul><li>FCFS: First Come, First Served</li></ul></li><li>短进程优先算法<ul><li>SPN: Shortest Process Next</li><li>SJF: Shortest Job First(短作业优先算法)</li><li>SRT: Shortest Remaining Time(短剩余时间优先算法)</li></ul></li><li>最高响应比优先算法 (按照进程在就绪队列里的等待时间)<ul><li>HRRN: Highest Response Ratio Next</li></ul></li><li>时间片轮转算法 (各个进程轮流占用一个相等的时间片)<ul><li>RR: Round Robin</li></ul></li><li>多级反馈队列算法 (将就绪队列分成不同子序列 使用不同的算法)<ul><li>MFQ: Multilevel Feedback Queues</li></ul></li><li>公平共享调度算法 (按照进程占用的资源来调度)<ul><li>FSS: Fair Share Scheduling</li></ul></li></ul><h3 id="先来先服务算法-FCFS-First-Come-First-Served"><a href="#先来先服务算法-FCFS-First-Come-First-Served" class="headerlink" title="先来先服务算法(FCFS First Come, First Served)"></a>先来先服务算法(FCFS First Come, First Served)</h3><p>依据进程进入就绪队列的先后顺序排列</p><ul><li>进程进入等待或结束状态时 就绪队列中下一个进程占用CPU</li></ul><h4 id="先来先服务算法的周转时间-TAT-Turnaround-time"><a href="#先来先服务算法的周转时间-TAT-Turnaround-time" class="headerlink" title="先来先服务算法的周转时间(TAT Turnaround time)"></a>先来先服务算法的周转时间(TAT Turnaround time)</h4><p>3个进程 计算时间分别为 12 3 3</p><p><img src="/images/FCFS_TAT.png" alt="FCFS_TAT"></p><h4 id="先来先服务算法的特征"><a href="#先来先服务算法的特征" class="headerlink" title="先来先服务算法的特征"></a>先来先服务算法的特征</h4><ul><li>优点<ul><li>简单</li></ul></li><li>缺点<ul><li>平均等待时间波动较大 (短进程排在长进程后面)</li><li>I/O资源 和 CPU资源 利用率较低 (I/O 可以和 CPU并行)</li></ul></li></ul><h3 id="短进程优先算法-SPN-Shortest-Process-Next"><a href="#短进程优先算法-SPN-Shortest-Process-Next" class="headerlink" title="短进程优先算法(SPN Shortest Process Next)"></a>短进程优先算法(SPN Shortest Process Next)</h3><p>选择就绪队列中 预期的执行时间最短 进程占用CPU进入运行状态</p><p><img src="/images/SPN.png" alt="SPN"></p><p>当有一个新的进程进入就绪队列 且 它的预期执行时间比当前正在执行的进程所剩的执行时间还短<br>允许其优先 则为 SRT: Shortest Remaining Time (短剩余时间优先)</p><h4 id="短进程优先算法的周转时间"><a href="#短进程优先算法的周转时间" class="headerlink" title="短进程优先算法的周转时间"></a>短进程优先算法的周转时间</h4><p>具有最优平均周转时间</p><p><img src="/images/SPN_TAT.png" alt="SPN_TAT"></p><h4 id="短进程优先算法的特征"><a href="#短进程优先算法的特征" class="headerlink" title="短进程优先算法的特征"></a>短进程优先算法的特征</h4><ul><li>可能导致饥饿<ul><li>连续的短进程流会使长进程无法获得CPU资源</li></ul></li><li>如何 预测进程的执行时间<ul><li>询问用户 用户欺骗就结束相应进程(骗CPU自己执行时间很短 以最快占用CPU资源)</li><li>用过去预测未来</li></ul></li></ul><h4 id="短进程优先算法的执行时间预估"><a href="#短进程优先算法的执行时间预估" class="headerlink" title="短进程优先算法的执行时间预估"></a>短进程优先算法的执行时间预估</h4><p>用历史的执行时间来预估未来的执行时间</p><p>每次都带上一个衰减系数 之前的执行时间权重是最小的</p><p><img src="/images/SPN_Execution_time_estimation.png" alt="SPN_Execution_time_estimation"></p><h3 id="最高响应比优先算法-HRRN-Highest-Response-Ratio-Next"><a href="#最高响应比优先算法-HRRN-Highest-Response-Ratio-Next" class="headerlink" title="最高响应比优先算法(HRRN Highest Response Ratio Next)"></a>最高响应比优先算法(HRRN Highest Response Ratio Next)</h3><p>选择就绪队列中响应比R值最高的进程 </p><ul><li>基于短进程优先算法的改进</li><li>不可抢占</li><li>关注进程等待时间</li><li>防止无限期推迟</li></ul><pre><code>R = (w + s) / sw: 等待时间(waiting time)s: 执行时间(service time)</code></pre><p>等的时间越长 它的优先级越高 在一定程度上避免 短进程优先算法导致的饥饿现象</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;CPU资源的时分复用&quot;&gt;&lt;a href=&quot;#CPU资源的时分复用&quot; class=&quot;headerlink&quot; title=&quot;CPU资源的时分复用&quot;&gt;&lt;/a&gt;CPU资源的时分复用&lt;/h2&gt;&lt;p&gt;进程切换 CPU资源的当前占用者的切换&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;保存当前进程在 PCB中的执行上下文(CPU状态)&lt;/li&gt;
+&lt;li&gt;恢复下一个进程的执行上下文&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;处理机调度&quot;&gt;&lt;a href=&quot;#处理机调度&quot; class=&quot;headerlink&quot; title=&quot;处理机调度&quot;&gt;&lt;/a&gt;处理机调度&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;从就绪队列中挑选出下一个占用CPU运行的进程&lt;/li&gt;
+&lt;li&gt;从多个可用CPU中挑选就绪进程可使用的CPU资源&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="操作系统" scheme="https://yuerer.com/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+      <category term="操作系统" scheme="https://yuerer.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+      <category term="调度" scheme="https://yuerer.com/tags/%E8%B0%83%E5%BA%A6/"/>
+    
+  </entry>
   
   <entry>
     <title>操作系统 uCore Lab 5</title>
