@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yuerer.com/"/>
-  <updated>2019-04-05T06:06:46.000Z</updated>
+  <updated>2019-05-04T14:36:33.000Z</updated>
   <id>https://yuerer.com/</id>
   
   <author>
@@ -15,6 +15,46 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>设计模式之 八大设计原则</title>
+    <link href="https://yuerer.com/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%85%AB%E5%A4%A7%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/"/>
+    <id>https://yuerer.com/设计模式之八大设计原则/</id>
+    <published>2019-05-04T14:33:20.000Z</published>
+    <updated>2019-05-04T14:36:33.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="八大设计原则"><a href="#八大设计原则" class="headerlink" title="八大设计原则"></a>八大设计原则</h2><ul><li>依赖倒置原则(DIP)</li><li>开放封闭原则(OCP)</li><li>单一职责原则(SRP)</li><li>Liskov替换原则(LSP)</li><li>接口隔离原则(ISP)</li><li>优先使用对象组合 而不是类继承</li><li>封装变化点</li><li>针对接口编程 而不是针对实现编程</li></ul><h3 id="依赖倒置原则-DIP"><a href="#依赖倒置原则-DIP" class="headerlink" title="依赖倒置原则(DIP)"></a>依赖倒置原则(DIP)</h3><ul><li>高层模块(稳定)不应该依赖于低层模块(变化) 二者都应该依赖于抽象(稳定)</li><li>抽象(稳定)不应该依赖于实现细节(变化) 实现细节应该依赖于抽象</li></ul><p>简单理解就是 假设现在要写一个画图软件 要画出不同的形状直线和矩形(Line Rect)</p><p>直线和矩形两个类就是为低层模块 而且 它也是实现细节 根据依赖倒置原则就会将其抽象为 Shape</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">示例一:</span><br><span class="line">Main-&gt;Line   此时高层模块Main是稳定的 依赖了低层模块变化的</span><br><span class="line">Main-&gt;Rect   按照依赖倒置原则 实现细节应该依赖于抽象 于是变成了👇那样</span><br><span class="line">示例二:</span><br><span class="line">Main-&gt;Shape  此时高层模块Main稳定且依赖于抽象</span><br><span class="line">      ^   ^  同时实现细节也依赖于抽象 于是满足依赖倒置原则</span><br><span class="line">      |   |</span><br><span class="line">    Line Rect</span><br></pre></td></tr></table></figure><a id="more"></a><h3 id="开放封闭原则-OCP"><a href="#开放封闭原则-OCP" class="headerlink" title="开放封闭原则(OCP)"></a>开放封闭原则(OCP)</h3><ul><li>对扩展开放 对更改封闭</li><li>类模块应该是可扩展的 但是不可修改</li></ul><p>简单理解就是 当需求改变的时候不应该推倒重来 而是应该在原有基础上扩展</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Main-&gt;  Shape    此时高层模块Main稳定且依赖于抽象</span><br><span class="line">      ^   ^   ^  同时实现细节也依赖于抽象 于是满足依赖倒置原则</span><br><span class="line">      |   |   |  此时如果需要加一个圆形 根据开放封闭原则 </span><br><span class="line">      |   |   |  只需要增加一个继承于 Shape 抽象的类</span><br><span class="line">    Line Rect Circle</span><br></pre></td></tr></table></figure><h3 id="单一职责原则-SRP"><a href="#单一职责原则-SRP" class="headerlink" title="单一职责原则(SRP)"></a>单一职责原则(SRP)</h3><ul><li>一个类应该仅有一个引起它变化的原因</li><li>变化的方向隐含着类的责任</li></ul><h3 id="Liskov替换原则-LSP"><a href="#Liskov替换原则-LSP" class="headerlink" title="Liskov替换原则(LSP)"></a>Liskov替换原则(LSP)</h3><ul><li>子类必须能够替换它们的基类(IS-A)</li><li>继承表达类型抽象</li></ul><p>简单理解 所有需要这个父类的地方 都可以传这个子类过去(IS-A)<br>最简单的一种情况 子类继承了父类 结果发现父类所写的这几个方法不能用或者不想用 就抛出异常 这个说明这个子类不应该继承这个父类</p><h3 id="接口隔离原则-ISP"><a href="#接口隔离原则-ISP" class="headerlink" title="接口隔离原则(ISP)"></a>接口隔离原则(ISP)</h3><ul><li>不应该强迫客户程序依赖它们不用的方法</li><li>接口应该小而完备</li></ul><p>不要把不必要的方法暴露出去 因为客户程序如果对不必要的方法(就是你原来不想暴露出去 但是因为种种原因还是把它暴露出去了)进行调用 你就需要为这些接口保持稳定 不然客户程序突然用不了了 你就歇菜了</p><h3 id="优先使用对象组合-而不是类继承"><a href="#优先使用对象组合-而不是类继承" class="headerlink" title="优先使用对象组合 而不是类继承"></a>优先使用对象组合 而不是类继承</h3><ul><li>继承在某种程度上破坏了封装性 子类父类耦合度高</li><li>对象组合则只要求被组合的对象具有良好定义的接口 耦合度低</li></ul><h3 id="封装变化点"><a href="#封装变化点" class="headerlink" title="封装变化点"></a>封装变化点</h3><ul><li>使用封装来创建对象之间的分界层 让设计者可以在分界层的一侧进行修改 而不会对另一侧产生不良的影响 从而实现层次间的松耦合</li></ul><h3 id="针对接口编程-而不是针对实现编程"><a href="#针对接口编程-而不是针对实现编程" class="headerlink" title="针对接口编程 而不是针对实现编程"></a>针对接口编程 而不是针对实现编程</h3><ul><li>不将变量类型声明为某个特定的具体类 而是声明为某个接口</li><li>客户程序无需获知对象的具体类型 只需知道对象所具有的接口</li><li>减少系统中各部分的依赖关系 从而实现 高内聚 低耦合</li></ul><p>其实和依赖倒置原则(DIP)是一样的 都是面向接口编程</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;Shape*&gt; shapeVector;</span><br><span class="line"><span class="comment">// 我不将其声明为特定的具体类比如 Line Rect </span></span><br><span class="line"><span class="comment">// 因为这样我能做的事情就很有限</span></span><br><span class="line"><span class="comment">// 但是我将其声明为一个接口的话 就可以发挥出更大作用</span></span><br><span class="line">shapeVector[i]-&gt;Draw(); </span><br><span class="line"><span class="comment">// 我并不需要知道这个对象的具体类型</span></span><br><span class="line"><span class="comment">// 我只知道它有个接口 Draw 能帮我画出东西</span></span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;八大设计原则&quot;&gt;&lt;a href=&quot;#八大设计原则&quot; class=&quot;headerlink&quot; title=&quot;八大设计原则&quot;&gt;&lt;/a&gt;八大设计原则&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;依赖倒置原则(DIP)&lt;/li&gt;
+&lt;li&gt;开放封闭原则(OCP)&lt;/li&gt;
+&lt;li&gt;单一职责原则(SRP)&lt;/li&gt;
+&lt;li&gt;Liskov替换原则(LSP)&lt;/li&gt;
+&lt;li&gt;接口隔离原则(ISP)&lt;/li&gt;
+&lt;li&gt;优先使用对象组合 而不是类继承&lt;/li&gt;
+&lt;li&gt;封装变化点&lt;/li&gt;
+&lt;li&gt;针对接口编程 而不是针对实现编程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;依赖倒置原则-DIP&quot;&gt;&lt;a href=&quot;#依赖倒置原则-DIP&quot; class=&quot;headerlink&quot; title=&quot;依赖倒置原则(DIP)&quot;&gt;&lt;/a&gt;依赖倒置原则(DIP)&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;高层模块(稳定)不应该依赖于低层模块(变化) 二者都应该依赖于抽象(稳定)&lt;/li&gt;
+&lt;li&gt;抽象(稳定)不应该依赖于实现细节(变化) 实现细节应该依赖于抽象&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;简单理解就是 假设现在要写一个画图软件 要画出不同的形状直线和矩形(Line Rect)&lt;/p&gt;
+&lt;p&gt;直线和矩形两个类就是为低层模块 而且 它也是实现细节 根据依赖倒置原则就会将其抽象为 Shape&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;示例一:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Main-&amp;gt;Line   此时高层模块Main是稳定的 依赖了低层模块变化的&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Main-&amp;gt;Rect   按照依赖倒置原则 实现细节应该依赖于抽象 于是变成了👇那样&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;示例二:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Main-&amp;gt;Shape  此时高层模块Main稳定且依赖于抽象&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      ^   ^  同时实现细节也依赖于抽象 于是满足依赖倒置原则&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      |   |&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    Line Rect&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+    
+    </summary>
+    
+      <category term="设计模式" scheme="https://yuerer.com/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+    
+      <category term="设计模式" scheme="https://yuerer.com/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+      <category term="原则" scheme="https://yuerer.com/tags/%E5%8E%9F%E5%88%99/"/>
+    
+  </entry>
   
   <entry>
     <title>面试腾讯</title>
@@ -631,48 +671,6 @@
 &lt;li&gt;切换前 保存进程上下文(寄存器 CPU状态 内存地址空间(大部分不用保存 因为两个进程的内存地址空间不会被覆盖))&lt;/li&gt;
 &lt;li&gt;切换后 恢复进程上下文&lt;/li&gt;
 &lt;li&gt;快速切换&lt;/li&gt;
-&lt;/ul&gt;
-    
-    </summary>
-    
-      <category term="操作系统" scheme="https://yuerer.com/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
-    
-    
-      <category term="操作系统" scheme="https://yuerer.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
-    
-      <category term="进程" scheme="https://yuerer.com/tags/%E8%BF%9B%E7%A8%8B/"/>
-    
-      <category term="线程" scheme="https://yuerer.com/tags/%E7%BA%BF%E7%A8%8B/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>操作系统之 进程和线程</title>
-    <link href="https://yuerer.com/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B/"/>
-    <id>https://yuerer.com/操作系统之-进程和线程/</id>
-    <published>2018-12-02T13:45:20.000Z</published>
-    <updated>2018-12-13T07:49:00.000Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h2><p>指一个具有一定独立功能的程序在一个数据集合上的一次动态执行的过程</p><h4 id="进程的组成"><a href="#进程的组成" class="headerlink" title="进程的组成"></a>进程的组成</h4><p>进程包含了正在运行的程序所有状态信息</p><ul><li>代码</li><li>数据</li><li>状态寄存器<ul><li>CPU 状态 CR0</li><li>指令指针 EIP</li></ul></li><li>通用寄存器</li><li>进程占用的系统资源<ul><li>打开文件</li><li>已分配内存</li></ul></li></ul><a id="more"></a><h4 id="进程的特点"><a href="#进程的特点" class="headerlink" title="进程的特点"></a>进程的特点</h4><ul><li>动态性<ul><li>可动态创建 结束进程</li></ul></li><li>并发性<ul><li>进程可以被独立调度并占用CPU运行</li></ul></li><li>独立性<ul><li>不同进程的工作互不影响</li></ul></li><li>制约性<ul><li>因访问共享数据 资源 进程间的同步而产生制约</li></ul></li></ul><h4 id="进程与程序的联系"><a href="#进程与程序的联系" class="headerlink" title="进程与程序的联系"></a>进程与程序的联系</h4><p>进程是操作系统处于执行状态下的程序的抽象 同一个程序的多次执行<br>过程对应为不同的进程</p><ul><li>程序 = 文件(静态可执行文件)</li><li>进程 = 执行中的程序 = 程序 + 执行状态</li></ul><h5 id="进程执行需要的资源"><a href="#进程执行需要的资源" class="headerlink" title="进程执行需要的资源"></a>进程执行需要的资源</h5><ul><li>CPU 执行指令</li><li>内存 保存代码和数据</li></ul><h4 id="进程与程序的区别"><a href="#进程与程序的区别" class="headerlink" title="进程与程序的区别"></a>进程与程序的区别</h4><ul><li>进程是动态的 程序是静态的<ul><li>程序是有序代码的集合</li><li>进程是程序的执行 进程有内核态和用户态</li></ul></li><li>进程是暂时的(是一个状态变化的过程) 程序是永久的(保存到文件系统时)</li><li>进程与程序的组成不同<ul><li>进程的组成包括程序 数据 进程控制块</li></ul></li></ul><h3 id="进程控制块-PCB-Process-Control-Block"><a href="#进程控制块-PCB-Process-Control-Block" class="headerlink" title="进程控制块 (PCB Process Control Block)"></a>进程控制块 (PCB Process Control Block)</h3><p>操作系统管理控制进程运行所用的信息集合 (操作系统用 PCB 来描述进程的基本情况以及运行变化的过程)</p><ul><li>PCB 是进程存在的唯一标识<ul><li>每个进程都在操作系统中有一个对应的 PCB</li></ul></li></ul><h4 id="进程控制块存些什么"><a href="#进程控制块存些什么" class="headerlink" title="进程控制块存些什么?"></a>进程控制块存些什么?</h4><ul><li>进程标识信息 (PID)</li><li>处理机现场保存 (调度之前需要 保存上下文 保存其他寄存器 以便下次调度回来的时候使用)</li><li>进程控制信息 (调度优先级)<ul><li>调度和状态信息 (调度进程和处理机使用情况)</li><li>进程间通信信息</li><li>存储管理信息 (指向进程映像存储空间数据结构 占用的存储空间用完以后还给操作系统)</li><li>进程所用资源 (进程使用的系统资源 打开文件)</li><li>有关数据结构连接信息 (与PCB相关的进程队列 不同的状态处于不同的进程队列)</li></ul></li></ul><p><img src="/images/PCB_Context.png" alt="PCB_Context"></p><h4 id="进程控制块的组织-数据结构实现"><a href="#进程控制块的组织-数据结构实现" class="headerlink" title="进程控制块的组织 (数据结构实现)"></a>进程控制块的组织 (数据结构实现)</h4><h5 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h5><p>同一状态的进程其 PCB 成一链表 多个状态对应多个不同的链表</p><ul><li>各状态的进程形成不同的链表 就绪链表 阻塞链表</li></ul><h5 id="索引表"><a href="#索引表" class="headerlink" title="索引表"></a>索引表</h5><p>同一状态的进程 归入一个 索引表(由索引指向PCB) 多个状态对应多个不同的索引表</p><ul><li>各状态的进程形成不同的索引表 就绪索引表 阻塞索引表</li></ul><p><img src="/images/PCB_Data_Structure.png" alt="PCB_Data_Structure"></p><h4 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h4><ul><li>进程创建 操作系统分配给进程所需要的资源 构建 PCB<ul><li>系统初始化时</li><li>用户请求创建一个新进程</li><li>正在运行的进程执行了创建进程的系统调用</li></ul></li><li>进程执行<ul><li>进程创建完后 会放入就绪队列 等待 CPU调度</li><li>内核选择一个就绪的进程 让它占用处理机并执行</li></ul></li><li>进程等待(阻塞) 进程等待是进程本身发起的 不是外部让它去等待的<ul><li>请求并等待的系统服务 无法马上完成</li><li>启动某个操作 无法马上完成</li><li>需要的数据没有到达</li></ul></li><li>进程抢占<ul><li>高优先级进程就绪</li><li>进程执行时间片用完</li></ul></li><li>进程唤醒 进程唤醒是由别的进程或操作系统唤醒 不是自己唤醒自己<ul><li>被阻塞的进程需要的资源可被满足</li><li>被阻塞的进程等待的事件到达</li></ul></li><li>进程结束 将进程所占用的资源还给操作系统<ul><li>正常退出</li><li>错误退出</li><li>致命错误(强制性的)</li><li>被其他进程所杀(强制性的)</li></ul></li></ul><h5 id="三状态进程模型"><a href="#三状态进程模型" class="headerlink" title="三状态进程模型"></a>三状态进程模型</h5><ul><li>运行状态(Running)<ul><li>进程正在处理机上执行</li></ul></li><li>就绪状态(Ready)<ul><li>进程获得了除处理机之外的所需资源 得到处理机后可运行</li></ul></li><li>等待状态(又称阻塞状态 Blocked)<ul><li>进程正在等待某个事件 而暂停的状态</li></ul></li><li>创建状态(New)<ul><li>进程正在被创建 还没到就绪状态前的状态</li></ul></li><li>结束状态(Exit)<ul><li>进程正在从系统中消失时的状态 系统正在回收它所占用的资源</li></ul></li></ul><p><img src="/images/process_state.png" alt="process_state"></p><h5 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">进程 1 执行 sleep() 进入 内核 内核调用函数设置定时器</span><br><span class="line">进行调度 保存现场(到 PCB 中) 切换到 进程 2</span><br><span class="line">进程 2 开始执行 若此时定时器时间到了 定时器产生 中断</span><br><span class="line">中断服务例程 让 进程 2 暂停下来 并保护 进程 2 的现场 恢复 进程 1 的现场</span><br><span class="line">让 进程 1 继续执行 进程 1 执行结束 再回到 操作系统</span><br></pre></td></tr></table></figure><p><img src="/images/process_switching.png" alt="process_switching"></p><h5 id="进程挂起"><a href="#进程挂起" class="headerlink" title="进程挂起"></a>进程挂起</h5><p>处在挂起状态的进程映像在磁盘上 目的是减少进程占用内存</p><ul><li>等待挂起状态(Blocked-suspend)<ul><li>进程在外存并等待某事件的出现</li></ul></li><li>就绪挂起状态(Ready-suspend)<ul><li>进程在外存 但只要进入内存 即可运行 (内存空间不够或它的优先级不够高)</li></ul></li><li>挂起(Suspend) 把一个进程从内存转到外存<ul><li>等待 到 等待挂起 (没有进程处于就绪状态 或 就绪状态进程要求更多的内存)</li><li>就绪 到 就绪挂起 (当有高优先级等待进程和低优先级就绪进程 总之就是 系统会认为高优先级的等待进程会很快就绪 就把低优先级的就绪进程换下 使得 高优先级的等待进程被激活后有足够的内存)</li><li>运行 到 就绪挂起 (对抢先式分时系统 当有高优先级等待挂起进程因事件出现而进入就绪状态 而当前没有足够内存空间 它就会把当前正在运行的这个进程变成就绪挂起状态)</li></ul></li><li>激活(Activate) 把一个进程从外存转到内存<ul><li>就绪挂起 到 就绪 (没有就绪队列 或 挂起就绪队列进程优先级高于就绪进程)</li><li>等待挂起 到 等待 (当一个进释放足够内存 并有 高优先级等待挂起进程)</li></ul></li></ul><p><img src="/images/process_suspend.png" alt="process_suspend"></p><h5 id="状态队列"><a href="#状态队列" class="headerlink" title="状态队列"></a>状态队列</h5><p>由操作系统来维护一组队列 表示系统中所有进程的当前状态</p><ul><li>不同队列表示不同状态</li><li>根据进程状态不同 进程PCB 加入相应队列</li></ul><p><img src="/images/process_state_queue.png" alt="process_state_queue"></p><h2 id="线程-Thread"><a href="#线程-Thread" class="headerlink" title="线程(Thread)"></a>线程(Thread)</h2><p>线程是进程的一部分 描述指令流执行状态 是进程中的指令执行最小单元 是 CPU 调度的基本单位</p><h3 id="线程与进程的关系"><a href="#线程与进程的关系" class="headerlink" title="线程与进程的关系"></a>线程与进程的关系</h3><p>线程 = 进程 - 共享资源 = 执行流</p><ul><li>线程的优点<ul><li>一个进程中可以有多个线程</li><li>各个线程之间可并发执行</li><li>各个线程之间可以共享地址空间和文件等资源</li></ul></li><li>线程的缺点<ul><li>一个线程崩溃 会导致其所属进程的所有线程崩溃</li></ul></li></ul><p><img src="/images/process_thread_relationship.png" alt="process_thread_relationship"></p><h3 id="线程与进程的区别"><a href="#线程与进程的区别" class="headerlink" title="线程与进程的区别"></a>线程与进程的区别</h3><ul><li>进程是资源分配单位 线程是CPU调度单位</li><li>进程拥有一个完整的资源平台 而线程只独享指令流执行的必要资源 (寄存器 栈)</li><li>线程具有 就绪 等待 运行 三种基本状态和状态间的状态转换</li><li>线程能减少 并发执行的时间 和 空间开销<ul><li>线程的创建和结束时间 比 进程 短 且 同一进程内的线程切换时间比进程短</li><li>同一进程的 各线程间共享内存 和 文件资源 可 不通过 内核 进行 直接通信(省执行时间)</li></ul></li></ul><h3 id="线程实现的三种方式"><a href="#线程实现的三种方式" class="headerlink" title="线程实现的三种方式"></a>线程实现的三种方式</h3><ul><li>用户线程(在用户空间实现)</li><li>内核线程(在内核中实现)</li><li>轻权进程(LightWeight Process 在内核中实现 支持用户线程 结合了用户线程和内核线程的优点)</li></ul><h4 id="用户线程"><a href="#用户线程" class="headerlink" title="用户线程"></a>用户线程</h4><p>由一组用户级的线程库函数来完成线程的管理 包括线程的创建 终止 同步 调度等<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">操作系统内核里 仍然只有 PCB 来描述处理机调度的情况</span><br><span class="line">操作系统并不感知用户态有多线程的支持</span><br><span class="line">多线程的支持是用户的函数库支持的多线程</span><br><span class="line">在应用程序内部构造 线程控制块(TCB) 来控制多个线程的交替和同步</span><br></pre></td></tr></table></figure></p><p><img src="/images/user_thread.png" alt="user_thread"></p><h5 id="用户线程的特征"><a href="#用户线程的特征" class="headerlink" title="用户线程的特征"></a>用户线程的特征</h5><p>不依赖于操作系统内核 </p><ul><li>内核不了解用户线程的存在</li><li>可用于不支持线程的多进程操作系统</li></ul><p>在用户空间实现的线程机制</p><ul><li>每个进程有私有的线程控制块(TCB) 列表</li><li>TCB 由线程库函数维护</li></ul><p>同一进程内的用户线程切换速度快</p><ul><li>无需内核态 用户态的切换</li></ul><p>允许每个进程拥有自己的线程调度算法</p><h5 id="用户线程的不足"><a href="#用户线程的不足" class="headerlink" title="用户线程的不足"></a>用户线程的不足</h5><ul><li>线程发起系统调用而阻塞时 则整个进程进入等待</li><li>不支持基于线程的处理机抢占(除非当前运行线程主动放弃 它所在进程的其他线程无法抢占CPU)</li><li>线程只能按进程分配 CPU时间(多个线程的进程中 每个线程的时间片少)</li></ul><h4 id="内核线程"><a href="#内核线程" class="headerlink" title="内核线程"></a>内核线程</h4><p>由内核通过系统调用实现的线程机制 由内核完成线程的创建 终止 管理</p><p><img src="/images/kernel_thread.png" alt="kernel_thread"></p><h5 id="内核线程的特征"><a href="#内核线程的特征" class="headerlink" title="内核线程的特征"></a>内核线程的特征</h5><ul><li>由内核来维护 PCB 和 TCB</li><li>线程执行系统调用而被阻塞 不影响 其他线程</li><li>线程的创建 终止 切换 开销大(因为要通过系统调用在内核中走一趟)</li><li>以线程为单位进行 CPU时间分配(多线程的进程可获得更多的CPU时间)</li></ul><h4 id="轻权进程-LightWeight-Process"><a href="#轻权进程-LightWeight-Process" class="headerlink" title="轻权进程(LightWeight Process)"></a>轻权进程(LightWeight Process)</h4><p>内核支持的用户线程 一个进程可有一个或多个轻量级进程 每个轻权<br>进程由一个单独的内核线程来支持</p><p><img src="/images/lightWeight_process.png" alt="lightWeight_process"></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">永久绑定线程 可看作是 内核支持的线程</span><br><span class="line">未绑定的轻权进程 可由用户态来给出一些策略 提高应用的效率</span><br><span class="line">未绑定的轻权进程 就像用户线程实现的多线程 可以自己决定调度算法之类的</span><br><span class="line">但同时 永久绑定线程 又是 内核原生就支持的线程 所以轻权进程 是融合了 内核线程和用户线程的优点</span><br><span class="line">实际上轻权进程 优点没有体现出来 因此没被广泛使用</span><br></pre></td></tr></table></figure><h4 id="内核线程和用户线程和轻权进程的对应关系"><a href="#内核线程和用户线程和轻权进程的对应关系" class="headerlink" title="内核线程和用户线程和轻权进程的对应关系"></a>内核线程和用户线程和轻权进程的对应关系</h4><p><img src="/images/thread_relationship.png" alt="thread_relationship"></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">一对一 可看作是 多进程多线程操作系统</span><br><span class="line">多对一 可看作是 多进程单线程操作系统(用户态实现多线程)</span><br><span class="line">多对多 轻权进程</span><br><span class="line">实际上最广泛使用 一对一 多进程多线程操作系统</span><br></pre></td></tr></table></figure>]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;进程&quot;&gt;&lt;a href=&quot;#进程&quot; class=&quot;headerlink&quot; title=&quot;进程&quot;&gt;&lt;/a&gt;进程&lt;/h2&gt;&lt;p&gt;指一个具有一定独立功能的程序在一个数据集合上的一次动态执行的过程&lt;/p&gt;
-&lt;h4 id=&quot;进程的组成&quot;&gt;&lt;a href=&quot;#进程的组成&quot; class=&quot;headerlink&quot; title=&quot;进程的组成&quot;&gt;&lt;/a&gt;进程的组成&lt;/h4&gt;&lt;p&gt;进程包含了正在运行的程序所有状态信息&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;代码&lt;/li&gt;
-&lt;li&gt;数据&lt;/li&gt;
-&lt;li&gt;状态寄存器&lt;ul&gt;
-&lt;li&gt;CPU 状态 CR0&lt;/li&gt;
-&lt;li&gt;指令指针 EIP&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;通用寄存器&lt;/li&gt;
-&lt;li&gt;进程占用的系统资源&lt;ul&gt;
-&lt;li&gt;打开文件&lt;/li&gt;
-&lt;li&gt;已分配内存&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
 &lt;/ul&gt;
     
     </summary>
