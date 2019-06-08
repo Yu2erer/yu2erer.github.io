@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yuerer.com/"/>
-  <updated>2019-05-26T10:31:30.000Z</updated>
+  <updated>2019-06-08T12:15:18.000Z</updated>
   <id>https://yuerer.com/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>设计模式之 单例模式</title>
+    <link href="https://yuerer.com/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/"/>
+    <id>https://yuerer.com/设计模式之单例模式/</id>
+    <published>2019-05-29T13:31:20.000Z</published>
+    <updated>2019-06-08T12:15:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="Singleton"><a href="#Singleton" class="headerlink" title="Singleton"></a>Singleton</h2><p>属于 对象性能 模式</p><p>面向对象 解决了 抽象的问题 但是会不可避免付出一些代价(虚函数) 某些情况下希望减少面向对象所带来的成本</p><p>有一些特殊的类 必须保证它在系统中只存在一个实例 的情况下使用</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Singleton</span>&#123;</span></span><br><span class="line"><span class="comment">// 设置构造函数和拷贝构造函数为私有 不被外界使用</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    Singleton();</span><br><span class="line">    Singleton(<span class="keyword">const</span> Singleton&amp; other);</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">static</span> Singleton* <span class="title">getInstance</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="keyword">static</span> Singleton* m_instance;</span><br><span class="line">&#125;;</span><br><span class="line">Singleton *Singleton::m_instance = <span class="literal">nullptr</span>;</span><br></pre></td></tr></table></figure><a id="more"></a><p>第一种实现 线程非安全版本</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Singleton *Singleton::getInstance() &#123;</span><br><span class="line">    <span class="comment">// 线程调度的时候 有可能出现 对象被创建多次的情况</span></span><br><span class="line">    <span class="keyword">if</span> (m_instance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        m_instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> m_instance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>第二种实现 线程安全版本 加锁 但是锁的代价太高了</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Singleton *Singleton::getInstance() &#123;</span><br><span class="line">    Lock lock;</span><br><span class="line">    <span class="comment">// 线程会在此等很久 读操作不需要加锁 因此可以进行优化</span></span><br><span class="line">    <span class="keyword">if</span> (m_instance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        m_instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> m_instance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>第三种实现 双检查锁 但是 内存读写 Reorder 不安全 导致双检查锁失效</p><p>正常的执行流程应当是</p><ol><li>先分配内存</li><li>调用构造函数</li><li>赋值给 m_instance</li></ol><p>但是指令执行序列有可能会被 CPU Reorder</p><ol><li>先分配内存</li><li>直接赋值给 m_instance</li><li>调用构造函数</li></ol><p>那么有可能 一个线程 调用 getInstance() 返回的只是指向一块原生内存的指针<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Singleton *Singleton::getInstance() &#123;</span><br><span class="line">    <span class="keyword">if</span>(m_instance == <span class="literal">nullptr</span>)&#123;</span><br><span class="line">        Lock lock;</span><br><span class="line">        <span class="comment">// 检查后再加锁 避免直接加锁影响读操作的性能</span></span><br><span class="line">        <span class="keyword">if</span> (m_instance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">            m_instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> m_instance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p><p>第四种实现 解决 Reorder 问题</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">std</span>::atomic&lt;Singleton*&gt; Singleton::m_instance;</span><br><span class="line"><span class="built_in">std</span>::mutex Singleton::m_mutex;</span><br><span class="line"></span><br><span class="line">Singleton *Singleton::getInstance() &#123;</span><br><span class="line">    Singleton* tmp = m_instance.load(<span class="built_in">std</span>::memory_order_relaxed);</span><br><span class="line">    <span class="comment">// 获取内存fence 类似内存屏障 防止指令被 Reorder</span></span><br><span class="line">    <span class="built_in">std</span>::atomic_thread_fence(<span class="built_in">std</span>::memory_order_acquire);</span><br><span class="line">    <span class="keyword">if</span> (tmp == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; lock(m_mutex);</span><br><span class="line">        tmp = m_instance.load(<span class="built_in">std</span>::memory_order_relaxed);</span><br><span class="line">        <span class="keyword">if</span> (tmp == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">            tmp = <span class="keyword">new</span> Singleton;</span><br><span class="line">            <span class="comment">// 释放内存fence 防止指令被 Reorder</span></span><br><span class="line">            <span class="built_in">std</span>::atomic_thread_fence(<span class="built_in">std</span>::memory_order_release);</span><br><span class="line">            m_instance.store(tmp, <span class="built_in">std</span>::memory_order_relaxed);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> tmp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;Singleton&quot;&gt;&lt;a href=&quot;#Singleton&quot; class=&quot;headerlink&quot; title=&quot;Singleton&quot;&gt;&lt;/a&gt;Singleton&lt;/h2&gt;&lt;p&gt;属于 对象性能 模式&lt;/p&gt;
+&lt;p&gt;面向对象 解决了 抽象的问题 但是会不可避免付出一些代价(虚函数) 某些情况下希望减少面向对象所带来的成本&lt;/p&gt;
+&lt;p&gt;有一些特殊的类 必须保证它在系统中只存在一个实例 的情况下使用&lt;/p&gt;
+&lt;figure class=&quot;highlight c++&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;Singleton&lt;/span&gt;&amp;#123;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;// 设置构造函数和拷贝构造函数为私有 不被外界使用&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;private&lt;/span&gt;:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    Singleton();&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    Singleton(&lt;span class=&quot;keyword&quot;&gt;const&lt;/span&gt; Singleton&amp;amp; other);&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt;:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;static&lt;/span&gt; Singleton* &lt;span class=&quot;title&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt;&lt;/span&gt;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;static&lt;/span&gt; Singleton* m_instance;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#125;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Singleton *Singleton::m_instance = &lt;span class=&quot;literal&quot;&gt;nullptr&lt;/span&gt;;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+    
+    </summary>
+    
+      <category term="设计模式" scheme="https://yuerer.com/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+    
+      <category term="设计模式" scheme="https://yuerer.com/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+      <category term="单例模式" scheme="https://yuerer.com/tags/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/"/>
+    
+  </entry>
   
   <entry>
     <title>设计模式之 构建器</title>
@@ -369,9 +396,9 @@
       <category term="计算机网络" scheme="https://yuerer.com/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"/>
     
     
-      <category term="计算机网络" scheme="https://yuerer.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"/>
-    
       <category term="子网掩码" scheme="https://yuerer.com/tags/%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81/"/>
+    
+      <category term="计算机网络" scheme="https://yuerer.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"/>
     
   </entry>
   
@@ -398,9 +425,9 @@
       <category term="计算机网络" scheme="https://yuerer.com/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"/>
     
     
-      <category term="网络协议" scheme="https://yuerer.com/tags/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/"/>
-    
       <category term="计算机网络" scheme="https://yuerer.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"/>
+    
+      <category term="网络协议" scheme="https://yuerer.com/tags/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/"/>
     
       <category term="SOCKS5" scheme="https://yuerer.com/tags/SOCKS5/"/>
     
@@ -559,34 +586,6 @@
       <category term="文件系统" scheme="https://yuerer.com/tags/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/"/>
     
       <category term="冗余磁盘阵列" scheme="https://yuerer.com/tags/%E5%86%97%E4%BD%99%E7%A3%81%E7%9B%98%E9%98%B5%E5%88%97/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>2019年寒假到来啦</title>
-    <link href="https://yuerer.com/2019%E5%B9%B4%E5%AF%92%E5%81%87%E5%88%B0%E6%9D%A5%E5%95%A6/"/>
-    <id>https://yuerer.com/2019年寒假到来啦/</id>
-    <published>2019-01-12T13:59:20.000Z</published>
-    <updated>2019-01-12T14:23:57.638Z</updated>
-    
-    <content type="html"><![CDATA[<h3 id="2018年的12月"><a href="#2018年的12月" class="headerlink" title="2018年的12月"></a>2018年的12月</h3><p>2018年的最后一月 在学校那边呆了整整两周 因为电脑也早在之前送回了家 所以这两周过得实在是无趣</p><h4 id="2018年12月31日跨年夜"><a href="#2018年12月31日跨年夜" class="headerlink" title="2018年12月31日跨年夜"></a>2018年12月31日跨年夜</h4><p>和往常一样 没有什么特别的 因为回不了深圳 只能在学校那边和宿友玩玩 PUBG 自个儿玩玩任天堂明星大乱斗 倒是挺羡慕某个人跨年夜玩的挺开心的呢</p><h3 id="2019年1月1日至1月11日"><a href="#2019年1月1日至1月11日" class="headerlink" title="2019年1月1日至1月11日"></a>2019年1月1日至1月11日</h3><p>这十来天 一直在准备期末考试 虽然也没什么好准备的 一路都是在玩大乱斗度过 不过经过这次期末考试倒是让我知道 写博文的好处. 那就是随时想复习的时候一打开就能马上回忆起来 要坚持写下去</p><a id="more"></a><h4 id="2019年1月11日晚"><a href="#2019年1月11日晚" class="headerlink" title="2019年1月11日晚"></a>2019年1月11日晚</h4><p>考完了最后一科 <code>软件工程</code> 先式把被子快递回家 后和宿友他们一起去外面吃了个火锅 点了两份牛鞭花 我不敢吃 😹 其实我觉得应该和海参差不了多少 吃完以后感觉有点涨 我的胃啊总消化不良 和往常一样去禽兽湖走了两圈回宿舍 突然感觉到一阵空虚 很想写一篇博文 但是没带电脑 所以放弃了(找个机会要想想怎么用手机发布博文) 终于结束了考试 可以回家继续做自己的事情了 洗了个澡 开着空调(为了吹干衣服 另外广东 1月份 25度你能信?) 打着电话上床睡觉了</p><h4 id="2019年1月12日"><a href="#2019年1月12日" class="headerlink" title="2019年1月12日"></a>2019年1月12日</h4><p>凌晨5点 被宿友吵醒 因为他要收拾东西去赶早上七点四十五的车回湛江 然后自己再睡到了八点多 和另外两个宿友 一起洗漱 然后一起吃了个早餐 坐了车 途中塞车一个多小时 终于回到了深圳 等到家的时候 已是下午一点多了 下午三点多被顺丰的人毒到了 寄行李选顺丰不就为了送上门 结果扔速递柜了 我倒是很好奇被子是怎么塞进速递柜的 带着疑惑果断投诉了 然后在下午五点多送到了 投诉还是很有效果的</p><h3 id="寒假到来"><a href="#寒假到来" class="headerlink" title="寒假到来"></a>寒假到来</h3><p>时间总是这么快 四个月一下就过了 算了一下今年寒假有四十多天的假期 希望能好好利用 这不 一回来就把上次回学校之前还没写的那半篇博文给补上了 有点累 但是也玩的差不多了(考试周对我而言就是脱产 + 娱乐周) 希望能在年26前完成掉大部分事情吧!</p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;h3 id=&quot;2018年的12月&quot;&gt;&lt;a href=&quot;#2018年的12月&quot; class=&quot;headerlink&quot; title=&quot;2018年的12月&quot;&gt;&lt;/a&gt;2018年的12月&lt;/h3&gt;&lt;p&gt;2018年的最后一月 在学校那边呆了整整两周 因为电脑也早在之前送回了家 所以这两周过得实在是无趣&lt;/p&gt;
-&lt;h4 id=&quot;2018年12月31日跨年夜&quot;&gt;&lt;a href=&quot;#2018年12月31日跨年夜&quot; class=&quot;headerlink&quot; title=&quot;2018年12月31日跨年夜&quot;&gt;&lt;/a&gt;2018年12月31日跨年夜&lt;/h4&gt;&lt;p&gt;和往常一样 没有什么特别的 因为回不了深圳 只能在学校那边和宿友玩玩 PUBG 自个儿玩玩任天堂明星大乱斗 倒是挺羡慕某个人跨年夜玩的挺开心的呢&lt;/p&gt;
-&lt;h3 id=&quot;2019年1月1日至1月11日&quot;&gt;&lt;a href=&quot;#2019年1月1日至1月11日&quot; class=&quot;headerlink&quot; title=&quot;2019年1月1日至1月11日&quot;&gt;&lt;/a&gt;2019年1月1日至1月11日&lt;/h3&gt;&lt;p&gt;这十来天 一直在准备期末考试 虽然也没什么好准备的 一路都是在玩大乱斗度过 不过经过这次期末考试倒是让我知道 写博文的好处. 那就是随时想复习的时候一打开就能马上回忆起来 要坚持写下去&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="胡言乱语" scheme="https://yuerer.com/categories/%E8%83%A1%E8%A8%80%E4%B9%B1%E8%AF%AD/"/>
-    
-    
-      <category term="2019" scheme="https://yuerer.com/tags/2019/"/>
-    
-      <category term="跨年" scheme="https://yuerer.com/tags/%E8%B7%A8%E5%B9%B4/"/>
-    
-      <category term="假期" scheme="https://yuerer.com/tags/%E5%81%87%E6%9C%9F/"/>
     
   </entry>
   
