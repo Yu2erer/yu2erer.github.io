@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yuerer.com/"/>
-  <updated>2019-06-08T14:05:32.000Z</updated>
+  <updated>2019-06-09T03:14:49.000Z</updated>
   <id>https://yuerer.com/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>设计模式之 状态模式</title>
+    <link href="https://yuerer.com/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/"/>
+    <id>https://yuerer.com/设计模式之状态模式/</id>
+    <published>2019-06-09T02:37:20.000Z</published>
+    <updated>2019-06-09T03:14:49.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="State"><a href="#State" class="headerlink" title="State"></a>State</h2><p>属于 状态变化 模式</p><p>在软件构建过程中 某些对象的状态如果改变 其行为也会随之发生变化</p><p>允许一个对象在其内部状态改变时 改变 它的行为 从而使得对象看起来似乎修改了其行为</p><p>下面是一个网络应用 的小示例 网络应用的行为会随着网络状态的变化而变化</p><a id="more"></a><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> NetworkState &#123;</span><br><span class="line">    Network_Open,</span><br><span class="line">    Network_Close,</span><br><span class="line">    Network_Connect,</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NetworkProcessor</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    NetworkState state;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Operation1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (state == Network_Open)&#123;</span><br><span class="line">            <span class="comment">/* ... */</span></span><br><span class="line">            state = Network_Close;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (state == Network_Close) &#123;</span><br><span class="line">            <span class="comment">/* ... */</span></span><br><span class="line">            state = Network_Connect;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (state == Network_Connect) &#123;</span><br><span class="line">            <span class="comment">/* ... */</span></span><br><span class="line">            state = Network_Open;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Operation2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (state == Network_Open) &#123;</span><br><span class="line">            <span class="comment">/* ... */</span></span><br><span class="line">            state = Network_Connect;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (state == Network_Close) &#123;</span><br><span class="line">            <span class="comment">/* ... */</span></span><br><span class="line">            state = Network_Open;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (state == Network_Connect) &#123;</span><br><span class="line">            <span class="comment">/* ... */</span></span><br><span class="line">            state = Network_Close;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><p>上面可以看出 出现了大量的 if else 语句 和 策略模式非常相似 假设状态如果会增加或者删除 业务逻辑就要大量的修改</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NetworkState</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    NetworkState* pNext;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Operation1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Operation2</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Operation3</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">virtual</span> ~NetworkState()&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OpenState</span> :</span> <span class="keyword">public</span> NetworkState &#123;</span><br><span class="line">    <span class="keyword">static</span> NetworkState *m_instance; <span class="comment">// 使用 单例 Singleton</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">static</span> NetworkState *<span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (m_instance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">            m_instance = <span class="keyword">new</span> OpenState();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> m_instance;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Operation1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">/* ... */</span></span><br><span class="line">        pNext = CloseState::getInstance();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Operation2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">/* ... */</span></span><br><span class="line">        pNext = ConnectState::getInstance();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Operation3</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">/* ... */</span></span><br><span class="line">        pNext = OpenState::getInstance();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CloseState</span> :</span> <span class="keyword">public</span> NetworkState &#123; <span class="comment">/* ... */</span> &#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NetworkProcessor</span> &#123;</span></span><br><span class="line">    NetworkState *pState; <span class="comment">// 枚举 改为 状态对象</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    NetworkProcessor(NetworkState *pState) &#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;pState = pState;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Operation1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">/* ... */</span></span><br><span class="line">        pState-&gt;Operation1();</span><br><span class="line">        pState = pState-&gt;pNext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Operation2</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">/* ... */</span></span><br><span class="line">        pState-&gt;Operation2();</span><br><span class="line">        pState = pState-&gt;pNext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Operation3</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">/* ... */</span></span><br><span class="line">        pState-&gt;Operation3();</span><br><span class="line">        pState = pState-&gt;pNext;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;State&quot;&gt;&lt;a href=&quot;#State&quot; class=&quot;headerlink&quot; title=&quot;State&quot;&gt;&lt;/a&gt;State&lt;/h2&gt;&lt;p&gt;属于 状态变化 模式&lt;/p&gt;
+&lt;p&gt;在软件构建过程中 某些对象的状态如果改变 其行为也会随之发生变化&lt;/p&gt;
+&lt;p&gt;允许一个对象在其内部状态改变时 改变 它的行为 从而使得对象看起来似乎修改了其行为&lt;/p&gt;
+&lt;p&gt;下面是一个网络应用 的小示例 网络应用的行为会随着网络状态的变化而变化&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="设计模式" scheme="https://yuerer.com/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+    
+      <category term="设计模式" scheme="https://yuerer.com/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+      <category term="状态模式" scheme="https://yuerer.com/tags/%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/"/>
+    
+  </entry>
   
   <entry>
     <title>设计模式之 适配器</title>
@@ -540,34 +567,6 @@
       <category term="浮点数" scheme="https://yuerer.com/tags/%E6%B5%AE%E7%82%B9%E6%95%B0/"/>
     
       <category term="计算机基础" scheme="https://yuerer.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>急性肠胃炎的一周</title>
-    <link href="https://yuerer.com/%E6%80%A5%E6%80%A7%E8%82%A0%E8%83%83%E7%82%8E%E7%9A%84%E4%B8%80%E5%91%A8/"/>
-    <id>https://yuerer.com/急性肠胃炎的一周/</id>
-    <published>2019-01-26T04:03:20.000Z</published>
-    <updated>2019-01-26T04:21:47.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>这一周原计划是入门一下 <code>编译原理</code> 然后就准备过年了 结果不知道是吃了什么?(酸菜鱼? 杭州菜?) 中了个急性肠胃炎 第一天吐了一整天 第二天啥事没有 第三天疼了一整天 第四天啥事没有 今天是第五天了 真是可怕的疾病啊!</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;这一周原计划是入门一下 &lt;code&gt;编译原理&lt;/code&gt; 然后就准备过年了 结果不知道是吃了什么?(酸菜鱼? 杭州菜?) 中了个急性肠胃炎 第一天吐了一整天 第二天啥事没有 第三天疼了一整天 第四天啥事没有 今天是第五天了 真是可怕的疾病啊!&lt;/p&gt;
-
-      
-    
-    </summary>
-    
-      <category term="胡言乱语" scheme="https://yuerer.com/categories/%E8%83%A1%E8%A8%80%E4%B9%B1%E8%AF%AD/"/>
-    
-    
-      <category term="急性肠胃炎" scheme="https://yuerer.com/tags/%E6%80%A5%E6%80%A7%E8%82%A0%E8%83%83%E7%82%8E/"/>
-    
-      <category term="生病" scheme="https://yuerer.com/tags/%E7%94%9F%E7%97%85/"/>
     
   </entry>
   
