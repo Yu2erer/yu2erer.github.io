@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yuerer.com/"/>
-  <updated>2019-06-09T03:14:49.000Z</updated>
+  <updated>2019-06-09T05:38:08.000Z</updated>
   <id>https://yuerer.com/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>设计模式之 备忘录</title>
+    <link href="https://yuerer.com/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%A4%87%E5%BF%98%E5%BD%95/"/>
+    <id>https://yuerer.com/设计模式之备忘录/</id>
+    <published>2019-06-09T05:06:20.000Z</published>
+    <updated>2019-06-09T05:38:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="Memento"><a href="#Memento" class="headerlink" title="Memento"></a>Memento</h2><p>属于 状态变化 模式</p><p>在软件构建过程中 某些对象的状态在转换过程中 可能由于某种需要 要求程序能够回溯到对象之前处于某个点时的状态</p><p>在不破坏封装性的前提下 捕获一个对象的内部状态 并在该对象之外保存这个状态 这样以后就可以将该对象恢复到原先保存的状态</p><p>直接看代码</p><a id="more"></a><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Memento</span> &#123;</span></span><br><span class="line">    <span class="built_in">string</span> state;</span><br><span class="line">    <span class="comment">/* ... */</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    Memento(<span class="keyword">const</span> <span class="built_in">string</span> &amp;s) : state(s) &#123;&#125;</span><br><span class="line">    <span class="function"><span class="built_in">string</span> <span class="title">getState</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> state; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">setState</span><span class="params">(<span class="keyword">const</span> <span class="built_in">string</span> &amp;s)</span> </span>&#123; state = s; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Originator</span> &#123;</span></span><br><span class="line">    <span class="built_in">string</span> state;</span><br><span class="line">    <span class="comment">/* ... */</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    Originator() &#123;&#125;</span><br><span class="line">    <span class="function">Memento <span class="title">createMomento</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">Memento <span class="title">m</span><span class="params">(state)</span></span>;</span><br><span class="line">        <span class="keyword">return</span> m;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">setMomento</span><span class="params">(<span class="keyword">const</span> Memento &amp;m)</span> </span>&#123;</span><br><span class="line">        state = m.getState();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 我们希望能够保存上面这个类的对象的状态</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Originator orginator;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 捕获对象状态，存储到备忘录</span></span><br><span class="line">    Memento mem = orginator.createMomento();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 改变orginator状态</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 从备忘录中恢复</span></span><br><span class="line">    orginator.setMomento(memento);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>其实就是想保存 一个对象的状态 但不想直接暴露出来 就再设计一个类 作为一个备忘录 存下你想存下的状态 到另一个对象里 就这么简单 现在很少这么做了(过时了) 因为 现代语言的运行时都具有相当的对象序列化的支持 因此往往采用效率较高的序列化方案</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;Memento&quot;&gt;&lt;a href=&quot;#Memento&quot; class=&quot;headerlink&quot; title=&quot;Memento&quot;&gt;&lt;/a&gt;Memento&lt;/h2&gt;&lt;p&gt;属于 状态变化 模式&lt;/p&gt;
+&lt;p&gt;在软件构建过程中 某些对象的状态在转换过程中 可能由于某种需要 要求程序能够回溯到对象之前处于某个点时的状态&lt;/p&gt;
+&lt;p&gt;在不破坏封装性的前提下 捕获一个对象的内部状态 并在该对象之外保存这个状态 这样以后就可以将该对象恢复到原先保存的状态&lt;/p&gt;
+&lt;p&gt;直接看代码&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="设计模式" scheme="https://yuerer.com/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+    
+      <category term="设计模式" scheme="https://yuerer.com/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+      <category term="备忘录" scheme="https://yuerer.com/tags/%E5%A4%87%E5%BF%98%E5%BD%95/"/>
+    
+  </entry>
   
   <entry>
     <title>设计模式之 状态模式</title>
@@ -540,33 +567,6 @@
       <category term="SOCKS5" scheme="https://yuerer.com/tags/SOCKS5/"/>
     
       <category term="GoSocksProxy" scheme="https://yuerer.com/tags/GoSocksProxy/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>关于 IEEE 754 浮点数</title>
-    <link href="https://yuerer.com/%E5%85%B3%E4%BA%8E-IEEE-754-%E6%B5%AE%E7%82%B9%E6%95%B0/"/>
-    <id>https://yuerer.com/关于-IEEE-754-浮点数/</id>
-    <published>2019-02-18T00:17:20.000Z</published>
-    <updated>2019-02-18T05:44:13.769Z</updated>
-    
-    <content type="html"><![CDATA[<p>首先讲讲数在计算机上的表示</p><h2 id="数的机器表示"><a href="#数的机器表示" class="headerlink" title="数的机器表示"></a>数的机器表示</h2><p>众所周知 机器很笨 它是不认识什么 有符号数 和 无符号数的 它只认识 二进制串 那么在计算机上 是如何表示 有符号数和无符号数的呢?</p><h3 id="计算机不区分有符号数和无符号数"><a href="#计算机不区分有符号数和无符号数" class="headerlink" title="计算机不区分有符号数和无符号数"></a>计算机不区分有符号数和无符号数</h3><p>首先在计算机眼中 它确确实实只认识 二进制串 二进制串所表示的数 是有符号数还是无符号数 取决于 用户(编码者)怎么看 当你认为 <code>0xffff</code> 为正数时 它就是 <code>65535</code> 当你认为 <code>0xffff</code> 为负数时 就为 <code>-1</code></p><p>其次 在计算机中 它会将送进来的数 统一用补码计算 使用补码计算就不用区分 是有符号数还是无符号数 因为补码的加减法的规则相同</p><a id="more"></a><p>比如 一个二进制为: <code>1000 0001</code> 当你对其 <code>+1</code> 后 则为 <code>1000 0010</code> </p><ul><li>若你将 <code>1000 0001</code> 当做无符号数 则为 <code>129 + 1 = 130</code> 此时 <code>1000 0010</code> 为无符号数的 <code>130</code></li><li>若视为 有符号数 则为 <code>-127 + 1 = -126</code> 此时 <code>1000 0010</code> 为有符号数的 <code>-126</code></li></ul><p>也就是说 补码的存在 使得CPU 计算有符号数和无符号数的 加法过程统一 此外为了方便用户 CPU计算完成后 还会设置 eflags 状态寄存器 根据状态位即可同时知道 有符号数和无符号数的运算结果</p><p>至于 最高有效位 是 0 还是 1 来表示的正负数 是程序员自己认为的 机器不认识 也不懂 它只知道执行指令</p><h3 id="浮点数的表示"><a href="#浮点数的表示" class="headerlink" title="浮点数的表示"></a>浮点数的表示</h3><p>根据 IEEE 754 标准<br>二进制浮点数V 可以表示为 <code>V = (-1)^S * M * 2^E</code><br>计算机中浮点数二进制存储结构可以表示为 <code>[sign|      exp      |            frac            ]</code><br>其中 s 为符号位 和整数的二进制表示不同的是 它只表示符号位 不带任何权重</p><ul><li>单精度浮点数: exp宽为 8位 frac宽为 23位</li><li>双精度浮点数: exp宽为 11位 frac宽为52位</li></ul><h4 id="规格化浮点数"><a href="#规格化浮点数" class="headerlink" title="规格化浮点数"></a>规格化浮点数</h4><p><code>exp != 000...0 &amp;&amp; exp != 111...1</code> 则为规格化浮点数</p><p>此时 E + Bias = Exp</p><ul><li>Bias取值<ul><li>Bias = 2^e-1 e = exp位数</li><li>单精度数: 127</li><li>双精度数: 1023</li></ul></li></ul><p>之所以 E 要 Exp 减去 Bias 的原因是 E是一个 <code>unsigned int</code> 而科学计数法中的 E 是有正有负的 因此 E要减去一个中间数</p><p>frac域的第一位隐含为 1 在 32位浮点数中 frac的宽为 23位 省略了第一位以后 则多了一位 可以保存24位</p><h5 id="规格化浮点数实例"><a href="#规格化浮点数实例" class="headerlink" title="规格化浮点数实例"></a>规格化浮点数实例</h5><p>Float F = 15213.0</p><ul><li>15213D = 11101101101101B = 1.1101101101101B X 2^13</li><li>M = 1.1101101101101B</li><li>frac= 1101101101101B(规格化浮点数 舍弃第一位)</li><li>E = 13</li><li>Bias = 127(因为是32位浮点数)</li><li>Exp = 13 + 127 = 140 = 10001100B</li></ul><p>最终在机器中表示为 <code>[0|1000 1100|1101 1011 0110 1]</code></p><h4 id="非规格化浮点数"><a href="#非规格化浮点数" class="headerlink" title="非规格化浮点数"></a>非规格化浮点数</h4><p><code>exp = 000...0</code></p><ul><li>E = -Bias + 1 Bias = 2^e-1 e = exp位数</li><li>M = 0.xxxxx</li><li>当 exp = 000…0, frac = 000…0<ul><li>表示 0</li><li>有 +0 与 -0</li></ul></li><li>当 exp = 000…0, frac != 000…0<ul><li>表示 非常接近于 0</li><li>会逐步丧失精度</li></ul></li><li>当 exp = 111…1, frac = 000…0<ul><li>表示无穷</li><li>1.0/0.0 = +无穷 -1.0/0.0 = -无穷</li></ul></li><li>当 exp = 111…1, frac != 000…0<ul><li>NaN</li></ul></li></ul><h5 id="举个例子-Int-to-Float"><a href="#举个例子-Int-to-Float" class="headerlink" title="举个例子 Int to Float"></a>举个例子 Int to Float</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> num = <span class="number">8</span>;</span><br><span class="line"><span class="keyword">float</span>* pfloat = &amp;num;</span><br></pre></td></tr></table></figure><p><code>*pfloat</code> 的值为多少?<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">首先 num 为 0x00000008</span><br><span class="line">第一位 为符号位 为 0 因为是正数</span><br><span class="line">其次 符号位后面八位 为exp域 为 0000 0000 全0 则 E = -Bias + 1 = 2^e-1 + 1 = -126</span><br><span class="line">最后 M 23位 = 000 0000 0000 0000 0000 1000</span><br><span class="line">(省略掉最前面的0 因为是非规格化浮点数 若为规格化浮点数则省略最前面的1)</span><br><span class="line">得到</span><br><span class="line">V = (-1)^S * M * 2^E = 0x0.00000000000000000001000 * 2^(-126) = 1.000 * 2^(-146)</span><br><span class="line">很接近于0 因此 *pfloat 为 0.000000</span><br></pre></td></tr></table></figure></p><h5 id="再举个例子-Float-to-Int"><a href="#再举个例子-Float-to-Int" class="headerlink" title="再举个例子 Float to Int"></a>再举个例子 Float to Int</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> num = <span class="number">8</span>;</span><br><span class="line"><span class="keyword">float</span>* pfloat = &amp;num;</span><br><span class="line">*pfloat = <span class="number">8.0</span>;</span><br></pre></td></tr></table></figure><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">num 的值为多少?</span><br></pre></td></tr></table></figure><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">首先 8.0 是一个正数 符号位 为 0</span><br><span class="line">其次 8.0 = 1000.0B = 1.000 * 2^3 E = 3 exp = E + Bias = 3 + 127 = 130 = 1000 0010B</span><br><span class="line">M = 000 补到 23位</span><br><span class="line">因此 在二进制为 [0|1000 0010|000 0000 0000 0000 0000] 转换为十进制 为 1107296256</span><br></pre></td></tr></table></figure>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;首先讲讲数在计算机上的表示&lt;/p&gt;
-&lt;h2 id=&quot;数的机器表示&quot;&gt;&lt;a href=&quot;#数的机器表示&quot; class=&quot;headerlink&quot; title=&quot;数的机器表示&quot;&gt;&lt;/a&gt;数的机器表示&lt;/h2&gt;&lt;p&gt;众所周知 机器很笨 它是不认识什么 有符号数 和 无符号数的 它只认识 二进制串 那么在计算机上 是如何表示 有符号数和无符号数的呢?&lt;/p&gt;
-&lt;h3 id=&quot;计算机不区分有符号数和无符号数&quot;&gt;&lt;a href=&quot;#计算机不区分有符号数和无符号数&quot; class=&quot;headerlink&quot; title=&quot;计算机不区分有符号数和无符号数&quot;&gt;&lt;/a&gt;计算机不区分有符号数和无符号数&lt;/h3&gt;&lt;p&gt;首先在计算机眼中 它确确实实只认识 二进制串 二进制串所表示的数 是有符号数还是无符号数 取决于 用户(编码者)怎么看 当你认为 &lt;code&gt;0xffff&lt;/code&gt; 为正数时 它就是 &lt;code&gt;65535&lt;/code&gt; 当你认为 &lt;code&gt;0xffff&lt;/code&gt; 为负数时 就为 &lt;code&gt;-1&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;其次 在计算机中 它会将送进来的数 统一用补码计算 使用补码计算就不用区分 是有符号数还是无符号数 因为补码的加减法的规则相同&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="计算机基础" scheme="https://yuerer.com/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
-    
-    
-      <category term="浮点数" scheme="https://yuerer.com/tags/%E6%B5%AE%E7%82%B9%E6%95%B0/"/>
-    
-      <category term="计算机基础" scheme="https://yuerer.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
     
   </entry>
   
