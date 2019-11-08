@@ -38,14 +38,8 @@ tags: [C++, 内存管理]
     allocator<int>().deallocate(p4, 3);
 #endif
 
-#ifdef __BORLANDC__
-    // 属于 non-static 要先实例化object再调用
-    int *p4 = allocator<int>().allocate(5); // 第二个参数有默认值 不需要手动填一个无用值
-    allocator<int>().deallocate(p4, 5);
-#endif
-
 #ifdef __GUNC__
-    // 早期 2.9 版本
+    // 早期 GNU-C++ 2.9 版本
     // void *p4 = alloc::allocate(512);
     // alloc::deallocate(p4, 512);
     // alloc 换名字了
@@ -212,14 +206,28 @@ public:
 };
 ```
 
-## 重载 placement new
+## 重载 placement new, placement delete
+
 和 重载 `operator new` 类似
+
+其实这真的能说是重载 `placement new` 吗? `placement new` 是在指定位置下进行构造函数
+
+而这个 则很像 `operator new` 的重载了 唯一不同是参数个数不同和使用方式不同了
 
 ```c++
 // 第一个参数 必须是 size_t 这是为了 自动传入大小 不然没法 new
 void *operator new(size_t size, long extra, char init) {
     return malloc(size + extra);
 }
+void operator delete(void* p, long, char) {
+    free(p);
+}
+// placement delete 重载 
+// 就算和 placement new 没有一一对应也没关系
+// 因为重载的 placement delete
+// 只在 placement new 后 ctor 后失败(抛出异常) 时 才会被调用
+// 如果不对应起来 就可以看做是 你放弃处理 ctor 发出的异常
+// 注意 全局局部重载的效果都是一样的 delete 的时候不会去调用 placement delete
 ```
 
 使用方式 `Foo *pf = new(300, 'c) Foo;`
