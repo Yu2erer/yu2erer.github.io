@@ -16,6 +16,8 @@ tags: [C++, 内存管理, 内存池]
 
 具体代码可见 [Memory_Pool](https://github.com/Yu2erer/Memory_Pool)
 
+原理可见 [C++ 内存管理 之 STL内存分配实现原理](https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/)
+
 <!-- more -->
 
 ```c++
