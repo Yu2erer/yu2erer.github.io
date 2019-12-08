@@ -1,6 +1,6 @@
 ---
 title: C++ 内存管理 之 Loki Allocator
-categories: C++, Loki
+categories: C++
 date: 2019-11-8 15:00:20
 keywords: C++, 内存管理, 内存分配原理, Loki, Allocator
 tags: [C++, 内存管理, Loki]

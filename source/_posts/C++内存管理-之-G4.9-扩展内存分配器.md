@@ -1,6 +1,6 @@
 ---
 title: C++ 内存管理 之 G4.9 扩展内存分配器
-categories: C++, STL
+categories: C++
 date: 2019-11-7 13:24:20
 keywords: C++, 内存管理, GNU, GNU4.9, STL, 扩展内存分配器
 tags: [C++, 内存管理, GNU, STL]

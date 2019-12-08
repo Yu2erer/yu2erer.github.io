@@ -1,6 +1,6 @@
 ---
 title: C++ 内存管理 之 STL内存分配实现原理
-categories: C++, STL
+categories: C++
 date: 2019-11-5 12:38:20
 keywords: C++, 内存管理, 标准内存分配原理, STL
 tags: [C++, 内存管理, STL]

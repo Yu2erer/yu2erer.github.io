@@ -1,5 +1,5 @@
 ---
-title: LeetCode 160~162 周赛[持续更新]
+title: LeetCode 160~166 周赛[持续更新]
 categories: LeetCode
 date: 2019-10-29 20:04:20
 keywords: LeetCode, 周赛
@@ -539,6 +539,441 @@ public:
         int res = 0;
         int tmp = 0;
         find(words, score, res, tmp, 0);
+        return res;
+    }
+};
+```
+
+# LeetCode 165 周赛
+
+## [5275. 找出井字棋的获胜者](https://leetcode-cn.com/problems/find-winner-on-a-tic-tac-toe-game/submissions/)
+
+构建个棋盘出来 然后一一进行检查
+
+```c++
+class Solution {
+public:
+    string tictactoe(vector<vector<int>>& m) {
+        vector<vector<int>> grid(3, vector<int>(3, 0));
+        int n = m.size();
+        for (int i = 0; i < n; i ++) {
+            // 0 & 1 + 1 = 1, 1 & 1 + 1 = 2 
+            grid[m[i][0]][m[i][1]] = (i & 1) + 1;
+        }
+        
+        for (int i = 0; i < 3; i ++) {
+            if (grid[i][0] == grid[i][1] && grid[i][0] == grid[i][2]) {
+                if (grid[i][0] == 1) {
+                    return "A";
+                } else if (grid[i][2] == 2) {
+                    return "B";
+                }
+            }
+            
+            if (grid[0][i] == grid[1][i] && grid[0][i] == grid[2][i]) {
+                if (grid[0][i] == 1) {
+                    return "A";
+                } else if (grid[0][i] == 2) {
+                    return "B";
+                }
+            }
+            // 00 01 02
+            //    11
+            // 20    22
+        }
+        if (grid[0][0] == grid[1][1] && grid[0][0] == grid[2][2]) {
+            if (grid[0][0] == 1) {
+                return "A";
+            } else if (grid[0][0] == 2) {
+                return "B";
+            }
+        }
+        if (grid[0][2] == grid[1][1] && grid[0][2] == grid[2][0]) {
+            if (grid[0][2] == 1) {
+                return "A";
+            } else if (grid[0][2] == 2) {
+                return "B";
+            }
+        }
+        if (n == 9) {
+            return "Draw";
+        } else {
+            return "Pending";
+        }
+    }
+};
+```
+
+
+## [5276. 不浪费原料的汉堡制作方案](https://leetcode-cn.com/problems/number-of-burgers-with-no-waste-of-ingredients/)
+
+属于解方程问题 巨无霸 4番茄 + 1奶酪 小皇堡 2番茄 + 1 奶酪
+
+4x + 2y = t
+x + y = c
+
+```c++
+class Solution {
+public:
+    vector<int> numOfBurgers(int t, int c) {
+        int j = 0, m = 0;
+        // 解出来不是整数 则为无解
+        if ((t - 2 * c) % 2 != 0)
+            return {};
+        }
+        j = (t - 2 * c) / 2;
+        m = c - j;
+        // 解出来为负数 也为无解
+        if (j >= 0 && m >= 0) {
+            return {j, m};
+        }
+        return {};
+    }
+};
+```
+
+## [5277. 统计全为 1 的正方形子矩阵](https://leetcode-cn.com/problems/count-square-submatrices-with-all-ones/submissions/)
+
+暴力法
+```c++
+class Solution {
+public:
+    bool valid(const vector<vector<int>>& matrix, int i, int j, int ti, int tj) {
+        for (int ki = i; ki <= ti; ki ++) {
+            for (int kj = j; kj <= tj; kj ++) {
+                if (matrix[ki][kj] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    int countSquares(vector<vector<int>>& matrix) {
+        int m = matrix.size();
+        if (m == 0) {
+            return 0;
+        }
+        int n = matrix[0].size();
+        int w = min(m, n);
+        int res = 0;
+        for (int i = 0; i < m; i ++) {
+            for (int j = 0; j < n; j ++) {
+                for (int k = 0; k < w; k ++) {
+                    if (i + k < m && j + k < n) {
+                        if (valid(matrix, i, j, i + k, j + k)) {
+                            res ++;        
+                        }
+                    }
+                }
+            }
+        }
+        return res;
+    }
+};
+```
+
+动态规划 dp[i][j] 表示 坐标 (i, j) 所能围成的正方形的最大边长 最后全部相加 就是所有正方形数量
+
+```c++
+class Solution {
+public:
+    int countSquares(vector<vector<int>>& matrix) {
+        int m = matrix.size();
+        if (m == 0) {
+            return 0;
+        }
+        int n = matrix[0].size();
+        
+        vector<vector<int>> dp(m, vector<int>(n, 0));
+        int res = 0;
+        for (int i = 0; i < m; i++) {
+            dp[i][0] = (matrix[i][0] == 1 ? 1 : 0);
+            if (i != 0) {
+                res += dp[i][0];
+            }
+        }
+        
+        for (int i = 0; i < n; i ++){
+            dp[0][i] = (matrix[0][i] == 1 ? 1 : 0);
+            if (i != 0) {
+                res += dp[0][i];
+            }
+        }
+        for (int i = 1; i < m; i ++) {
+            for (int j = 1; j < n; j ++) {
+                if (matrix[i][j] == 1) {
+                    dp[i][j] = min({dp[i - 1][j], dp[i - 1][j - 1], dp[i][j - 1]}) + 1;
+                }
+                res += dp[i][j];
+            }
+        }
+        res += dp[0][0];
+        return res;
+    }
+};
+```
+
+## [5278. 分割回文串 III](https://leetcode-cn.com/problems/palindrome-partitioning-iii/)
+
+```c++
+class Solution {
+public:
+    int getCosts(const string &s, int l, int r) {
+        int res = 0;
+        while (l < r) {
+            if (s[l++] != s[r--]) {
+                res ++;
+            }
+        }
+        return res;
+    }
+    int palindromePartition(string s, int k) {
+        // dp[i][j]
+        // 前i个字符 分割为 j个回文的最小代价
+        int n = s.size();
+        vector<vector<int>> sum(n, vector<int>(n, 0));
+        for (int i = 0; i < n; i ++) {
+            for (int j = i + 1;j < n ; j++) {
+                sum[i][j] = getCosts(s, i, j);
+            }
+        }
+        vector<vector<int>> dp(n + 1, vector<int>(k + 1, 1000));
+        
+        for (int i = 0; i <= k; i ++) {
+            dp[0][i] = 0;
+        }
+        for (int i = 1; i <= n; i ++) {
+            dp[i][1] = sum[0][i - 1];
+        }
+        
+        for (int i = 1; i <= n; i ++) {
+            for (int j = 2; j <= min(k, i); j ++) {
+                // 确定分割点 [0...m] + [m, i - 1]
+                for (int m = 1; m < i; m ++) {
+                    dp[i][j] = min(dp[i][j], sum[m][i - 1] + dp[m][j - 1]);
+                }
+            }
+        }
+        return dp[n][k];
+    }
+};
+```
+
+也可以用递归 更好理解
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> sum;
+    vector<vector<int>> dp;
+    int getCosts(const string &s, int l, int r) {
+        int res = 0;
+        while (l < r) {
+            if (s[l++] != s[r--]) {
+                res ++;
+            }
+        }
+        return res;
+    }
+    int solve(int idx, int k, int n) {
+        if (idx == n) {
+            if (k == 0) {
+                return 0;
+            }
+            // 无解
+            return n + 1;
+        }
+        // 字符还有 但是不要求切割了 无解
+        if (k == 0) {
+            return n + 1;
+        }
+        if (dp[idx][k] != -1) {
+            return dp[idx][k];
+        }
+        int res = n;
+        for (int i = idx ; i < n; i ++) {
+            int tmp = sum[idx][i] + solve(i + 1, k - 1, n);
+            res = min(res, tmp);
+        }
+        dp[idx][k] = res;
+        return res;
+    }
+    int palindromePartition(string s, int k) {
+        // dp[i][j]
+        // 前i个字符 分割为 j个回文的最小代价
+        int n = s.size();
+        sum = vector<vector<int>>(n, vector<int>(n, 0));
+        for (int i = 0; i < n; i ++) {
+            for (int j = i + 1;j < n ; j++) {
+                sum[i][j] = getCosts(s, i, j);
+            }
+        }
+        dp = vector<vector<int>>(n, vector<int>(k + 1, -1));
+        return solve(0, k, n);
+    }
+};
+```
+
+# LeetCode 166 周赛
+
+## [5279. 整数的各位积和之差](https://leetcode-cn.com/problems/subtract-the-product-and-sum-of-digits-of-an-integer/)
+
+签到题
+
+```c++
+class Solution {
+public:
+    int subtractProductAndSum(int n) {
+        int mul = 1, sum = 0;
+        while (n != 0) {
+            int t = n % 10;
+            n /= 10;
+            mul *= t;
+            sum += t;
+        }
+        return mul - sum;
+    }
+};
+```
+
+## [5280. 用户分组](https://leetcode-cn.com/problems/group-the-people-given-the-group-size-they-belong-to/)
+
+暴力美学
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> res;
+    void helper(vector<int>& g, int k) {
+        int n = g.size();
+        vector<int> vec;
+        int t = 0;
+        for (int i = 0; i < n; i ++) {
+            if (g[i] == k && t < k) {
+                vec.push_back(i);
+                t ++;
+                g[i] = -1;
+            }
+        }
+        if (vec.empty()) {
+            return;
+        }
+        res.push_back(vec);
+    }
+    vector<vector<int>> groupThePeople(vector<int>& g) {
+        int n = g.size();
+        for (int i = 0; i < n; i ++) {
+            int k = g[i];
+            helper(g, k);
+        }
+        return res;
+    }
+};
+```
+
+## [5281. 使结果不超过阈值的最小除数](https://leetcode-cn.com/problems/find-the-smallest-divisor-given-a-threshold/)
+
+没啥好说的 二分搜索
+
+```c++
+class Solution {
+public:
+    int smallestDivisor(vector<int>& nums, int threshold) {
+        int n = nums.size();
+        int res = threshold;
+        int k = INT_MAX;
+        int l = 1, r = 0x7fffffff;
+        while (l <= r) {
+            int m = l + (r - l) / 2;
+            int sum = 0;
+            for (int i = 0; i < n; i ++) {
+                sum += (nums[i] + m - 1) / m;
+            }
+            if (sum <= threshold) {
+                k = min(k, m);
+                r = m - 1;
+            } else {
+                l = m + 1;
+            }
+        }
+        return k;
+    }
+};
+```
+
+## [5282. 转化为全零矩阵的最少反转次数](https://leetcode-cn.com/problems/minimum-number-of-flips-to-convert-binary-matrix-to-zero-matrix/submissions/)
+
+
+先把第一行确认好 然后用打死也不动第一行的原则 去使得 下面每个 1 都变成 0
+最后再检查 最后一行 是否全为 0 就行了
+
+```c++
+class Solution {
+public:
+    int m, n;
+    // 之所以包含 (0, 0) 是因为自己本身也要取反
+    int d[5][2] = {{0, 0}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+    bool inArea(int i, int j) {
+        return i >= 0 && j >= 0 && i < m && j < n;
+    }
+    // 将 (x, y) 上的及其相邻的值取反
+    void helper(vector<vector<int>>& g, int x, int y) {
+        for (int i = 0; i < 5; i ++) {
+            int newx = x + d[i][0];
+            int newy = y + d[i][1];
+            if (inArea(newx, newy)) {
+                g[newx][newy] = 1 - g[newx][newy];
+            }
+        }
+    }
+    int minFlips(vector<vector<int>>& mat) {
+        m = mat.size();
+        if (m == 0) {
+            return 0;
+        }
+        n = mat[0].size();
+        int res = INT_MAX;
+        vector<vector<int>> backup(mat);
+
+        // 2 的 n列次方
+        for (int k = 0; k < 1 << n; k ++) {
+            int sum = 0;
+            for (int j = 0; j < n; j ++) {
+                // 枚举 2的n次方种 可能
+                if (!(k >> j & 1)) {
+                    sum ++;
+                    helper(mat, 0, j);
+                }
+            }
+            cout << sum << endl;
+            // 前一行的位置想要转化 必须要由后一行来操作
+            // 因为假设我们固定了 前一行
+            for (int i = 0; i < m - 1; i ++) {
+                for (int j = 0 ; j < n; j ++) {
+                    if (mat[i][j] == 1) {
+                        sum ++;
+                        helper(mat, i + 1, j);
+                    }
+                }
+            }
+            
+            bool flag = true;
+            // 如果最后一行还有 1 则转化失败
+            for (int j = 0; j < n; j ++) {
+                if (mat[m - 1][j] == 1) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                res = min(res, sum);
+            }
+            // 还原状态
+            mat = backup;
+        }
+        if (res == INT_MAX) {
+            return -1;
+        }
         return res;
     }
 };
