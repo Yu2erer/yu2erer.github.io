@@ -1,34 +1,13 @@
 ---
-title: LeetCode 160~166 周赛[持续更新]
+title: LeetCode 160~167 周赛[持续更新]
 categories: LeetCode
 date: 2019-10-29 20:04:20
 keywords: LeetCode, 周赛
 tags: [LeetCode, 周赛]
 ---
+这里面包含了 LeetCode 160~169 的周赛解答 为了减少篇幅 删除了签到题的解答
+
 # LeetCode 160 周赛
-
-## [1237. 找出给定方程的正整数解](https://leetcode-cn.com/contest/weekly-contest-160/problems/find-positive-integer-solution-for-a-given-equation/)
-
-这一题 题目很长 读完以后 可以知道暴力法可以解决
-
-```c++
-class Solution {
-public:
-    vector<vector<int>> findSolution(CustomFunction& customfunction, int z) {
-        vector<vector<int>> res;
-        for (int i = 1 ; i <= 1000; i ++) {
-            for (int j = 1; j <= 1000;j ++) {
-                if (customfunction.f(i, j) == z) {
-                    res.push_back({i, j});
-                }
-            }
-        }
-        return res;
-    }
-};
-```
-
-<!-- more -->
 
 ## [1238. 循环码排列](https://leetcode-cn.com/contest/weekly-contest-160/problems/circular-permutation-in-binary-representation/)
 
@@ -71,6 +50,8 @@ public:
     }
 };
 ```
+
+<!-- more -->
 
 方法二:
 
@@ -366,40 +347,6 @@ public:
 ```
 
 # LeetCode 162 周赛
-
-## [5255. 奇数值单元格的数目](https://leetcode-cn.com/contest/weekly-contest-162/problems/cells-with-odd-values-in-a-matrix/)
-
-就按着要求做就行了 签到题
-
-```c++
-class Solution {
-public:
-    int oddCells(int n, int m, vector<vector<int>>& indices) {
-        // n 是行 m是列
-        vector<vector<int>> memo(n, vector<int>(m, 0));
-        int ns = indices.size();
-        for (int i = 0 ; i < ns; i ++) {
-            auto k = indices[i];
-            int x = k[0], y = k[1];
-            for (int j = 0; j < m; j ++) {
-                memo[x][j] ++;
-            }
-            for (int j = 0; j < n; j ++) {
-                memo[j][y] ++;
-            }
-        }
-        int res = 0;
-        for (int i = 0 ; i < n; i ++) {
-            for (int j = 0; j < m; j ++) {
-                if (memo[i][j] % 2 != 0) {
-                    res ++;
-                }
-            }
-        }
-        return res;
-    }
-};
-```
 
 ## [5256. 重构 2 行二进制矩阵](https://leetcode-cn.com/contest/weekly-contest-162/problems/reconstruct-a-2-row-binary-matrix/)
 
@@ -816,26 +763,6 @@ public:
 
 # LeetCode 166 周赛
 
-## [5279. 整数的各位积和之差](https://leetcode-cn.com/problems/subtract-the-product-and-sum-of-digits-of-an-integer/)
-
-签到题
-
-```c++
-class Solution {
-public:
-    int subtractProductAndSum(int n) {
-        int mul = 1, sum = 0;
-        while (n != 0) {
-            int t = n % 10;
-            n /= 10;
-            mul *= t;
-            sum += t;
-        }
-        return mul - sum;
-    }
-};
-```
-
 ## [5280. 用户分组](https://leetcode-cn.com/problems/group-the-people-given-the-group-size-they-belong-to/)
 
 暴力美学
@@ -945,7 +872,7 @@ public:
                     helper(mat, 0, j);
                 }
             }
-            cout << sum << endl;
+
             // 前一行的位置想要转化 必须要由后一行来操作
             // 因为假设我们固定了 前一行
             for (int i = 0; i < m - 1; i ++) {
@@ -973,6 +900,346 @@ public:
         }
         if (res == INT_MAX) {
             return -1;
+        }
+        return res;
+    }
+};
+```
+
+# LeetCode 167 周赛
+
+## [5283. 二进制链表转整数](https://leetcode-cn.com/problems/convert-binary-number-in-a-linked-list-to-integer/submissions/)
+
+二进制转十进制 第一种倒着来
+
+```c++
+class Solution {
+public:
+    int getDecimalValue(ListNode* head) {
+        int res = 0;
+        while (head) {
+            res = res * 2 + head->val;
+            head = head->next;
+        }
+        return res;
+    }
+};
+```
+
+第二种 顺着来 第 i 位 * 2^i
+
+```c++
+class Solution {
+public:
+    int getDecimalValue(ListNode* head) {
+        stack<int> s;
+        while (head) {
+            s.push(head->val);
+            head = head->next;
+        }
+        int res = 0, i = 0;
+        while (!s.empty()) {
+            int k = s.top();
+            s.pop();
+            res += k << i;
+            i ++;
+        }
+        return res;
+    }
+};
+```
+
+## [5124. 顺次数](https://leetcode-cn.com/problems/sequential-digits/)
+
+回溯 生成数字 注意不能超过 9
+
+```c++
+class Solution {
+public:
+    void helper(int low, int high, int num, int pop) {
+        if (num > high) {
+            return;
+        }
+        if (num >= low) {
+            res.push_back(num);
+        }
+        if (pop + 1 <= 9) {
+            helper(low, high, num * 10 + pop + 1, pop + 1);
+        }
+    }
+    vector<int> sequentialDigits(int low, int high) {
+        for (int i = 1; i <= 9; i ++) {
+            helper(low, high, i, i);
+        }
+        sort(res.begin(), res.end());
+        return res;
+    }
+    vector<int> res;
+};
+```
+
+或者使用枚举法 枚举出所有顺次数
+
+```c++
+class Solution {
+public:
+    void helper() {
+        for (int i = 1; i <= 9; i ++) {
+            int x = 0;
+            for (int j = i; j <= 9; j ++) {
+                x = x * 10 + j;
+                tmp.push_back(x);
+            }
+        }
+        sort(tmp.begin(), tmp.end());
+    }
+    vector<int> sequentialDigits(int low, int high) {
+        helper();
+        for (int i = 0; i < tmp.size(); i ++) {
+            if (tmp[i] >= low && tmp[i] <= high) {
+                res.push_back(tmp[i]);
+            }
+        }
+        return res;
+    }
+    vector<int> tmp;
+    vector<int> res;
+};
+```
+
+## [5285. 元素和小于等于阈值的正方形的最大边长](https://leetcode-cn.com/problems/maximum-side-length-of-a-square-with-sum-less-than-or-equal-to-threshold/)
+
+暴力法 将每行每列存起来 或者 你也可以把每个矩阵的总和存起来
+
+```c++
+class Solution {
+public:
+	int maxSideLength(vector<vector<int>>& mat, int t) {
+		int m = mat.size();
+		if (m == 0) {
+			return 0;
+		}
+		int n = mat[0].size();
+		int w = min(m, n);
+        
+        vector<vector<int>> rowSum(m, vector<int>(n + 1, 0));
+        vector<vector<int>> colSum(m + 1, vector<int>(n, 0));
+        for (int i = 0; i < m; i ++) {
+            for (int j = 0; j < n; j ++) {
+                rowSum[i][j + 1] = mat[i][j] + rowSum[i][j];
+            }
+        }
+        for (int j = 0; j < n; j ++) {
+            for (int i = 0; i < m; i ++) {
+                colSum[i + 1][j] = mat[i][j] + colSum[i][j];
+            }
+        }
+        
+		int res = 0;
+		for (int i = 0; i < m; i ++) {
+			for (int j = 0; j < n; j ++) {
+                int sum = 0;
+				for (int k = 0; k < w; k ++) {
+                    int newi = i + k, newj = j + k;
+					if (newi < m && newj < n) {
+                        int row = rowSum[newi][newj + 1] - rowSum[newi][j];
+                        int col = colSum[newi + 1][newj] - colSum[i][newj];
+                        sum += col + row - mat[newi][newj];
+                        if (sum > t) {
+                            break;
+                        }
+                        res = max(res, k + 1);
+					}
+				}
+			}
+		}
+		return res;
+	}
+};
+```
+
+## [5286. 网格中的最短路径](https://leetcode-cn.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/)
+
+最短路径用 bfs 只不过这里多了个 可以清理障碍的机会 可以反过来想 既然我能清理他了 我就无视他 继续走就是了
+
+```c++
+class Solution {
+public:
+    struct node {
+        int x, y, step, k;
+        node(int x, int y, int step, int k) : x(x), y(y), step(step), k(k) {}
+    };
+    int shortestPath(vector<vector<int>>& g, int k) {
+        m = g.size();
+        if (m == 0) {
+            return 0;
+        }
+        n = g[0].size();
+
+        visited = vector<vector<vector<bool>>>(m, vector<vector<bool>>(n, vector<bool>(k + 1, false)));
+        
+        if (g[0][0] == 1 && k == 0) {
+            return -1;
+        }
+        
+        bfs(g, k);
+        
+        if (res == INT_MAX) {
+            return -1;
+        }
+        return res;
+    }
+    void bfs(const vector<vector<int>>& g, int k) {
+        queue<node> q;
+        q.push({0, 0, 0, 0});
+        visited[0][0][0] = true;
+        while (!q.empty()) {
+            auto node = q.front();
+            q.pop();
+            int x = node.x, y = node.y;
+            if (x == m - 1 && y == n - 1) {
+                res = min(res, node.step);
+                continue;
+            }
+            for (int i = 0; i < 4; i ++) {
+                int newx = x + d[i][0];
+                int newy = y + d[i][1];
+                if (inArea(newx, newy)) {
+                    if (g[newx][newy] == 0) {
+                        if (!visited[newx][newy][node.k]) {
+                            q.push({newx, newy, node.step + 1, node.k});
+                            visited[newx][newy][node.k] = true;
+                        }
+                    } else {
+                        if (node.k < k && !visited[newx][newy][node.k + 1]) {
+                            q.push({newx, newy, node.step + 1, node.k + 1});
+                            visited[newx][newy][node.k + 1] = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+private:
+    int m, n;
+    int res = INT_MAX;
+    int d[4][2] = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+    vector<vector<vector<bool>>> visited;
+    bool inArea(int x, int y) {
+        return x >= 0 && y >= 0 && x < m && y < n;
+    }
+};
+```
+
+# LeetCode 168 周赛
+
+## [5292. 划分数组为连续数字的集合](https://leetcode-cn.com/problems/divide-array-in-sets-of-k-consecutive-numbers/)
+
+用 map 排序 统计每个数字出现的次数 然后从第一个数字 开始找 连续k个数字
+
+```c++
+class Solution {
+public:
+    bool isPossibleDivide(vector<int>& nums, int k) {
+        int n = nums.size();
+        map<int, int, less<int>> m;
+        for (int i = 0; i < n; i ++) {
+            m[nums[i]] ++;
+        }
+        while (m.size() > 0) {
+            int x = m.begin()->first;
+            for (int i = 0; i < k; i ++) {
+                if (m.find(x) == m.end()) {
+                    return false;
+                }
+                m[x] --;
+                if (m[x] == 0) {
+                    m.erase(x);
+                }
+                x ++;
+            }
+        }
+        return true;
+    }
+};
+```
+
+## [5293. 子串的最大出现次数](https://leetcode-cn.com/problems/maximum-number-of-occurrences-of-a-substring/)
+
+从题意可以得到 一个子串只能有 26 的大小的小写字母 因此 检查不同字母的个数 可以直接开 一个大小 26的数组来检测
+
+每次检查最小的长度的子串 然后满足条件的话 就将该子串的出现次数记录下来
+
+```c++
+class Solution {
+public:
+    int maxFreq(string s, int maxLetters, int minSize, int maxSize) {
+        int n = s.size();
+        int res = 0;
+        unordered_map<string, int> m;
+        for (int i = 0; i < n - minSize + 1; i ++) {
+            string tmp = s.substr(i, minSize);
+            vector<bool> h(26, false);
+            for (int j = 0; j < tmp.size(); j ++) {
+                h[tmp[j] - 'a'] = true;
+            }
+            // 判断不同字母的个数
+            int k = 0;
+            for (int i = 0; i < 26; i ++) {
+                if (h[i]) {
+                    k ++;
+                }
+            }
+            if (k <= maxLetters) {
+                m[tmp] ++;
+            }
+        }
+        for (auto iter = m.begin(); iter != m.end(); iter ++) {
+            res = max(res, iter->second);
+        }
+        return res;
+    }
+};
+```
+
+## [5294. 你能从盒子里获得的最大糖果数](https://leetcode-cn.com/problems/maximum-candies-you-can-get-from-boxes/)
+
+就按照题目描述模拟
+
+```c++
+class Solution {
+public:
+    int maxCandies(vector<int>& status, vector<int>& candies, vector<vector<int>>& keys, vector<vector<int>>& containedBoxes, vector<int>& initialBoxes) {
+        int n = status.size();
+        int res = 0;
+        vector<bool> box(n, false);
+        vector<bool> hasKey(n, false);
+        vector<bool> visited(n, false);
+        for (int i = 0; i < initialBoxes.size(); i ++) {
+            box[initialBoxes[i]] = true;
+        }
+        while (1) {
+            int k = -1;
+            for (int i = 0; i < n; i ++) {
+                if (visited[i] || !box[i]) {
+                    continue;
+                }
+                if (status[i] == 0 && !hasKey[i]) {
+                    continue;
+                }
+                k = i;
+            }
+            if (k == -1) {
+                break;
+            }
+            res += candies[k];
+            visited[k] = true;
+            for (int i = 0; i < containedBoxes[k].size(); i ++) {
+                box[containedBoxes[k][i]] = true;
+            }
+            for (int i = 0; i < keys[k].size(); i ++) {
+                hasKey[keys[k][i]] = true;
+            }
         }
         return res;
     }
