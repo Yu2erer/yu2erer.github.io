@@ -1,1 +1,1 @@
-hexo cl && hexo g && gulp && hexo algolia && hexo d
+hexo cl && hexo g  && hexo algolia && hexo d
