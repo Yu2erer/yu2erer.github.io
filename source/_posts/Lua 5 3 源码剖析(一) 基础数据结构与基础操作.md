@@ -1,12 +1,12 @@
 ---
 title: Lua 5.3 源码剖析(一) 基础数据结构与基础操作
-categories: C++
+categories: Lua
 date: 2020-07-26 13:14:20
 keywords: Lua, 源码剖析, 虚拟机
 tags: [Lua, 源码剖析, 虚拟机]
 ---
 
-由于之前实习包括现在正式的工作 都做的是 游戏服务端研发, 少不了 与 Lua 打交道, 因此 也对 Lua 的实现产生了兴趣, 在这里试图 将 Lua 的实现原理 剖析出来.
+由于之前实习包括现在正式的工作 都做的是 游戏服务端研发, 少不了 与 Lua 打交道, 因此 也对 Lua 的实现产生了兴趣, 在这里试图 将 Lua 的实现原理 剖析出来, 此为本系列的首篇.
 
 本文主要分两个部分 一个部分是剖析 Lua 中内置的各种类型的数据结构, 另一个部分是剖析 Lua 虚拟机中所要用的必要的数据结构.
 
@@ -202,7 +202,6 @@ typedef struct global_State {
   TString *memerrmsg;  /* memory-error message */
   TString *tmname[TM_N];  /* array with tag-method names */
   struct Table *mt[LUA_NUMTAGS];  /* metatables for basic types */
-  TString *strcache[STRCACHE_N][STRCACHE_M];  /* cache for strings in API */
 	// 内部的一些信息 End
 
   // GC Begin 暂时不讨论
@@ -234,6 +233,7 @@ typedef struct global_State {
   // 字符串 部分 Begin
   stringtable strt; // 用于字符串的哈希表
   unsigned int seed; // 随机数 用于字符串 哈希
+  TString *strcache[STRCACHE_N][STRCACHE_M]; // 字符串缓存
 	// 字符串 End
  
 } global_State;
