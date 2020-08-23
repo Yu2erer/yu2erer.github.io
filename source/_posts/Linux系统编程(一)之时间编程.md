@@ -33,6 +33,7 @@ int gettimeofday(struct timeval *restrict tp, void *restrict tzp /*一般为NULL
 
 - 很多人说其性能不高 因为本质是系统调用 会频繁陷入内核
 - 不过 在 x86_64下 采用了 vsyscall 并没有 陷入内核中
+- 比 clock_gettime 性能高
 - 兼容性不高(部分系统下 被弃用)
 
 ### RDTSC 读取 TSC (Time Stamp Counter)
@@ -130,6 +131,7 @@ struct tm *restrict tmptr);
 ## 计时器
 
 ### alarm()
+sleep(), usleep() 都是用 SIGALRM实现
 
 以秒为精度, 每个进程只能设置一个, 可以猜想到 PCB中只有一个 alarm(事实也是如此)
 
@@ -142,6 +144,7 @@ int pause(void);
 ```
 
 ### setitimer()
+也是用信号实现 不适合 多线程编程
 
 ```c
 int setitimer(int which, const struct itimerval *value, struct itimerval *ovalue);
@@ -155,6 +158,14 @@ which 有 3种
     - 发出 SIGVTALRM 信号
 - ITIMER_PROF 减少进程所执行时间和进程调度所用时间
     - 发出 SIGPROF 信号
+
+### timerfd_create()
+
+将时间当做文件描述符, 在超时的时候, 文件变为可读, 适于多线程编程, 能很好融入 poll, epoll
+
+```c
+int timerfd_create(int clockid, int flags);
+```
 
 ## 硬件的本领
 
