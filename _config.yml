@@ -87,9 +87,3 @@ sitemap:
   path: sitemap.xml
 baidusitemap:
   path: baidusitemap.xml
-
-algolia:
-  applicationID: 'THCBXG6YIY'
-  apiKey: '683857c79145a540fd7046dbc1c0242f'
-  indexName: 'Yuerer'
-  chunkSize: 5000
