@@ -968,404 +968,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%BA%8C)%20%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%BA%8C)%20%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" itemprop="url">
-                  Lua 5.3 源码剖析(二) 字符串设计与实现原理
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-07-28 13:14:20" itemprop="dateCreated datePublished" datetime="2020-07-28T13:14:20+08:00">2020-07-28</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%BA%8C)%20%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%BA%8C)%20%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%BA%8C)%20%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" class="leancloud_visitors" data-flag-title="Lua 5.3 源码剖析(二) 字符串设计与实现原理">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本篇主要讲 Lua 中的 字符串 是如何设计实现的, 为本系列第二篇.</p>
-<h2 id="TString"><a href="#TString" class="headerlink" title="TString"></a>TString</h2><p>Lua 中的字符串 的结构体名字为 TString 主要由以下内容构成.</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CommonHeader \</span></span><br><span class="line">  GCObject* next; \</span><br><span class="line">  lu_byte tt; \</span><br><span class="line">  lu_byte marked</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">TString</span> &#123;</span></span><br><span class="line">  CommonHeader;  <span class="comment">// GC 回收</span></span><br><span class="line">	<span class="comment">// 短字符串时 0为需要被GC接管, 1为不被GC回收</span></span><br><span class="line">	<span class="comment">// 长字符串时 0为未hash, 1为已hash</span></span><br><span class="line">  lu_byte extra;</span><br><span class="line">  lu_byte shrlen; <span class="comment">// 短字符串长度, 如果是长字符串则无意义</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> hash; <span class="comment">// 字符串哈希值</span></span><br><span class="line">  <span class="keyword">union</span> &#123;</span><br><span class="line">    <span class="keyword">size_t</span> lnglen; <span class="comment">// 长字符串长度 如果为短字符串则无效</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TString</span>* <span class="title">hnext</span>;</span> <span class="comment">// 短字符串的时候 与相同哈希值的字符串串起的链表</span></span><br><span class="line">  &#125; u;</span><br><span class="line">&#125; TString;</span><br></pre></td></tr></table></figure>
-
-<p>从中我们可以猜想, Lua 中的字符串主要分为两个部分, 其中一个 是 String Header, 用于记录字符串的长度, hash值, 和 GC回收的链表.</p>
-<p>记录字符串的长度我们可以比较好理解, 提高效率, 不用每次都重新计算一次字符串长度, 但是 Hash值是用来做什么的呢?</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%BA%8C)%20%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)%20%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)%20%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" itemprop="url">
-                  Lua 5.3 源码剖析(一) 基础数据结构与基础操作
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-07-26 13:14:20" itemprop="dateCreated datePublished" datetime="2020-07-26T13:14:20+08:00">2020-07-26</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)%20%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)%20%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)%20%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" class="leancloud_visitors" data-flag-title="Lua 5.3 源码剖析(一) 基础数据结构与基础操作">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>由于之前实习包括现在正式的工作 都做的是 游戏服务端研发, 少不了 与 Lua 打交道, 因此 也对 Lua 的实现产生了兴趣, 在这里试图 将 Lua 的实现原理 剖析出来, 此为本系列的首篇.</p>
-<p>本文主要分两个部分 一个部分是剖析 Lua 中内置的各种类型的数据结构, 另一个部分是剖析 Lua 虚拟机中所要用的必要的数据结构.</p>
-<h2 id="基础数据结构"><a href="#基础数据结构" class="headerlink" title="基础数据结构"></a>基础数据结构</h2><h3 id="基本类型"><a href="#基本类型" class="headerlink" title="基本类型"></a>基本类型</h3><p>众所周知, Lua 的基本类型 非常少, 仅有 int, number(浮点数), 闭包(函数), userdata(指针), string, nil, table 等类型. 这种时候 就要 有一个数据结构 来方便的表示出 这几种类型.</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">union</span> Value &#123;</span><br><span class="line">  GCObject *gc;    <span class="comment">// GC回收用的 暂时可以理解成一个链表 链上所有可回收的对象</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">void</span> *p;         <span class="comment">/* light userdata */</span></span><br><span class="line">  <span class="keyword">int</span> b;           <span class="comment">/* booleans */</span></span><br><span class="line">  lua_CFunction f; <span class="comment">/* light C functions */</span></span><br><span class="line">  lua_Integer i;   <span class="comment">/* integer numbers */</span></span><br><span class="line">  lua_Number n;    <span class="comment">/* float numbers */</span></span><br><span class="line">&#125; Value;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TValuefields	Value value_; int tt_</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">lua_TValue</span> &#123;</span></span><br><span class="line">  TValuefields;</span><br><span class="line">&#125; TValue;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua%205%203%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)%20%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E6%AF%95%E4%B8%9A%E4%B9%8B%E5%90%8E%E6%96%B0%E7%AF%87%E7%AB%A0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2369,11 +1971,441 @@
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" itemprop="url">
+                  C++ 内存管理 之 原生版本
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-04 09:02:20" itemprop="dateCreated datePublished" datetime="2019-11-04T09:02:20+08:00">2019-11-04</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" class="leancloud_visitors" data-flag-title="C++ 内存管理 之 原生版本">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="为什么要叫原生版本"><a href="#为什么要叫原生版本" class="headerlink" title="为什么要叫原生版本?"></a>为什么要叫原生版本?</h2><p>因为我觉得这一块是 C++ 自带的表达式 表达式里面 去调用 C语言的 CRT 库中的 <code>malloc</code> 和 <code>free</code> 但这篇 只讲自带的表达式 而不去深究 CRT 中的内存分配函数 所以只叫原生版本</p>
+<h2 id="常见的内存分配"><a href="#常见的内存分配" class="headerlink" title="常见的内存分配"></a>常见的内存分配</h2><table>
+<thead>
+<tr>
+<th>分配</th>
+<th>释放</th>
+<th>类属</th>
+<th>可否重载</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>malloc()</td>
+<td>free()</td>
+<td>C 函数</td>
+<td>否</td>
+</tr>
+<tr>
+<td>new</td>
+<td>delete</td>
+<td>C++ 表达式</td>
+<td>否</td>
+</tr>
+<tr>
+<td>::operator new()</td>
+<td>::operator delete()</td>
+<td>C++ 函数</td>
+<td>可</td>
+</tr>
+<tr>
+<td>allocator<T>::allocate()</td>
+<td>allocator<T>::deallocate()</td>
+<td>C++ 标准库</td>
+<td>自由设计搭配的容器</td>
+</tr>
+</tbody></table>
+<h3 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h3><p>其中 <code>::operator new() 和 ::operator delete()</code> 调用了 <code>malloc() 和 free()</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">    <span class="keyword">void</span> *p1 = <span class="built_in">malloc</span>(<span class="number">512</span>);</span><br><span class="line">    <span class="built_in">free</span>(p1);</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">complex</span>&lt;<span class="keyword">int</span>&gt; *p2 = <span class="keyword">new</span> <span class="built_in">complex</span>&lt;<span class="keyword">int</span>&gt;;</span><br><span class="line">    <span class="keyword">delete</span> p2;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">void</span> *p3 = ::<span class="keyword">operator</span> <span class="keyword">new</span>(<span class="number">512</span>);</span><br><span class="line">    ::<span class="function"><span class="keyword">operator</span> <span class="title">delete</span><span class="params">(p3)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> _MSC_VER</span></span><br><span class="line">    <span class="comment">// 属于 non-static 要先实例化object再调用</span></span><br><span class="line">    <span class="keyword">int</span> *p4 = allocator&lt;<span class="keyword">int</span>&gt;().allocate(<span class="number">3</span>, (<span class="keyword">int</span>*)<span class="number">0</span>);</span><br><span class="line">    allocator&lt;<span class="keyword">int</span>&gt;().deallocate(p4, <span class="number">3</span>);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __GUNC__</span></span><br><span class="line">    <span class="comment">// 早期 GNU-C++ 2.9 版本</span></span><br><span class="line">    <span class="comment">// void *p4 = alloc::allocate(512);</span></span><br><span class="line">    <span class="comment">// alloc::deallocate(p4, 512);</span></span><br><span class="line">    <span class="comment">// alloc 换名字了</span></span><br><span class="line">    <span class="keyword">void</span> *p5 = __gnu_cxx::__pool_alloc&lt;<span class="keyword">int</span>&gt;().allocate(<span class="number">9</span>);</span><br><span class="line">    __gnu_cxx::__pool_alloc&lt;<span class="keyword">int</span>&gt;().deallocate((<span class="keyword">int</span>*)p5, <span class="number">9</span>);</span><br><span class="line">    <span class="comment">// 4.9 版本之后</span></span><br><span class="line">    <span class="keyword">void</span> *p4 = allocator&lt;<span class="keyword">int</span>&gt;().allocate(<span class="number">7</span>);</span><br><span class="line">    allocator&lt;<span class="keyword">int</span>&gt;().deallocate((<span class="keyword">int</span>*)p4, <span class="number">7</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" itemprop="url">
+                  离线安装 VSCode Remote-SSH
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-23 22:17:20" itemprop="dateCreated datePublished" datetime="2019-05-23T22:17:20+08:00">2019-05-23</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%90%9E%E4%B8%9C%E6%90%9E%E8%A5%BF/" itemprop="url" rel="index"><span itemprop="name">搞东搞西</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" class="leancloud_visitors" data-flag-title="离线安装 VSCode Remote-SSH">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>VSCode 近期推出了 Remote-SSH 这个工具 使得 Linux开发者 能够在本地(Windows 机)上直接对开发机源码进行修改 简直拯救了一大批人啊… 但是却没有提到 如何离线安装 因此本文可能是最早 尝试离线安装的教程</p>
+<h2 id="离线安装"><a href="#离线安装" class="headerlink" title="离线安装"></a>离线安装</h2><ol>
+<li>本地上下载好 <a href="https://code.visualstudio.com/insiders/" target="_blank" rel="noopener">VSCode Insiders</a></li>
+<li>安装 <code>Remote-SSH</code> 插件</li>
+</ol>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">&lt;i class&#x3D;&quot;fa fa-angle-right&quot; aria-label&#x3D;&quot;下一页&quot;&gt;&lt;&#x2F;i&gt;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">&lt;i class&#x3D;&quot;fa fa-angle-right&quot; aria-label&#x3D;&quot;下一页&quot;&gt;&lt;&#x2F;i&gt;</a>
   </nav>
 
 
@@ -2420,7 +2452,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-count">40</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2451,9 +2483,7 @@
                     
                       
                     
-                      
-                    
-                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-count">9</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2594,17 +2624,7 @@
                     
                       
                     
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                    <span class="site-state-item-count">69</span>
+                    <span class="site-state-item-count">64</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
