@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/avatar.jpeg?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/avatar.jpeg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: 'THCBXG6YIY',
+      apiKey: '683857c79145a540fd7046dbc1c0242f',
+      indexName: 'Yuerer',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Searching...","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"找到约 ${hits} 个结果 用时 ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="练习0：填写已有实验本实验依赖实验1&#x2F;2&#x2F;3。请把你做的实验1&#x2F;2&#x2F;3的代码填入本实验中代码中有“LAB1”,“LAB2”,“LAB3”的注释相应部分。 1vmm.c trap.c default_pmm.c pmm.c swap_fifo.c 这几个补上去就完事了  练习1：分配并初始化一个进程控制块alloc_proc函数（位于kern&#x2F;process&#x2F;proc.c中）负责分配并返回一个新的s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统 uCore Lab 4">
+<meta property="og:url" content="https://yuerer.com/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-uCore-Lab-4/index.html">
+<meta property="og:site_name" content="Yuerer&#39;s Blog">
+<meta property="og:description" content="练习0：填写已有实验本实验依赖实验1&#x2F;2&#x2F;3。请把你做的实验1&#x2F;2&#x2F;3的代码填入本实验中代码中有“LAB1”,“LAB2”,“LAB3”的注释相应部分。 1vmm.c trap.c default_pmm.c pmm.c swap_fifo.c 这几个补上去就完事了  练习1：分配并初始化一个进程控制块alloc_proc函数（位于kern&#x2F;process&#x2F;proc.c中）负责分配并返回一个新的s">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yuerer.com/images/pcb.png">
+<meta property="og:image" content="https://yuerer.com/images/lab4_finish.png">
+<meta property="article:published_time" content="2018-12-10T05:12:20.000Z">
+<meta property="article:modified_time" content="2020-10-31T14:42:44.085Z">
+<meta property="article:author" content="Yuerer">
+<meta property="article:tag" content="操作系统">
+<meta property="article:tag" content=" ucore">
+<meta property="article:tag" content=" lab 4">
+<meta property="article:tag" content=" 进程控制块">
+<meta property="article:tag" content=" pcb">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yuerer.com/images/pcb.png">
+
+
+  
+
+
+  <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="https://yuerer.com/操作系统-uCore-Lab-4/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>操作系统 uCore Lab 4 | Yuerer's Blog</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-129491388-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-129491388-1');
+</script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yuerer's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">钰儿的Blog</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-uCore-Lab-4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">操作系统 uCore Lab 4
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-12-10 13:12:20" itemprop="dateCreated datePublished" datetime="2018-12-10T13:12:20+08:00">2018-12-10</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">操作系统</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-uCore-Lab-4/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-uCore-Lab-4/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-uCore-Lab-4/" class="leancloud_visitors" data-flag-title="操作系统 uCore Lab 4">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="练习0：填写已有实验"><a href="#练习0：填写已有实验" class="headerlink" title="练习0：填写已有实验"></a>练习0：填写已有实验</h3><p>本实验依赖实验1/2/3。请把你做的实验1/2/3的代码填入本实验中代码中有“LAB1”,“LAB2”,“LAB3”的注释相应部分。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vmm.c trap.c default_pmm.c pmm.c swap_fifo.c 这几个补上去就完事了</span><br></pre></td></tr></table></figure>
+
+<h3 id="练习1：分配并初始化一个进程控制块"><a href="#练习1：分配并初始化一个进程控制块" class="headerlink" title="练习1：分配并初始化一个进程控制块"></a>练习1：分配并初始化一个进程控制块</h3><p>alloc_proc函数（位于kern/process/proc.c中）负责分配并返回一个新的struct proc_struct结构，用于存储新建立的内核线程的管理信息。ucore需要对这个结构进行最基本的初始化，你需要完成这个初始化过程。</p>
+<blockquote>
+<p>【提示】在alloc_proc函数的实现中，需要初始化的proc_struct结构中的成员变量至少包括：state/pid/runs/kstack/need_resched/parent/mm/context/tf/cr3/flags/name。</p>
+</blockquote>
+<a id="more"></a>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">很简单 按照进程控制块的内容填写就行了</span><br><span class="line"><span class="function"><span class="keyword">static</span> struct proc_struct *<span class="title">alloc_proc</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc_struct</span> *<span class="title">proc</span> = <span class="title">kmalloc</span>(<span class="title">sizeof</span>(<span class="title">struct</span> <span class="title">proc_struct</span>));</span></span><br><span class="line">    <span class="keyword">if</span> (proc != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        proc-&gt;state = PROC_UNINIT; <span class="comment">// 进程状态</span></span><br><span class="line">        proc-&gt;pid = <span class="number">-1</span>; <span class="comment">// 进程ID</span></span><br><span class="line">        proc-&gt;runs = <span class="number">0</span>; <span class="comment">// 进程时间片</span></span><br><span class="line">        proc-&gt;kstack = <span class="number">0</span>; <span class="comment">// 进程所使用的内存栈地址</span></span><br><span class="line">        proc-&gt;need_resched = <span class="literal">NULL</span>; <span class="comment">// 进程是否能被调度</span></span><br><span class="line">        proc-&gt;parent = <span class="literal">NULL</span>; <span class="comment">// 父进程</span></span><br><span class="line">        proc-&gt;mm = <span class="literal">NULL</span>; <span class="comment">// 进程所用的虚拟内存</span></span><br><span class="line">        <span class="built_in">memset</span>(&amp;(proc-&gt;context), <span class="number">0</span>, <span class="keyword">sizeof</span>(struct context)); <span class="comment">// 进程的上下文</span></span><br><span class="line">        proc-&gt;tf = <span class="literal">NULL</span>; <span class="comment">// 中断帧指针</span></span><br><span class="line">        proc-&gt;cr3 = boot_cr3; <span class="comment">// 页目录表地址 设为 内核页目录表基址</span></span><br><span class="line">        proc-&gt;flags = <span class="number">0</span>; <span class="comment">// 标志位</span></span><br><span class="line">        <span class="built_in">memset</span>(&amp;(proc-&gt;name), <span class="number">0</span>, PROC_NAME_LEN); <span class="comment">// 进程名</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> proc;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>请在实验报告中简要说明你的设计实现过程。请回答如下问题：</p>
+<ul>
+<li>请说明proc_struct中struct context context和struct trapframe *tf成员变量含义和在本实验中的作用是啥？（提示通过看代码和编程调试可以判断出来）</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">context 中 保存着各种寄存器的内容 这是为了保存进程上下文 为进程调度做准备</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">context</span> &#123;</span></span><br><span class="line">    <span class="keyword">uint32_t</span> eip;</span><br><span class="line">    <span class="keyword">uint32_t</span> esp;</span><br><span class="line">    <span class="keyword">uint32_t</span> ebx;</span><br><span class="line">    <span class="keyword">uint32_t</span> ecx;</span><br><span class="line">    <span class="keyword">uint32_t</span> edx;</span><br><span class="line">    <span class="keyword">uint32_t</span> esi;</span><br><span class="line">    <span class="keyword">uint32_t</span> edi;</span><br><span class="line">    <span class="keyword">uint32_t</span> ebp;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">trapframe 保存着 用于特权级转换的 栈 esp 寄存器</span><br><span class="line"></span><br><span class="line">当进程发生特权级转换的时候 中断帧记录了进入中断时任务的上下文 当退出中断时 恢复环境</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">trapframe</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pushregs</span> &#123;</span></span><br><span class="line">        <span class="keyword">uint32_t</span> reg_edi;</span><br><span class="line">        <span class="keyword">uint32_t</span> reg_esi;</span><br><span class="line">        <span class="keyword">uint32_t</span> reg_ebp;</span><br><span class="line">        <span class="keyword">uint32_t</span> reg_oesp;          <span class="comment">/* Useless */</span></span><br><span class="line">        <span class="keyword">uint32_t</span> reg_ebx;</span><br><span class="line">        <span class="keyword">uint32_t</span> reg_edx;</span><br><span class="line">        <span class="keyword">uint32_t</span> reg_ecx;</span><br><span class="line">        <span class="keyword">uint32_t</span> reg_eax;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_gs;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_padding0;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_fs;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_padding1;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_es;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_padding2;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_ds;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_padding3;</span><br><span class="line">    <span class="keyword">uint32_t</span> tf_trapno;</span><br><span class="line">    <span class="comment">/* below here defined by x86 hardware */</span></span><br><span class="line">    <span class="keyword">uint32_t</span> tf_err;</span><br><span class="line">    <span class="keyword">uintptr_t</span> tf_eip;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_cs;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_padding4;</span><br><span class="line">    <span class="keyword">uint32_t</span> tf_eflags;</span><br><span class="line">    <span class="comment">/* below here only when crossing rings, such as from user to kernel */</span></span><br><span class="line">    <span class="keyword">uintptr_t</span> tf_esp;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_ss;</span><br><span class="line">    <span class="keyword">uint16_t</span> tf_padding5;</span><br><span class="line">&#125; __attribute__((packed));</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/pcb.png" alt="pcb"></p>
+<h3 id="练习2：为新创建的内核线程分配资源"><a href="#练习2：为新创建的内核线程分配资源" class="headerlink" title="练习2：为新创建的内核线程分配资源"></a>练习2：为新创建的内核线程分配资源</h3><p>创建一个内核线程需要分配和设置好很多资源。kernel_thread函数通过调用do_fork函数完成具体内核线程的创建工作。do_kernel函数会调用alloc_proc函数来分配并初始化一个进程控制块，但alloc_proc只是找到了一小块内存用以记录进程的必要信息，并没有实际分配这些资源。ucore一般通过do_fork实际创建新的内核线程。do_fork的作用是，创建当前内核线程的一个副本，它们的执行上下文、代码、数据都一样，但是存储位置不同。在这个过程中，需要给新内核线程分配资源，并且复制原进程的状态。你需要完成在kern/process/proc.c中的do_fork函数中的处理过程。它的大致执行步骤包括：</p>
+<ul>
+<li>调用alloc_proc，首先获得一块用户信息块。</li>
+<li>为进程分配一个内核栈。</li>
+<li>复制原进程的内存管理信息到新进程（但内核线程不必做此事）</li>
+<li>复制原进程上下文到新进程</li>
+<li>将新进程添加到进程列表</li>
+<li>唤醒新进程</li>
+<li>返回新进程号</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">跟着注释做就是了</span><br><span class="line">先是创建一个进程控制块 然后设置进程控制块</span><br><span class="line">要特别注意的是 设置 进程/线程 的 PID 调用的 get_pid() 方法 和 添加进程/线程到链表中时 要将中断暂时关闭</span><br><span class="line">避免执行的中途被再次中断</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">do_fork</span><span class="params">(<span class="keyword">uint32_t</span> clone_flags, <span class="keyword">uintptr_t</span> <span class="built_in">stack</span>, struct trapframe *tf)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ((proc = alloc_proc()) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">goto</span> fork_out;</span><br><span class="line">    &#125;</span><br><span class="line">    proc-&gt;parent = current;</span><br><span class="line">    <span class="keyword">if</span> (setup_kstack(proc) != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">goto</span> bad_fork_cleanup_proc;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (copy_mm(clone_flags, proc) != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">goto</span> bad_fork_cleanup_kstack;</span><br><span class="line">    &#125;</span><br><span class="line">    copy_thread(proc, <span class="built_in">stack</span>, tf);</span><br><span class="line">    <span class="keyword">bool</span> intr_flag;</span><br><span class="line">    local_intr_save(intr_flag);</span><br><span class="line">    &#123;</span><br><span class="line">        proc-&gt;pid = get_pid();</span><br><span class="line">        hash_proc(proc);</span><br><span class="line">        nr_process++;</span><br><span class="line">        list_add(&amp;proc_list, &amp;(proc-&gt;list_link));</span><br><span class="line">    &#125;</span><br><span class="line">    local_intr_restore(intr_flag);</span><br><span class="line"></span><br><span class="line">    wakeup_proc(proc);</span><br><span class="line">    ret = proc-&gt;pid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>请在实验报告中简要说明你的设计实现过程。请回答如下问题：</p>
+<ul>
+<li>请说明ucore是否做到给每个新fork的线程一个唯一的id？请说明你的分析和理由。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">可以保证 每个fork的线程 唯一ID</span><br><span class="line">调用的 get_pid() 函数 每次都从 进程控制块链表中 找到合适的ID</span><br></pre></td></tr></table></figure>
+
+<h3 id="练习3：阅读代码，理解-proc-run-函数和它调用的函数如何完成进程切换的"><a href="#练习3：阅读代码，理解-proc-run-函数和它调用的函数如何完成进程切换的" class="headerlink" title="练习3：阅读代码，理解 proc_run 函数和它调用的函数如何完成进程切换的"></a>练习3：阅读代码，理解 proc_run 函数和它调用的函数如何完成进程切换的</h3><p>请在实验报告中简要说明你对proc_run函数的分析。并回答如下问题：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">当前进程/线程 切换到 proc 这个进程/线程</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">proc_run</span><span class="params">(struct proc_struct *proc)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (proc != current) &#123;</span><br><span class="line">        <span class="keyword">bool</span> intr_flag;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">proc_struct</span> *<span class="title">prev</span> = <span class="title">current</span>, *<span class="title">next</span> = <span class="title">proc</span>;</span></span><br><span class="line">        local_intr_save(intr_flag); <span class="comment">// 关闭中断</span></span><br><span class="line">        &#123;</span><br><span class="line">            current = proc; <span class="comment">// 将当前进程换为 要切换到的进程</span></span><br><span class="line">            <span class="comment">// 设置任务状态段tss中的特权级0下的 esp0 指针为 next 内核线程 的内核栈的栈顶</span></span><br><span class="line">            load_esp0(next-&gt;kstack + KSTACKSIZE);</span><br><span class="line">            lcr3(next-&gt;cr3); <span class="comment">// 重新加载 cr3 寄存器(页目录表基址) 进行进程间的页表切换</span></span><br><span class="line">            switch_to(&amp;(prev-&gt;context), &amp;(next-&gt;context)); <span class="comment">// 调用 switch_to 进行上下文的保存与切换</span></span><br><span class="line">        &#125;</span><br><span class="line">        local_intr_restore(intr_flag);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在本实验的执行过程中，创建且运行了几个内核线程？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">两个内核线程 一个为 idle_proc 为 第 0 个内核线程 完成内核中的初始化 然后调度执行其他进程或线程</span><br><span class="line">另一个为 init_proc 本次实验的内核线程 只用来打印字符串</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>语句local_intr_save(intr_flag);….local_intr_restore(intr_flag);在这里有何作用?请说明理由</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">关闭中断 避免进程切换的中途 再被中断(其他进程再进行调度)</span><br></pre></td></tr></table></figure>
+
+<p>最后还是附上执行结果 可以去🍚了 好冷 这周怕是 2018年 广东最冷的一周了<br><img src="/images/lab4_finish.png" alt="lab4_finish"></p>
+<h4 id="讲讲-switch-to-切换进程"><a href="#讲讲-switch-to-切换进程" class="headerlink" title="讲讲 switch_to 切换进程"></a>讲讲 switch_to 切换进程</h4><p>吃完饭回来了 顺便讲讲这个 switch_to 的汇编</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">struct context &#123;</span><br><span class="line">    uint32_t <span class="built_in">eip</span><span class="comment">;</span></span><br><span class="line">    uint32_t <span class="built_in">ebx</span><span class="comment">;</span></span><br><span class="line">    uint32_t <span class="built_in">ecx</span><span class="comment">;</span></span><br><span class="line">    uint32_t <span class="built_in">edx</span><span class="comment">;</span></span><br><span class="line">    uint32_t <span class="built_in">esi</span><span class="comment">;</span></span><br><span class="line">    uint32_t <span class="built_in">edi</span><span class="comment">;</span></span><br><span class="line">    uint32_t <span class="built_in">ebp</span><span class="comment">;</span></span><br><span class="line">&#125;<span class="comment">;</span></span><br><span class="line">switch_to 的作用是 保存当前进程的上下文 并且 恢复被调度上处理机的进程的上下文</span><br><span class="line"><span class="meta">.text</span></span><br><span class="line"><span class="meta">.globl</span> switch_to</span><br><span class="line"><span class="symbol">switch_to:</span>                      # switch_to(from, to)</span><br><span class="line"></span><br><span class="line">    调用 switch_to 后栈的情况  |     To    <span class="built_in">esp</span> + <span class="number">8</span> |</span><br><span class="line">                             |   From   <span class="built_in">esp</span> + <span class="number">4</span>  |</span><br><span class="line">                             |  <span class="keyword">Ret</span> Addr &lt;- <span class="built_in">esp</span>  |</span><br><span class="line">    movl <span class="number">4</span>(%esp), %eax       此处要取的是 From 因此为 <span class="built_in">esp</span> + <span class="number">4</span></span><br><span class="line">    popl <span class="number">0</span>(%eax)  <span class="keyword">pop</span> 掉返回地址 存到 From 的 <span class="built_in">eip</span> 中 From 的 context <span class="built_in">eip</span>为栈底 故而 context 的 <span class="built_in">eip</span> 当返回地址</span><br><span class="line">    movl %esp, <span class="number">4</span>(%eax)         这之后都只是将寄存器的内容 移到 context 相应的地址而已</span><br><span class="line">    movl %ebx, <span class="number">8</span>(%eax)</span><br><span class="line">    movl %ecx, <span class="number">12</span>(%eax)</span><br><span class="line">    movl %edx, <span class="number">16</span>(%eax)</span><br><span class="line">    movl %esi, <span class="number">20</span>(%eax)</span><br><span class="line">    movl %edi, <span class="number">24</span>(%eax)</span><br><span class="line">    movl %ebp, <span class="number">28</span>(%eax)</span><br><span class="line"></span><br><span class="line">    此时的 栈的情况                                     |    To  <span class="built_in">esp</span> + <span class="number">4</span>   |</span><br><span class="line">    因为在上面已经将 返回地址 <span class="keyword">pop</span>掉了 因此这里没有返回地址了  |   From &lt;- <span class="built_in">esp</span>    |</span><br><span class="line">    movl <span class="number">4</span>(%esp), %eax          此处要取 To 的地址 因为 返回地址之前已经被 <span class="keyword">pop</span>掉了 所以此时为 <span class="built_in">esp</span> + <span class="number">4</span></span><br><span class="line">  </span><br><span class="line">    movl <span class="number">28</span>(%eax), %ebp         这之后也没啥好说的 都是将 context 移到寄存器 恢复环境</span><br><span class="line">    movl <span class="number">24</span>(%eax), %edi</span><br><span class="line">    movl <span class="number">20</span>(%eax), %esi</span><br><span class="line">    movl <span class="number">16</span>(%eax), %edx</span><br><span class="line">    movl <span class="number">12</span>(%eax), %ecx</span><br><span class="line">    movl <span class="number">8</span>(%eax), %ebx</span><br><span class="line">    movl <span class="number">4</span>(%eax), %esp</span><br><span class="line"></span><br><span class="line">    pushl <span class="number">0</span>(%eax)      <span class="built_in">eip</span> 作返回地址 因为原先的 返回地址已经被<span class="keyword">pop</span>掉了</span><br><span class="line"></span><br><span class="line">    <span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          
+            <a href="/tags/uCore/" rel="tag"># uCore</a>
+          
+            <a href="/tags/Lab/" rel="tag"># Lab</a>
+          
+            <a href="/tags/%E8%BF%9B%E7%A8%8B/" rel="tag"># 进程</a>
+          
+            <a href="/tags/%E7%BA%BF%E7%A8%8B/" rel="tag"># 线程</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6/" rel="next" title="操作系统之 进程控制">
+                <i class="fa fa-chevron-left"></i> 操作系统之 进程控制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-uCore-Lab-5/" rel="prev" title="操作系统 uCore Lab 5">
+                操作系统 uCore Lab 5 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="Yuerer" />
+            
+              <p class="site-author-name" itemprop="name">Yuerer</p>
+              <p class="site-description motion-element" itemprop="description">钰儿的Blog</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/%20%7C%7C%20archive">
+                
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">69</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Yu2erer" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:yu2erer@gmail.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#练习0：填写已有实验"><span class="nav-text">练习0：填写已有实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#练习1：分配并初始化一个进程控制块"><span class="nav-text">练习1：分配并初始化一个进程控制块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#练习2：为新创建的内核线程分配资源"><span class="nav-text">练习2：为新创建的内核线程分配资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#练习3：阅读代码，理解-proc-run-函数和它调用的函数如何完成进程切换的"><span class="nav-text">练习3：阅读代码，理解 proc_run 函数和它调用的函数如何完成进程切换的</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#讲讲-switch-to-切换进程"><span class="nav-text">讲讲 switch_to 切换进程</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuerer</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '4c1E52qAqL8mu0dHBxYy5MxV-MdYXbMMI',
+        appKey: 'FUYa35QiKu2nxrabaP2R8Cpp',
+        placeholder: '说些什么?',
+        avatar:'retro',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: true
+    });
+  </script>
+
+
+
+  
+
+
+
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=6.4.1"></script>
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yuerer.com/sitemap.xml
+Sitemap: https://yuerer.com/baidusitemap.xml
