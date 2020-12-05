@@ -1,5 +1,5 @@
 ---
-title: Lua 5.3 设计实现(一) Lua是怎么跑起来的？
+title: Lua 5.3 设计实现(一) Lua是怎么跑起来的?
 categories: Lua
 date: 2020-10-25 13:12:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机
