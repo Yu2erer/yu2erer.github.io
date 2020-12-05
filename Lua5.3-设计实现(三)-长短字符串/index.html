@@ -111,12 +111,12 @@
   <meta name="description" content="上一篇主要是讲了 Table 和 MetaMethod 的一些设计实现，谈论到了 Lua 会对 元方法的字符串名字作缓存，同时提到了 Lua 字符串分为长短字符串。这一篇主要是谈论一下 Lua 的长短字符串是怎么设计的？为什么要分长短这两种类型？ TString 结构可以看到字符串内部会记录哈希值，每个字符串被创建出来就不能被改写，因此为了节约内存，Lua会复用相同的字符串，但是逐字节比较太慢了，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Lua 5.3 设计实现(三) 长短字符串">
-<meta property="og:url" content="https://yuerer.com/Lua5%203-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/index.html">
+<meta property="og:url" content="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/index.html">
 <meta property="og:site_name" content="Yuerer&#39;s Blog">
 <meta property="og:description" content="上一篇主要是讲了 Table 和 MetaMethod 的一些设计实现，谈论到了 Lua 会对 元方法的字符串名字作缓存，同时提到了 Lua 字符串分为长短字符串。这一篇主要是谈论一下 Lua 的长短字符串是怎么设计的？为什么要分长短这两种类型？ TString 结构可以看到字符串内部会记录哈希值，每个字符串被创建出来就不能被改写，因此为了节约内存，Lua会复用相同的字符串，但是逐字节比较太慢了，">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-10-28T05:12:20.000Z">
-<meta property="article:modified_time" content="2020-11-01T02:27:28.569Z">
+<meta property="article:modified_time" content="2020-12-05T14:28:00.568Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="Lua">
 <meta property="article:tag" content=" Lua解释器">
@@ -133,7 +133,7 @@
 
 
 
-  <link rel="canonical" href="https://yuerer.com/Lua5 3-设计实现(三)-长短字符串/"/>
+  <link rel="canonical" href="https://yuerer.com/Lua5.3-设计实现(三)-长短字符串/"/>
 
 
 
@@ -325,7 +325,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5%203-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Yuerer">
@@ -384,7 +384,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2020-11-01 10:27:28" itemprop="dateModified" datetime="2020-11-01T10:27:28+08:00">2020-11-01</time>
+                <time title="修改时间：2020-12-05 22:28:00" itemprop="dateModified" datetime="2020-12-05T22:28:00+08:00">2020-12-05</time>
               
             
           </span>
@@ -416,8 +416,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/Lua5%203-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5%203-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" itemprop="commentCount"></span>
+                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -425,7 +425,7 @@
 
           
           
-             <span id="/Lua5%203-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(三) 长短字符串">
+             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(三) 长短字符串">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -537,7 +537,7 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/Lua5%203-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/" rel="next" title="Lua 5.3 设计实现(二) Table与Metatable">
+              <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/" rel="next" title="Lua 5.3 设计实现(二) Table与Metatable">
                 <i class="fa fa-chevron-left"></i> Lua 5.3 设计实现(二) Table与Metatable
               </a>
             
@@ -546,6 +546,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/" rel="prev" title="Lua 5.3 设计实现(四) Closure与Upvalues">
+                Lua 5.3 设计实现(四) Closure与Upvalues <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -622,7 +626,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-count">44</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
