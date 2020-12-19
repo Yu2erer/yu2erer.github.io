@@ -327,6 +327,817 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" itemprop="url">
+                  Lua GC垃圾回收优化方案
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-12-19 10:09:20 / 修改时间：10:18:23" itemprop="dateCreated datePublished" datetime="2020-12-19T10:09:20+08:00">2020-12-19</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" class="leancloud_visitors" data-flag-title="Lua GC垃圾回收优化方案">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>最近接手的一个游戏项目是重 <code>Lua</code> 的结构（网络模块在 C++，其余逻辑全在 Lua）。和许多用 Lua 的游戏项目一样，遇到了 Lua 的垃圾回收的性能问题，经常跑着跑着就会掉帧，因此花了一周的时间，给 Lua 虚拟机写了个模块，把 Lua 垃圾回收的速度提高了一个量级。</p>
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><p>这个思路其实在之前的一篇博客中也有提到，想要 垃圾回收快，无非就那么几种思路。</p>
+<ol>
+<li>使用内存池</li>
+<li>减少对象生成</li>
+<li>垃圾回收提速</li>
+</ol>
+<h3 id="使用内存池"><a href="#使用内存池" class="headerlink" title="使用内存池"></a>使用内存池</h3><p>第一种思路，我觉得不合理，因为现代的内存分配器早就有内存池的设计了，手写一个内存池的收益并不大。</p>
+<h3 id="减少对象生成"><a href="#减少对象生成" class="headerlink" title="减少对象生成"></a>减少对象生成</h3><p>第二种思路，是比较合理的。因为我在项目的代码中发现很多处地方有动态生成 <code>Closure</code> 的情况。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span><span class="params">()</span></span></span><br><span class="line">	<span class="keyword">local</span> fn = <span class="function"><span class="keyword">function</span><span class="params">()</span></span></span><br><span class="line">		<span class="built_in">print</span>(<span class="string">"test"</span>)</span><br><span class="line">	<span class="keyword">end</span></span><br><span class="line">	fn()</span><br><span class="line">	fn()</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>上面那个例子，每次调用到 <code>test</code> 函数的时候，都会动态根据 <code>fn</code> 的 函数原型，生成一个 <code>Closure</code> </p>
+<p>可能有人会问，Proto 不是有一个 cache 指向 <code>Closure</code> 吗？按道理这里 没有 <code>UpValue</code>（即代表UpValue 完全相同），应该会复用啊，但是很可惜，执行完这个函数以后，因为没有对象指向 <code>Closure</code> 用完再不久的将来又会被回收。</p>
+<p>因此，少写这种代码就可以减少对象的生成。</p>
+<h2 id="垃圾回收提速"><a href="#垃圾回收提速" class="headerlink" title="垃圾回收提速"></a>垃圾回收提速</h2><p>第三种思路，我的想法是，让垃圾回收所要遍历的对象大幅减少，就可以为垃圾回收提速了，由于我们是重 Lua 的框架，因此我们的所有配置都存在于 Lua 的 table中，而这一部分肯定是不需要被回收的，但是每次垃圾回收的时候，又会不停的扫描递归遍历，不合理。同时代码中的很多全局函数，也是根本不需要被回收的，也会被扫描到，于是就想到一个想法，给这些对象打上标记，让他们不被遍历不被清理，就可以大幅度的提速了。</p>
+<p>原理简单，但是做起来确实挺难受的，要注意要手动关闭 <code>UpValue</code> 将其保留下来。</p>
+<p>目前已经开源，<a href="https://github.com/Yu2erer/Lua-GC" target="_blank" rel="noopener">Lua-GC</a>源码</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/" itemprop="url">
+                  Lua 服务端热更新
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-12-15 12:19:20" itemprop="dateCreated datePublished" datetime="2020-12-15T12:19:20+08:00">2020-12-15</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-12-19 10:09:48" itemprop="dateModified" datetime="2020-12-19T10:09:48+08:00">2020-12-19</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/" class="leancloud_visitors" data-flag-title="Lua 服务端热更新">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>游戏服务端之所以用 Lua，大多数时候是因为 Lua 方便做热更新，一般来说对 Lua 做热更新基本上都会使用以下两句语句。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">package</span>.<span class="built_in">loaded</span>[name] = <span class="literal">nil</span></span><br><span class="line"><span class="built_in">require</span>(name)</span><br></pre></td></tr></table></figure>
+
+<p>这种方式的热更好处就是简单，不过有的代码写起来就要特别小心，当你在代码中看到以下类似的片段，很有可能是为了热更新做的一种妥协。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Activity.c2sFun = Activity.c2sFun <span class="keyword">or</span> &#123;&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>同时，如果 Lua 代码中存有大量的 <code>upvalue</code> 时，还要记得保存原有的状态信息，否则会丢失原值，对于开发人员来说，这种热更方式费心费力。</p>
+<p>因此， <code>Lua HotFix</code> 就是为了摆脱以上的限制，或者说减少需要关心的事情，让开发人员能够更为简单的做热更新。之所以要自己写这么一套东西，主要是因为网络上开源的热更方案不适合项目，要么支持的Lua版本过旧，要么就约束的过多，项目已经进行到了中后期，这个时候再来规范已经来不及了，其次有很多的错误，这点我会在本文中的第二部分进行讨论。</p>
+<p>本文主要分为两个部分，第一部分为 HotFix 实现，第二部分为热更新的错误案例。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" itemprop="url">
+                  Lua 5.3 设计实现(六) GC 垃圾回收
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-12-11 20:20:20" itemprop="dateCreated datePublished" datetime="2020-12-11T20:20:20+08:00">2020-12-11</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-12-19 10:07:04" itemprop="dateModified" datetime="2020-12-19T10:07:04+08:00">2020-12-19</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(六) GC 垃圾回收">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>虽然本系列主要讲的是 Lua 5.3 中的实现，不过在本篇中，想先聊聊 Lua 垃圾回收的历史。只有了解其历史，才知道为什么这么设计。</p>
+<h2 id="Lua-GC-历史"><a href="#Lua-GC-历史" class="headerlink" title="Lua GC 历史"></a>Lua GC 历史</h2><h3 id="Lua-5-0-之前"><a href="#Lua-5-0-之前" class="headerlink" title="Lua 5.0 之前"></a>Lua 5.0 之前</h3><p>在 Lua 5.0 之前，Lua 因为没有 <code>userdata</code> ，垃圾回收的工作就很简单了，因为没有 <code>userdata</code> 也就没有了 <code>__gc</code> 元方法，也就不需要针对有特殊析构操作的对象进行特殊处理。</p>
+<p>Lua 从早期到现在 <code>2020年</code> 推出的 最新版 Lua 5.4 都是采用的标记扫描算法，垃圾回收算法一般分为两类。</p>
+<ol>
+<li>标记扫描算法</li>
+<li>引用计数算法</li>
+</ol>
+<p>引用计数的话，每个对象都要占用多一块内存，同时需要频繁的增减引用计数值，特别指的是在栈上的时候，Lua 解释器做的又非常简单，如果采用引用计数，还要对指令进行优化。</p>
+<p>而早期 标记扫描 也是比较简单，首先它每次扫描且回收垃圾都是需要一次执行完的，其次它只有两种标记，用到或没用到，而且每次创建新对象都会跑一次GC。</p>
+<p>显然，这种垃圾回收注定了没人敢用。。。我每创建一个对象，你都跑一次GC，这谁顶得住？</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/" itemprop="url">
+                  Lua 5.3 设计实现(五) Coroutine
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-12-09 12:20:20" itemprop="dateCreated datePublished" datetime="2020-12-09T12:20:20+08:00">2020-12-09</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-12-19 10:05:38" itemprop="dateModified" datetime="2020-12-19T10:05:38+08:00">2020-12-19</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(五) Coroutine">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>Lua的协程和 Golang的协程不同，它是在同一个主线程上跑的协程，个人感觉用途不是很大，毕竟没有发挥多核的优势，不过还是有不少人认为这是 Lua的一个亮点，可以用来实现异步代码改写为同步代码，减轻人脑负担，然而很多人用的时候，并不了解当 Lua协程调用到C函数而C函数又调用到Lua函数后又执行 <code>yield</code> 的解决方案。本篇主要是来探讨Lua协程的设计。</p>
+<h2 id="Lua协程的设计思路"><a href="#Lua协程的设计思路" class="headerlink" title="Lua协程的设计思路"></a>Lua协程的设计思路</h2><p>试想一下，如果你来设计一个在同一个主线程上跑，且没有调度的协程，你会怎么做？</p>
+<p>可能你会说这还不简单，我们都已经知道了 <code>CallInfo</code> 这样的结构，只需要创建一个新的Lua栈，将新的 函数设置进其 <code>CallInfo</code> ，当执行到 <code>resume</code> 时，则将 Lua栈 推入，去执行新的指令不就行了？</p>
+<p>如果Lua只在自己的世界里面玩，从来不调用 C函数，那就还好。但问题是Lua会与其宿主语言也就是C语言进行打交道，会调用C的函数，如果这个C函数又调用了Lua Function，而其又调用了 <code>yield</code>，等到它又被 <code>resume</code> 的时候，它就没办法继续执行那尚未执行完成的C函数。</p>
+<p>大致执行流程如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 因为 lua 的 resume，其实是在C中导出的</span></span><br><span class="line">(<span class="number">1</span>)Lua:resume-&gt;[C:resume]</span><br><span class="line"><span class="comment">// C函数又调用了 lua的函数 因此会执行到 lua_call</span></span><br><span class="line">-&gt;Lua:Function-&gt;[C:Function]-&gt;[C:lua_call]</span><br><span class="line"><span class="comment">// lua的函数被执行到后，又去执行 yield</span></span><br><span class="line">-&gt;(Lua:Function)-&gt;Lua:<span class="built_in">yield</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 某一刻协程又被启动，此时回不到 C:lua_call</span></span><br></pre></td></tr></table></figure>
+
+<p>一种可行的思路是，将Lua的协程与每一个系统线程绑定，消耗高(不过我觉得这样才能发挥出多线程的优势嘛)。</p>
+<p>Lua采用的方案则是，通过保存C函数和其状态，并标记状态，当 <code>resume</code>时根据已有信息，回到原来未执行完C函数的位置。</p>
+<p>以下的 <code>lua_pcallk</code> 为使用例子，倒数第二个参数为上下文，倒数第一个参数则是该C函数如果被中断后，应该继续执行的事情。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">luaB_pcall</span> <span class="params">(lua_State *L)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> status;</span><br><span class="line">  luaL_checkany(L, <span class="number">1</span>);</span><br><span class="line">  lua_pushboolean(L, <span class="number">1</span>);  <span class="comment">/* first result if no errors */</span></span><br><span class="line">  lua_insert(L, <span class="number">1</span>);  <span class="comment">/* put it in place */</span></span><br><span class="line">  status = lua_pcallk(L, lua_gettop(L) - <span class="number">2</span>, LUA_MULTRET, <span class="number">0</span>, <span class="number">0</span>, finishpcall);</span><br><span class="line">  <span class="keyword">return</span> finishpcall(L, status, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -373,12 +1184,24 @@
                 
               
 
-              <time title="创建时间：2020-12-05 22:29:20 / 修改时间：22:31:08" itemprop="dateCreated datePublished" datetime="2020-12-05T22:29:20+08:00">2020-12-05</time>
+              <time title="创建时间：2020-12-05 22:29:20" itemprop="dateCreated datePublished" datetime="2020-12-05T22:29:20+08:00">2020-12-05</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-12-19 10:03:10" itemprop="dateModified" datetime="2020-12-19T10:03:10+08:00">2020-12-19</time>
               
             
           </span>
@@ -451,9 +1274,10 @@
 
       
         
-          <p><code>Closure</code> 其实对于 <code>C/C++</code> 程序员可以简单理解为 函数。不过由于有了 <code>Upvalues</code> 的概念，会让人理解起来不那么容易，但是 Lua 中的所有函数 其实都是 闭包，包括我们第一篇 <a href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/">Lua 5.3 设计实现(一) Lua是怎么跑起来的?</a> 文章中提到的运行流程的第一个主函数，其实也是一个闭包。</p>
+          <p><code>Closure</code> 其实对于 <code>C/C++</code> 程序员可以简单理解为 函数。不过由于有了 <code>Upvalues</code> 的概念，会让人理解起来不那么容易，但是 Lua 中的所有函数 其实都是 闭包，包括我们第一篇 <a href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/">Lua 5.3 设计实现(一) Lua是怎么跑起来的？</a>) 文章中提到的运行流程的第一个主函数，其实也是一个闭包。</p>
 <p>本文中 函数与闭包的名字会混用，请根据其是否含有 Upvalue 进行区分。</p>
-<h2 id="Closure"><a href="#Closure" class="headerlink" title="Closure"></a>Closure</h2><p>闭包的结构其实就是拥有所有执行所需要的信息，因为这一块在第一篇已经讲过，故大幅度跳过。</p>
+<h2 id="Closure"><a href="#Closure" class="headerlink" title="Closure"></a>Closure</h2><p>闭包是由 函数原型（Proto）+ （UpValue）组合而成的。</p>
+<p>而 <code>Proto</code> 其实就是拥有所有执行所需要的信息，因为这一块在第一篇已经讲过，故大幅度跳过。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Proto</span> &#123;</span></span><br><span class="line">  CommonHeader;</span><br><span class="line">  lu_byte numparams;  <span class="comment">// 固定函数个数</span></span><br><span class="line">  lu_byte is_vararg;  <span class="comment">// 是否是可变长参数</span></span><br><span class="line">  lu_byte maxstacksize;  <span class="comment">// 寄存器数量，用栈模拟</span></span><br><span class="line">  <span class="keyword">int</span> sizeupvalues;  <span class="comment">// Upvalues 个数</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">int</span> sizek;  <span class="comment">/* size of 'k' */</span></span><br><span class="line">  <span class="keyword">int</span> sizecode;</span><br><span class="line">  <span class="keyword">int</span> sizelineinfo;</span><br><span class="line">  <span class="keyword">int</span> sizep;  <span class="comment">/* size of 'p' */</span></span><br><span class="line">  <span class="keyword">int</span> sizelocvars;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">int</span> linedefined;  <span class="comment">// 开始行号</span></span><br><span class="line">  <span class="keyword">int</span> lastlinedefined;  <span class="comment">// 结束行号</span></span><br><span class="line">  TString  *source; <span class="comment">// 源文件名</span></span><br><span class="line"></span><br><span class="line">  TValue *k;  <span class="comment">// 常量表</span></span><br><span class="line">  Instruction *code;  <span class="comment">// 指令表</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">Proto</span> **<span class="title">p</span>;</span>  <span class="comment">// 子函数原型表</span></span><br><span class="line">  <span class="keyword">int</span> *lineinfo;  <span class="comment">// 行号表 行号与指令对应</span></span><br><span class="line">  LocVar *locvars;  <span class="comment">// 局部变量表</span></span><br><span class="line">  Upvaldesc *upvalues;  <span class="comment">// Upvalue 表</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">LClosure</span> *<span class="title">cache</span>;</span>  <span class="comment">/* last-created closure with this prototype */</span></span><br><span class="line">  GCObject *gclist;</span><br><span class="line">&#125; Proto;</span><br></pre></td></tr></table></figure>
 
 <p>我们更关注的是 <code>Upvalues</code>。</p>
@@ -1509,810 +2333,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B(%E4%B8%80)%E4%B9%8B%E6%97%B6%E9%97%B4%E7%BC%96%E7%A8%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B(%E4%B8%80)%E4%B9%8B%E6%97%B6%E9%97%B4%E7%BC%96%E7%A8%8B/" itemprop="url">
-                  Linux系统编程(一) 之时间编程
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-07-29 13:14:20" itemprop="dateCreated datePublished" datetime="2020-07-29T13:14:20+08:00">2020-07-29</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">Linux系统编程</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B(%E4%B8%80)%E4%B9%8B%E6%97%B6%E9%97%B4%E7%BC%96%E7%A8%8B/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B(%E4%B8%80)%E4%B9%8B%E6%97%B6%E9%97%B4%E7%BC%96%E7%A8%8B/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B(%E4%B8%80)%E4%B9%8B%E6%97%B6%E9%97%B4%E7%BC%96%E7%A8%8B/" class="leancloud_visitors" data-flag-title="Linux系统编程(一) 之时间编程">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>这是 Linux 系统编程系列 中的第一篇, 在这个系列里面, 我想以这么个顺序来讲述每一篇的内容, 先是快速简单地了解一下 常见的使用方法, 即API如何使用, 接着再深入其中, 了解内核为API提供的帮助, 大致是 C标准库 → 系统调用 这么个学习路线.</p>
-<h2 id="时间的定义"><a href="#时间的定义" class="headerlink" title="时间的定义"></a>时间的定义</h2><p>首先要记住 计算机的起始时间 为 (格林威治时间)1970年1月1日0点, 被称作 GMT时间 是时区时间, 不过它是根据地球公转和自转来计算的, 不是特别准确. 在计算机世界中, 往往被称作 UTC时间, 它是以原子钟来计算时间, 简单来说就是 UTC时间 比 GMT时间要准确, 同时两个时间又恰好没有时差, 但是UTC时间又不是时区时间, 因此容易被人弄混.</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B(%E4%B8%80)%E4%B9%8B%E6%97%B6%E9%97%B4%E7%BC%96%E7%A8%8B/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E6%AF%95%E4%B8%9A%E4%B9%8B%E5%90%8E%E6%96%B0%E7%AF%87%E7%AB%A0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E6%AF%95%E4%B8%9A%E4%B9%8B%E5%90%8E%E6%96%B0%E7%AF%87%E7%AB%A0/" itemprop="url">
-                  毕业之后, 新篇章
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-07-19 13:14:20" itemprop="dateCreated datePublished" datetime="2020-07-19T13:14:20+08:00">2020-07-19</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E8%83%A1%E8%A8%80%E4%B9%B1%E8%AF%AD/" itemprop="url" rel="index"><span itemprop="name">胡言乱语</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/%E6%AF%95%E4%B8%9A%E4%B9%8B%E5%90%8E%E6%96%B0%E7%AF%87%E7%AB%A0/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E6%AF%95%E4%B8%9A%E4%B9%8B%E5%90%8E%E6%96%B0%E7%AF%87%E7%AB%A0/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/%E6%AF%95%E4%B8%9A%E4%B9%8B%E5%90%8E%E6%96%B0%E7%AF%87%E7%AB%A0/" class="leancloud_visitors" data-flag-title="毕业之后, 新篇章">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>终于的终于, 2016-2020年 这四年大学时光已经结束, 而我也入职了金山西山居, 依然从事游戏服务端的研发.</p>
-<p>很久没有更新过博文了, 主要是因为 时间比较紧张, 还有经历了一系列 糟糕的事情(可进行脑补, 你脑补出来的几乎都是对的hhhh), 还有自认学习深度不足, 在探索一种全新的学习模式, 来调整工作与生活的状态.</p>
-<h2 id="新篇章"><a href="#新篇章" class="headerlink" title="新篇章"></a>新篇章</h2>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E6%AF%95%E4%B8%9A%E4%B9%8B%E5%90%8E%E6%96%B0%E7%AF%87%E7%AB%A0/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/" itemprop="url">
-                  C++ 内存管理 之 Loki Allocator
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-08 15:00:20" itemprop="dateCreated datePublished" datetime="2019-11-08T15:00:20+08:00">2019-11-08</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/" class="leancloud_visitors" data-flag-title="C++ 内存管理 之 Loki Allocator">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>Loki Allocator 有三个类 这玩意对比起 pool allocator 的优点就在于 它有把内存还给系统</p>
-<p>但是它作为一个 内存分配器 却在里面使用了 vector 作为容器… 按道理来说 应该在其内部实现一个简易版的 vector 才不会那么奇怪 但也没所谓 只是 先用了一次标准库的分配器 后续使用容器的时候 就可以用 Loki 分配器了.</p>
-<ul>
-<li>Chunk</li>
-<li>FixedAllocator</li>
-<li>SmallObjAllocator</li>
-</ul>
-<h2 id="Chunk-解剖"><a href="#Chunk-解剖" class="headerlink" title="Chunk 解剖"></a>Chunk 解剖</h2><p>Chunk 是整个分配器的最底层 里面主要是三个 成员变量</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指向内存块</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> * pData_;</span><br><span class="line"><span class="comment">// 目前可用区块的第一块的索引</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> firstAvailableBlock_;</span><br><span class="line"><span class="comment">// 有多少块可用</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> blocksAvailable_;</span><br></pre></td></tr></table></figure>
-
-<p>Chunk 的几个关键函数 已进行 剪裁 和 修改</p>
-<h3 id="Chunk-分配"><a href="#Chunk-分配" class="headerlink" title="Chunk 分配"></a>Chunk 分配</h3><p>分配流程很简单 就是 申请了内存以后 将每个小区块的第一个字节设置为索引 排好号</p>
-<p>取的流程:</p>
-<ol>
-<li>从 当前可用区块的第一块索引中取 得当前可用区块</li>
-<li>当前可用区块会被返回</li>
-<li>被返回的可用区块中的索引 被设置到 当前可用区块索引去(这样下一次就会使用到它)</li>
-<li>可用区块数目 - 1</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%86%85%E5%AD%98%E6%B1%A0%E5%AE%9E%E7%8E%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%86%85%E5%AD%98%E6%B1%A0%E5%AE%9E%E7%8E%B0/" itemprop="url">
-                  C++ 内存管理 之 内存池实现
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-08 11:48:20" itemprop="dateCreated datePublished" datetime="2019-11-08T11:48:20+08:00">2019-11-08</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%86%85%E5%AD%98%E6%B1%A0%E5%AE%9E%E7%8E%B0/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%86%85%E5%AD%98%E6%B1%A0%E5%AE%9E%E7%8E%B0/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%86%85%E5%AD%98%E6%B1%A0%E5%AE%9E%E7%8E%B0/" class="leancloud_visitors" data-flag-title="C++ 内存管理 之 内存池实现">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="为什么要实现内存池"><a href="#为什么要实现内存池" class="headerlink" title="为什么要实现内存池?"></a>为什么要实现内存池?</h2><p>一方面 是为了减少 调用 <code>malloc()</code> 的次数(尽管 <code>malloc()</code> 不慢) 但是调多了 会产生(外碎片)</p>
-<p>另一方面 是因为 每次用 <code>malloc()</code> 分配到的内存 是要交税的 就是上一节中讲的 <code>cookie</code> 里面记录着 这一块内存的大小信息(内碎片) 特别是在频繁申请小内存的时候尤为明显</p>
-<h2 id="最终-pool-allocator-版本"><a href="#最终-pool-allocator-版本" class="headerlink" title="最终 pool_allocator 版本"></a>最终 pool_allocator 版本</h2><p>具体代码可见 <a href="https://github.com/Yu2erer/Memory_Pool" target="_blank" rel="noopener">Memory_Pool</a></p>
-<p>原理可见 <a href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">C++ 内存管理 之 STL内存分配实现原理</a></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%86%85%E5%AD%98%E6%B1%A0%E5%AE%9E%E7%8E%B0/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2364,7 +2384,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">44</span>
+                    <span class="site-state-item-count">48</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
