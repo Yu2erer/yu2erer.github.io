@@ -327,6 +327,204 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE(%E4%B8%80)-Gossip%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE(%E4%B8%80)-Gossip%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" itemprop="url">
+                  一致性协议(一) Gossip 设计与实现
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-12-26 22:49:20 / 修改时间：23:05:04" itemprop="dateCreated datePublished" datetime="2020-12-26T22:49:20+08:00">2020-12-26</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE(%E4%B8%80)-Gossip%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE(%E4%B8%80)-Gossip%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE(%E4%B8%80)-Gossip%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" class="leancloud_visitors" data-flag-title="一致性协议(一) Gossip 设计与实现">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>近期忙完 Lua 的垃圾回收改造后，非常沉迷于分布式的设计。虽然在我看来，游戏服务端几乎不需要分布式，甚至最好不要用分布式。不过在游戏服务端的部分服务采用分布式的设计还是很不错的，比如说服务发现，数据存储这两块地方使用。</p>
+<p>说到服务发现，就不得不提一下，现在市面主流的服务发现基本上都是基于 CP 实现的，即一致性优先的原则，我不知道为什么他们都这样做，一旦网络出现波动，很有可能服务发现整套系统都会玩完，或许他们是家大业大，公司的机房牛逼？（小公司根本不可能有这么稳的网络，就算是租用的云服务，<del>也不会被云服务厂商重视</del>）</p>
+<p>扯远了，这是一致性协议的第一篇，为什么选择 Gossip 作为起点，主要有以下几点组成。</p>
+<ol>
+<li>简单</li>
+<li>基于 AP，可用性优先（毕竟基于一致性优先的开源服务都这么多了，反复造轮子也不合适）</li>
+</ol>
+<h2 id="Gossip-简述"><a href="#Gossip-简述" class="headerlink" title="Gossip 简述"></a>Gossip 简述</h2><p>当我还在读大学的时候，因为学校实在是太无聊了，没事我就会坐车回家，出现在小区的次数就比较多。有一天走在路上，听到小区里的大妈和其他大妈说，这个小孩是不是被退学了，怎么天天出现在这。久而久之，我家小区就都知道我“被”学校退学了。</p>
+<p>Gossip协议的大致思路就像上面那样，通过谣言传播的形式，传播给其他节点。</p>
+<p>我这里称 Gossip 为 协议 而不是算法是因为这只是个思想，基于这个思想有很多的变种。</p>
+<h2 id="Gossip-细述"><a href="#Gossip-细述" class="headerlink" title="Gossip 细述"></a>Gossip 细述</h2><p>Gossip 能够正常运作需要以下三种实现组合。</p>
+<ol>
+<li>广播（废话，不广播怎么传）</li>
+<li>反熵(Anti-entropy)</li>
+<li>谣言传播</li>
+</ol>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE(%E4%B8%80)-Gossip%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2130,209 +2328,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" itemprop="url">
-                  Linux网络编程 I/O多路复用
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-08-23 13:14:20" itemprop="dateCreated datePublished" datetime="2020-08-23T13:14:20+08:00">2020-08-23</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">Linux网络编程</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" class="leancloud_visitors" data-flag-title="Linux网络编程 I/O多路复用">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本节主要是讲 网络编程中, 常用的I/O 多路复用. 全文大概分为以下几点.</p>
-<ol>
-<li>为什么需要I/O多路复用?</li>
-<li>I/O多路复用的使用场景?</li>
-<li>为什么都是与非阻塞I/O进行搭配, 而不是与阻塞I/O进行搭配呢?</li>
-<li>select 的 优缺点 及 内核实现</li>
-<li>poll 的 优缺点 及 内核实现</li>
-<li>epoll 的 优缺点 及 内核实现</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2384,7 +2379,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">48</span>
+                    <span class="site-state-item-count">49</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2417,7 +2412,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">10</span>
+                      
+                    
+                    <span class="site-state-item-count">11</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2570,7 +2567,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">70</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>

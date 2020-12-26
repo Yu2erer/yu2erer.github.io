@@ -327,6 +327,209 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" itemprop="url">
+                  Linux网络编程 I/O多路复用
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-23 13:14:20" itemprop="dateCreated datePublished" datetime="2020-08-23T13:14:20+08:00">2020-08-23</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">Linux网络编程</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" class="leancloud_visitors" data-flag-title="Linux网络编程 I/O多路复用">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本节主要是讲 网络编程中, 常用的I/O 多路复用. 全文大概分为以下几点.</p>
+<ol>
+<li>为什么需要I/O多路复用?</li>
+<li>I/O多路复用的使用场景?</li>
+<li>为什么都是与非阻塞I/O进行搭配, 而不是与阻塞I/O进行搭配呢?</li>
+<li>select 的 优缺点 及 内核实现</li>
+<li>poll 的 优缺点 及 内核实现</li>
+<li>epoll 的 优缺点 及 内核实现</li>
+</ol>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B(%E4%B8%80)%E4%B9%8B%E6%97%B6%E9%97%B4%E7%BC%96%E7%A8%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2152,204 +2355,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E6%88%91%E6%89%80%E7%90%86%E8%A7%A3%E7%9A%84%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E6%88%91%E6%89%80%E7%90%86%E8%A7%A3%E7%9A%84%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81/" itemprop="url">
-                  我所理解的子网掩码
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-02-28 18:21:20" itemprop="dateCreated datePublished" datetime="2019-02-28T18:21:20+08:00">2019-02-28</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">计算机网络</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/%E6%88%91%E6%89%80%E7%90%86%E8%A7%A3%E7%9A%84%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E6%88%91%E6%89%80%E7%90%86%E8%A7%A3%E7%9A%84%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/%E6%88%91%E6%89%80%E7%90%86%E8%A7%A3%E7%9A%84%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81/" class="leancloud_visitors" data-flag-title="我所理解的子网掩码">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>首先 IPv4 资源是非常稀少的 大约只有 43亿 而且这还是包括了私有IP地址段的 其次 IP地址分为了五类 其中 D类地址没有主机标识 常被用于广播 E类被保留 我们不去管它</p>
-<p>那就只剩下了 A B C 三类 问题是 A类和B类的链路允许非常多的计算机连接 实际网络架构上 根本用不到那么多 这就造成了IPv4的浪费 这个时候 子网掩码出现了</p>
-<h3 id="子网掩码的意义"><a href="#子网掩码的意义" class="headerlink" title="子网掩码的意义"></a>子网掩码的意义</h3><p>将 A B C类网络进行更细的划分 避免浪费 IPv4地址 也可以把小的网络归并成大的网络即超网</p>
-<h3 id="子网掩码的理解"><a href="#子网掩码的理解" class="headerlink" title="子网掩码的理解"></a>子网掩码的理解</h3><p>假设有一个财主 他有256间房子 房子的编号是 <code>0~255</code> 然后它的房子都在<code>192.168.0</code>这一条街上 现在他有<code>8</code>个儿子 要分家 则相当于 每个人都分得<code>32</code>间房子</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E6%88%91%E6%89%80%E7%90%86%E8%A7%A3%E7%9A%84%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2401,7 +2406,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">48</span>
+                    <span class="site-state-item-count">49</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2434,7 +2439,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">10</span>
+                      
+                    
+                    <span class="site-state-item-count">11</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2587,7 +2594,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">70</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
