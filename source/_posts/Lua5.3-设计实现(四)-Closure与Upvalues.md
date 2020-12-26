@@ -6,13 +6,15 @@ keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机
 tags: [Lua, Lua虚拟机]
 ---
 
-`Closure` 其实对于 `C/C++` 程序员可以简单理解为 函数。不过由于有了 `Upvalues` 的概念，会让人理解起来不那么容易，但是 Lua 中的所有函数 其实都是 闭包，包括我们第一篇 [Lua 5.3 设计实现(一) Lua是怎么跑起来的?](https://yuerer.com/Lua5.3-设计实现(一)-Lua是怎么跑起来的/) 文章中提到的运行流程的第一个主函数，其实也是一个闭包。
+`Closure` 其实对于 `C/C++` 程序员可以简单理解为 函数。不过由于有了 `Upvalues` 的概念，会让人理解起来不那么容易，但是 Lua 中的所有函数 其实都是 闭包，包括我们第一篇 [Lua 5.3 设计实现(一) Lua是怎么跑起来的？](https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/)) 文章中提到的运行流程的第一个主函数，其实也是一个闭包。
 
 本文中 函数与闭包的名字会混用，请根据其是否含有 Upvalue 进行区分。
 
 ## Closure
 
-闭包的结构其实就是拥有所有执行所需要的信息，因为这一块在第一篇已经讲过，故大幅度跳过。
+闭包是由 函数原型（Proto）+ （UpValue）组合而成的。
+
+而 `Proto` 其实就是拥有所有执行所需要的信息，因为这一块在第一篇已经讲过，故大幅度跳过。
 
 ```c
 typedef struct Proto {
@@ -54,8 +56,8 @@ upvalue 主要由 一个union 和 TValue 构成，在这里要理解一个概念
 
 upvalue 的 `open` 状态。
 
-1. open：当我们说一个 upvalue 是 open 的，指的是这个 upvalue 其原始值还在数据栈上。
-2. close：如果说一个 upvalue 是 close 的，指的是这个 upvalue 已经不在栈上了（可能会被垃圾回收），离开了作用域。
+1. open：当我们说一个 upvalue 是 open 的，指的是这个 upvalue 其原始值还在数据栈上（因此这个对象如果是可回收的，则被扫描标记管理）。
+2. close：如果说一个 upvalue 是 close 的，指的是这个 upvalue 已经不在栈上了，离开了作用域，会被拷贝到 `UpVal.u.value` 中，不受到垃圾回收的管控，而是被引用计数管理。
 
 ```c
 struct UpVal {
@@ -89,7 +91,7 @@ end
 
 return 回去这个 `function` 因为 t 已经不在栈上了，故将其值存入了这个 UpVal 结构体中，跟随着这个 function 一起。
 
-结构中的 `open` 这一个结构体，则是当 UpVal 为 open态时，链接上所有的 open UpVal，方便后续的查找，而 `touched` 是为了防止垃圾回收 UpVal 被清理。
+结构中的 `open` 这一个结构体，则是当 UpVal 为 open态时，链接上所有的 open UpVal，方便后续的查找，而 `touched` 是为了防止垃圾回收时 还指向栈上对象的 `upvalue` 被清理。因为 垃圾回收的 `atomic` 有个 `remarkupval` 的函数，在里面进行重新标记 `upvalue` 。
 
 ## Closure
 
@@ -182,7 +184,7 @@ static void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
 
 UpValue 会根据其是否在栈上，用 Upvaldesc 中的 instack 字段进行表示。（一般是在 代码被编译的时候，写入到调试信息中，或者是判断这个 key 是否出现在 local 中进行判断），这里的在栈上并不意味着它被打开，如果不在则在上层函数中进行寻找。
 
-最后将这个 闭包 存入 Proto 的 cache中，如果下次还要找这个 闭包，就从 cache 中取。
+最后将这个 闭包 存入 Proto 的 cache中，如果下次还要根据 `Proto` 生成 Closure，则先检查该 CLosure 的 `UpValue` 是否完全一致，如果是则复用，因此最好不要写出动态生成闭包的代码，避免性能的损耗。
 
 ```c
 // 动态建立，判断是否为 local 是的话，则是在栈中
@@ -221,3 +223,73 @@ UpVal *luaF_findupval (lua_State *L, StkId level) {
   return uv;
 }
 ```
+
+## 思考题
+
+如果能答对以下几个问题相信对这一节的内容就已经完全理解了。
+
+以下代码。
+
+1. 有几个 upvalue？
+2. 在内存中存在几份 upvalue？
+3. return 的时候会拷贝几次 upvalue？
+
+```lua
+local _table = {}
+
+function _table.test1()
+_table.i = 10
+end
+
+function _table.test2()
+_table.j = 100
+end
+```
+
+可以先看看指令码。
+
+```lua
+[root@localhost src]# luac -l -l main.lua 
+
+main <main.lua:0,0> (6 instructions at 0x2216a20)
+0+ params, 2 slots, 1 upvalue, 1 local, 2 constants, 2 functions
+	1	[1]	NEWTABLE 	0 0 0
+	2	[5]	CLOSURE  	1 0	; 0x2216cc0
+	3	[3]	SETTABLE 	0 -1 1	; "test1" -
+	4	[9]	CLOSURE  	1 1	; 0x2216ed0
+	5	[7]	SETTABLE 	0 -2 1	; "test2" -
+	6	[9]	RETURN   	0 1
+constants (2) for 0x2216a20:
+	1	"test1"
+	2	"test2"
+locals (1) for 0x2216a20:
+	0	_table	2	7
+upvalues (1) for 0x2216a20:
+	0	_ENV	1	0
+
+function <main.lua:3,5> (2 instructions at 0x2216cc0)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[4]	SETTABUP 	0 -1 -2	; _table "i" 10
+	2	[5]	RETURN   	0 1
+constants (2) for 0x2216cc0:
+	1	"i"
+	2	10
+locals (0) for 0x2216cc0:
+upvalues (1) for 0x2216cc0:
+	0	_table	1	0
+
+function <main.lua:7,9> (2 instructions at 0x2216ed0)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[8]	SETTABUP 	0 -1 -2	; _table "j" 100
+	2	[9]	RETURN   	0 1
+constants (2) for 0x2216ed0:
+	1	"j"
+	2	100
+locals (0) for 0x2216ed0:
+upvalues (1) for 0x2216ed0:
+	0	_table	1	0
+```
+
+1. 可以看到 两个函数 都有一个 `upvalue` ，指的是 `_table`
+2. 内存中只会有一份 `upvalue`，因为第一次 `luaF_findupval` 会发现 `openupval` 没有，于是新建了一个，第二次 `pushclosure` 也会执行到 `luaF_findupval` ，这时候 `openupval` 已经有了，于是直接指向它。
+3. 从问题2可以得知，两个闭包指向的 `upvalue` 实际上为同一个，因此当这个文件被 `return` 的时候，只会拷贝一次到第一个闭包的 `upvalue` 上。
