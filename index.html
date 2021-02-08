@@ -373,12 +373,24 @@
                 
               
 
-              <time title="创建时间：2020-12-19 10:09:20 / 修改时间：10:18:23" itemprop="dateCreated datePublished" datetime="2020-12-19T10:09:20+08:00">2020-12-19</time>
+              <time title="创建时间：2020-12-19 10:09:20" itemprop="dateCreated datePublished" datetime="2020-12-19T10:09:20+08:00">2020-12-19</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-02-08 08:07:18" itemprop="dateModified" datetime="2021-02-08T08:07:18+08:00">2021-02-08</time>
               
             
           </span>
@@ -467,7 +479,7 @@
 <p>因此，少写这种代码就可以减少对象的生成。</p>
 <h2 id="垃圾回收提速"><a href="#垃圾回收提速" class="headerlink" title="垃圾回收提速"></a>垃圾回收提速</h2><p>第三种思路，我的想法是，让垃圾回收所要遍历的对象大幅减少，就可以为垃圾回收提速了，由于我们是重 Lua 的框架，因此我们的所有配置都存在于 Lua 的 table中，而这一部分肯定是不需要被回收的，但是每次垃圾回收的时候，又会不停的扫描递归遍历，不合理。同时代码中的很多全局函数，也是根本不需要被回收的，也会被扫描到，于是就想到一个想法，给这些对象打上标记，让他们不被遍历不被清理，就可以大幅度的提速了。</p>
 <p>原理简单，但是做起来确实挺难受的，要注意要手动关闭 <code>UpValue</code> 将其保留下来。</p>
-<p>目前已经开源，<a href="https://github.com/Yu2erer/Lua-GC" target="_blank" rel="noopener">Lua-GC</a>源码</p>
+<p>目前已经开源，<a href="https://github.com/Yu2erer/Lua-NOGC" target="_blank" rel="noopener">Lua-NOGC</a>源码</p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/#more" rel="contents">
