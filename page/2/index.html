@@ -327,6 +327,413 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/" itemprop="url">
+                  Lua 5.3 设计实现(一) Lua是怎么跑起来的?
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-10-25 13:12:20" itemprop="dateCreated datePublished" datetime="2020-10-25T13:12:20+08:00">2020-10-25</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-12-05 22:27:24" itemprop="dateModified" datetime="2020-12-05T22:27:24+08:00">2020-12-05</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(一) Lua是怎么跑起来的?">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>其实在此之前已经写了一个 Lua 5.3 源码剖析系列，还有好几篇存档没有发。为什么突然又不发了呢？（甚至还删了），是因为我感觉之前那样学习的方式过于难受，折磨心智（人这一生最不该做的就是折磨自己），没有抓清主次，同时和网络上的博文同质化严重。因此就决定，再读一次 Lua 的源码，这次读的是 Lua 5.3.6 是 Lua 5.3 系列的最后一个版本。</p>
+<p>本系列，不会谈论 Lua 语法，也默认读者已经有 Lua使用经验，我们将绕过 Lua 的编译器（大部分都是词法语法分析），直接进入到 Lua解释器中，来学习我们写好的 Lua 源码是怎么跑起来的。为了理解的方便，代码会有大量删减，只抽取其核心。</p>
+<h2 id="Lua-编译过程"><a href="#Lua-编译过程" class="headerlink" title="Lua 编译过程"></a>Lua 编译过程</h2><p>虽然，我们在一开始就说好，不谈论 Lua 编译器，但是还是要先理解 Lua 的运行机制。这里简单提一下，你写好的 <code>xxx.lua</code> 文件 会经过 luac 工具将 Lua源代码编译成 二进制文件，Lua 作者在代码中称其为 Chunk，接着 Lua解释器会加载它并执行，所以 Lua执行起来，看起来是边执行边编译，但实际上是先编译成 Chunk，再加载 Chunk去执行。</p>
+<h2 id="加载-Chunk"><a href="#加载-Chunk" class="headerlink" title="加载 Chunk"></a>加载 Chunk</h2><p>假设我们现在有一段 lua代码，且已经过了 luac工具 编译出了 Chunk，那么 Lua解释器是怎么将其加载的呢？</p>
+<p>我们可以大胆猜测，Lua会有个load函数，去load我们的 Chunk。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">LUA_API <span class="keyword">int</span> <span class="title">lua_load</span> <span class="params">(lua_State *L, lua_Reader reader, <span class="keyword">void</span> *data,</span></span></span><br><span class="line"><span class="function"><span class="params">                      <span class="keyword">const</span> <span class="keyword">char</span> *chunkname, <span class="keyword">const</span> <span class="keyword">char</span> *mode)</span> </span>&#123;</span><br><span class="line">  ....</span><br><span class="line">  status = luaD_protectedparser(L, &amp;z, chunkname, mode);</span><br><span class="line">  <span class="keyword">if</span> (status == LUA_OK) &#123;  <span class="comment">/* no errors? */</span></span><br><span class="line">    LClosure *f = clLvalue(L-&gt;top - <span class="number">1</span>);  <span class="comment">/* get newly created function */</span></span><br><span class="line">		....</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" itemprop="url">
+                  SkipList 原理及在游戏排行榜中的应用
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-09-12 15:05:20" itemprop="dateCreated datePublished" datetime="2020-09-12T15:05:20+08:00">2020-09-12</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%B8%B8%E6%88%8F%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">游戏设计</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" class="leancloud_visitors" data-flag-title="SkipList 原理及在游戏排行榜中的应用">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>近期工作的内容主要是设计一个通用的游戏排行榜服务器, 通用的含义指的是同时为多个项目组提供一套通用的解决方案, 经过不断的调研, 最终写下此文.</p>
+<p>本文将会讲述 排行榜的多种实现方式, 不过最终我选择了 SkipList 作为底层的数据结构, 因此会着重讲SkipList.</p>
+<p>先来讲一下排行榜的主要功能.</p>
+<h2 id="排行榜主要功能"><a href="#排行榜主要功能" class="headerlink" title="排行榜主要功能"></a>排行榜主要功能</h2><ul>
+<li>更新/删除/获取 一个 Key 在某个 排行榜 上的 排名, 及展示信息</li>
+<li>获取 一个排行榜 任意区间(例如排名区间) 的展示信息</li>
+</ul>
+<h2 id="排行榜排序方案"><a href="#排行榜排序方案" class="headerlink" title="排行榜排序方案"></a>排行榜排序方案</h2><p>游戏中的排行榜的排序方案无非就两种</p>
+<ul>
+<li>实时排序, 即玩家数值变化的瞬间, 就完成了对它的排序</li>
+<li>非实时排序, 亦可称之为定时排序, 玩家数据变动不立即排序, 而是直到策划所配的时间点到的时候才进行排序</li>
+</ul>
+<p>这两种排序方案没有好坏之分, 主要是看策划他想要什么? <del>(或许他自己也不知道想要什么, 他都想试试看, 他只顾着他自己)</del></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1960,406 +2367,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" itemprop="url">
-                  离线安装 VSCode Remote-SSH
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-05-23 22:17:20" itemprop="dateCreated datePublished" datetime="2019-05-23T22:17:20+08:00">2019-05-23</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%90%9E%E4%B8%9C%E6%90%9E%E8%A5%BF/" itemprop="url" rel="index"><span itemprop="name">搞东搞西</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" class="leancloud_visitors" data-flag-title="离线安装 VSCode Remote-SSH">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>VSCode 近期推出了 Remote-SSH 这个工具 使得 Linux开发者 能够在本地(Windows 机)上直接对开发机源码进行修改 简直拯救了一大批人啊… 但是却没有提到 如何离线安装 因此本文可能是最早 尝试离线安装的教程</p>
-<h2 id="离线安装"><a href="#离线安装" class="headerlink" title="离线安装"></a>离线安装</h2><ol>
-<li>本地上下载好 <a href="https://code.visualstudio.com/insiders/" target="_blank" rel="noopener">VSCode Insiders</a></li>
-<li>安装 <code>Remote-SSH</code> 插件</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E9%9D%A2%E8%AF%95%E8%85%BE%E8%AE%AF/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E9%9D%A2%E8%AF%95%E8%85%BE%E8%AE%AF/" itemprop="url">
-                  面试腾讯
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-04-05 13:24:20" itemprop="dateCreated datePublished" datetime="2019-04-05T13:24:20+08:00">2019-04-05</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E8%83%A1%E8%A8%80%E4%B9%B1%E8%AF%AD/" itemprop="url" rel="index"><span itemprop="name">胡言乱语</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/%E9%9D%A2%E8%AF%95%E8%85%BE%E8%AE%AF/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E9%9D%A2%E8%AF%95%E8%85%BE%E8%AE%AF/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/%E9%9D%A2%E8%AF%95%E8%85%BE%E8%AE%AF/" class="leancloud_visitors" data-flag-title="面试腾讯">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="收到腾讯的-Offer"><a href="#收到腾讯的-Offer" class="headerlink" title="收到腾讯的 Offer"></a>收到腾讯的 Offer</h2><p>前两天 2019年4月3日 我拿到了 腾讯 ieg 的游戏后台研发的暑期实习 Offer<br>这是我人生中第一次面试 也是我人生中第一个 Offer</p>
-<h2 id="奇妙的开始"><a href="#奇妙的开始" class="headerlink" title="奇妙的开始"></a>奇妙的开始</h2><p>三月份的时候 看到知乎上有腾讯的大佬发文章 说腾讯的暑期实习已经开始了. 从小在深圳长大 多多少少都会对腾讯有一种向往. 我很想去 但又觉得自己好像什么都不会. 后来和 女朋友 说起了这件事后 她觉得我可以的, “强迫”我去写简历</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E9%9D%A2%E8%AF%95%E8%85%BE%E8%AE%AF/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/">&lt;</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/">&gt;</a>
+    <a class="extend prev" rel="prev" href="/">&lt;</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/3/">&gt;</a>
   </nav>
 
 
@@ -2406,7 +2418,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">49</span>
+                    <span class="site-state-item-count">51</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2441,7 +2453,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">11</span>
+                      
+                    
+                    <span class="site-state-item-count">12</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2596,7 +2610,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">74</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>

@@ -327,6 +327,400 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/" itemprop="url">
+                  Raft 共识算法解析
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2021-03-14 10:01:20 / 修改时间：10:02:06" itemprop="dateCreated datePublished" datetime="2021-03-14T10:01:20+08:00">2021-03-14</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/" class="leancloud_visitors" data-flag-title="Raft 共识算法解析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>前篇解析了 <code>Gossip</code> 协议，这篇主要看看 <code>Raft</code> 是如何实现的。</p>
+<p>本文主要分为两个部分，首先是粗略讲解一遍 <code>Raft</code> 的设计思想，在这一部分不会将 <code>RPC</code> 的各种字段（因为没有意义，只会徒增心智负担），而在第二部分则是通过解析一份优质的 <code>Raft</code> 源码实现，在这个部分再深入到 <code>RPC</code> 各个字段。</p>
+<p>如果看了一遍看不懂也没关系，建议多去看看 <code>Raft</code> 的论文，笔者也是反复看了两周才大致理解其指导思想。</p>
+<h2 id="Raft"><a href="#Raft" class="headerlink" title="Raft"></a>Raft</h2><p>一提到共识算法，相信大部分人都能马上想到 <code>Paxos</code>，但是我认为它不是算法，它的论文里面顶多算是一个指导思想，很少有人能够读完它就实现出一个可靠的共识算法（关键是要验证其的正确性），但是 <code>Raft</code> 不一样，它的一些设计非常巧妙，能够令人非常好的理解其指导思想，同时比较容易的实现（因为 <code>Raft</code> 从诞生那一刻就是为了弥补 <code>Paxos</code> 的可理解性，看看人家的论文名字 <code>In Search of an Understandable Consensus Algorithm</code> 可理解的分布式共识算法）。</p>
+<p>用过 <code>Zookeeper</code> 的可能知道其内部的协议就是根据 <code>Paxos</code> 的指导实现的一个 <code>Zab</code> 算法，之所以不用 <code>Raft</code> 是因为 <code>Raft</code> 那时候还没出世呢。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Gossip-%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Gossip-%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/" itemprop="url">
+                  Gossip 协议解析
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2021-03-09 16:45:20" itemprop="dateCreated datePublished" datetime="2021-03-09T16:45:20+08:00">2021-03-09</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 09:59:06" itemprop="dateModified" datetime="2021-03-14T09:59:06+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Gossip-%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Gossip-%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Gossip-%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/" class="leancloud_visitors" data-flag-title="Gossip 协议解析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>一直都对分布式协议比较感兴趣，选择了 <code>Gossip</code> 和 <code>Raft</code> 作为起点，之所以这么选择有两个原因。</p>
+<ol>
+<li>它们足够简单。</li>
+<li>一个基于 <code>AP</code> ，一个基于 <code>CP</code> ，分别是可用性优先和一致性优先的代表。</li>
+</ol>
+<h2 id="Gossip"><a href="#Gossip" class="headerlink" title="Gossip"></a>Gossip</h2><p><code>Gossip</code> 协议主要通过谣言传播的形式，传播给其他节点。</p>
+<p>我这里称 <code>Gossip</code> 为 协议 而不是算法是因为这只是个思想，基于这个思想有很多的变种。</p>
+<p>Gossip 能够正常运作需要以下三种实现组合。</p>
+<ol>
+<li>广播</li>
+<li>反熵(Anti-entropy)</li>
+<li>谣言传播</li>
+</ol>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Gossip-%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1930,418 +2324,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/" itemprop="url">
-                  Lua 5.3 设计实现(一) Lua是怎么跑起来的?
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-10-25 13:12:20" itemprop="dateCreated datePublished" datetime="2020-10-25T13:12:20+08:00">2020-10-25</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-12-05 22:27:24" itemprop="dateModified" datetime="2020-12-05T22:27:24+08:00">2020-12-05</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(一) Lua是怎么跑起来的?">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>其实在此之前已经写了一个 Lua 5.3 源码剖析系列，还有好几篇存档没有发。为什么突然又不发了呢？（甚至还删了），是因为我感觉之前那样学习的方式过于难受，折磨心智（人这一生最不该做的就是折磨自己），没有抓清主次，同时和网络上的博文同质化严重。因此就决定，再读一次 Lua 的源码，这次读的是 Lua 5.3.6 是 Lua 5.3 系列的最后一个版本。</p>
-<p>本系列，不会谈论 Lua 语法，也默认读者已经有 Lua使用经验，我们将绕过 Lua 的编译器（大部分都是词法语法分析），直接进入到 Lua解释器中，来学习我们写好的 Lua 源码是怎么跑起来的。为了理解的方便，代码会有大量删减，只抽取其核心。</p>
-<h2 id="Lua-编译过程"><a href="#Lua-编译过程" class="headerlink" title="Lua 编译过程"></a>Lua 编译过程</h2><p>虽然，我们在一开始就说好，不谈论 Lua 编译器，但是还是要先理解 Lua 的运行机制。这里简单提一下，你写好的 <code>xxx.lua</code> 文件 会经过 luac 工具将 Lua源代码编译成 二进制文件，Lua 作者在代码中称其为 Chunk，接着 Lua解释器会加载它并执行，所以 Lua执行起来，看起来是边执行边编译，但实际上是先编译成 Chunk，再加载 Chunk去执行。</p>
-<h2 id="加载-Chunk"><a href="#加载-Chunk" class="headerlink" title="加载 Chunk"></a>加载 Chunk</h2><p>假设我们现在有一段 lua代码，且已经过了 luac工具 编译出了 Chunk，那么 Lua解释器是怎么将其加载的呢？</p>
-<p>我们可以大胆猜测，Lua会有个load函数，去load我们的 Chunk。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">LUA_API <span class="keyword">int</span> <span class="title">lua_load</span> <span class="params">(lua_State *L, lua_Reader reader, <span class="keyword">void</span> *data,</span></span></span><br><span class="line"><span class="function"><span class="params">                      <span class="keyword">const</span> <span class="keyword">char</span> *chunkname, <span class="keyword">const</span> <span class="keyword">char</span> *mode)</span> </span>&#123;</span><br><span class="line">  ....</span><br><span class="line">  status = luaD_protectedparser(L, &amp;z, chunkname, mode);</span><br><span class="line">  <span class="keyword">if</span> (status == LUA_OK) &#123;  <span class="comment">/* no errors? */</span></span><br><span class="line">    LClosure *f = clLvalue(L-&gt;top - <span class="number">1</span>);  <span class="comment">/* get newly created function */</span></span><br><span class="line">		....</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" itemprop="url">
-                  SkipList 原理及在游戏排行榜中的应用
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-09-12 15:05:20" itemprop="dateCreated datePublished" datetime="2020-09-12T15:05:20+08:00">2020-09-12</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%B8%B8%E6%88%8F%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">游戏设计</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" class="leancloud_visitors" data-flag-title="SkipList 原理及在游戏排行榜中的应用">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>近期工作的内容主要是设计一个通用的游戏排行榜服务器, 通用的含义指的是同时为多个项目组提供一套通用的解决方案, 经过不断的调研, 最终写下此文.</p>
-<p>本文将会讲述 排行榜的多种实现方式, 不过最终我选择了 SkipList 作为底层的数据结构, 因此会着重讲SkipList.</p>
-<p>先来讲一下排行榜的主要功能.</p>
-<h2 id="排行榜主要功能"><a href="#排行榜主要功能" class="headerlink" title="排行榜主要功能"></a>排行榜主要功能</h2><ul>
-<li>更新/删除/获取 一个 Key 在某个 排行榜 上的 排名, 及展示信息</li>
-<li>获取 一个排行榜 任意区间(例如排名区间) 的展示信息</li>
-</ul>
-<h2 id="排行榜排序方案"><a href="#排行榜排序方案" class="headerlink" title="排行榜排序方案"></a>排行榜排序方案</h2><p>游戏中的排行榜的排序方案无非就两种</p>
-<ul>
-<li>实时排序, 即玩家数值变化的瞬间, 就完成了对它的排序</li>
-<li>非实时排序, 亦可称之为定时排序, 玩家数据变动不立即排序, 而是直到策划所配的时间点到的时候才进行排序</li>
-</ul>
-<p>这两种排序方案没有好坏之分, 主要是看策划他想要什么? <del>(或许他自己也不知道想要什么, 他都想试试看, 他只顾着他自己)</del></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
   </nav>
 
 
@@ -2388,7 +2375,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">49</span>
+                    <span class="site-state-item-count">51</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2423,7 +2410,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">11</span>
+                      
+                    
+                    <span class="site-state-item-count">12</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2578,7 +2567,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">74</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
