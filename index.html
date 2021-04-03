@@ -327,6 +327,191 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Redis-6-%E5%89%96%E6%9E%90(%E4%BA%8C)-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Redis-6-%E5%89%96%E6%9E%90(%E4%BA%8C)-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" itemprop="url">
+                  Redis 6 剖析(二) 主从同步
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2021-04-03 23:31:20 / 修改时间：22:37:20" itemprop="dateCreated datePublished" datetime="2021-04-03T23:31:20+08:00">2021-04-03</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Redis-6-%E5%89%96%E6%9E%90(%E4%BA%8C)-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Redis-6-%E5%89%96%E6%9E%90(%E4%BA%8C)-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Redis-6-%E5%89%96%E6%9E%90(%E4%BA%8C)-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" class="leancloud_visitors" data-flag-title="Redis 6 剖析(二) 主从同步">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本篇是 <code>Redis 6</code> 剖析的第二篇，主要探讨 <code>Redis</code> 是怎么做主从同步的，对代码会有所删减。</p>
+<h2 id="SLAVE"><a href="#SLAVE" class="headerlink" title="SLAVE"></a>SLAVE</h2><p>通常启用主从同步，只要在从服务器执行 <code>SLAVEOF HOST PORT</code> 即可，这个时候就会执行到 <code>replicaofCommand</code> 。由于主从同步是从服务器发起的，因此我们先从 <code>Slave</code> 开始进行剖析。</p>
+<p><img src="/images/Redis6-Replication.png" alt="Redis6-Replication"></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Redis-6-%E5%89%96%E6%9E%90(%E4%BA%8C)-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Redis-6-%E5%89%96%E6%9E%90(%E4%B8%80)-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -373,12 +558,24 @@
                 
               
 
-              <time title="创建时间：2021-03-26 23:46:20 / 修改时间：23:47:06" itemprop="dateCreated datePublished" datetime="2021-03-26T23:46:20+08:00">2021-03-26</time>
+              <time title="创建时间：2021-03-26 23:46:20" itemprop="dateCreated datePublished" datetime="2021-03-26T23:46:20+08:00">2021-03-26</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-04-03 22:30:21" itemprop="dateModified" datetime="2021-04-03T22:30:21+08:00">2021-04-03</time>
               
             
           </span>
@@ -452,7 +649,7 @@
       
         
           <p>一直觉得关系型数据库非常难用，在使用之前要先定好表的结构，中途修改存储结构，改动就会非常繁杂，特别是 <code>外键</code> 这玩意离开了学校就再也没见过。好在在 <code>游戏领域</code> 中，用的最多的都是 <code>NoSQL</code> 。</p>
-<p>熟悉我风格的人，可以看出这个系列的标题，不再是 <code>源码剖析</code>，而是只有 <code>剖析</code> 两字，主要是考虑到 <code>Redis 6.0</code> 的代码量已经挺大了，同时网络中又有大量关于 <code>Redis</code> 数据结构的源码剖析，没必要再吵冷饭了。</p>
+<p>熟悉我风格的人，可以看出这个系列的标题，不再是 <code>源码剖析</code>，而是只有 <code>剖析</code> 两字，主要是考虑到 <code>Redis 6.0</code> 的代码量已经挺大了，同时网络中又有大量关于 <code>Redis</code> 数据结构的源码剖析，没必要再炒冷饭了。</p>
 <p>出于以上的原因，我将 <code>Redis</code> 分为几个部分进行剖析和讨论。</p>
 <ol>
 <li>异步机制</li>
@@ -2131,206 +2328,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" itemprop="url">
-                  Lua 5.3 设计实现(三) 长短字符串
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-10-28 13:12:20" itemprop="dateCreated datePublished" datetime="2020-10-28T13:12:20+08:00">2020-10-28</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-12-05 22:28:00" itemprop="dateModified" datetime="2020-12-05T22:28:00+08:00">2020-12-05</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(三) 长短字符串">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>上一篇主要是讲了 <code>Table</code> 和 <code>MetaMethod</code> 的一些设计实现，谈论到了 Lua 会对 元方法的字符串名字作缓存，同时提到了 Lua 字符串分为长短字符串。这一篇主要是谈论一下 Lua 的长短字符串是怎么设计的？为什么要分长短这两种类型？</p>
-<h2 id="TString-结构"><a href="#TString-结构" class="headerlink" title="TString 结构"></a>TString 结构</h2><p>可以看到字符串内部会记录哈希值，每个字符串被创建出来就不能被改写，因此为了节约内存，Lua会复用相同的字符串，但是逐字节比较太慢了，因此会预处理将字符串hash，存入字符串的 <code>hash</code> 字段中。</p>
-<p>字符串的实际内容会追加到 <code>TString</code> 的后面。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">TString</span> &#123;</span></span><br><span class="line">  CommonHeader;  <span class="comment">// GC 回收</span></span><br><span class="line">  <span class="comment">// 短字符串时 0为需要被GC接管, 1为不被GC回收</span></span><br><span class="line">  <span class="comment">// 长字符串时 0为未hash, 1为已hash</span></span><br><span class="line">  lu_byte extra;</span><br><span class="line">  lu_byte shrlen; <span class="comment">// 短字符串长度, 如果是长字符串则无意义</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> hash; <span class="comment">// 字符串哈希值</span></span><br><span class="line">  <span class="keyword">union</span> &#123;</span><br><span class="line">    <span class="keyword">size_t</span> lnglen; <span class="comment">// 长字符串长度 如果为短字符串则无效</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TString</span>* <span class="title">hnext</span>;</span> <span class="comment">// 短字符串的时候 与相同哈希值的字符串串起的链表</span></span><br><span class="line">  &#125; u;</span><br><span class="line">&#125; TString;</span><br></pre></td></tr></table></figure>
-
-<p>短字符串全局只有一份，Lua解释器会将其存到 <code>stringtable</code> 这个结构中。字符串 <code>hash</code> 会根据 <code>global_State</code> 的 <code>seed</code> 进行哈希。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2382,7 +2379,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>

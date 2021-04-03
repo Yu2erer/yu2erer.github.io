@@ -327,6 +327,206 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" itemprop="url">
+                  Lua 5.3 设计实现(三) 长短字符串
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-10-28 13:12:20" itemprop="dateCreated datePublished" datetime="2020-10-28T13:12:20+08:00">2020-10-28</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-12-05 22:28:00" itemprop="dateModified" datetime="2020-12-05T22:28:00+08:00">2020-12-05</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(三) 长短字符串">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>上一篇主要是讲了 <code>Table</code> 和 <code>MetaMethod</code> 的一些设计实现，谈论到了 Lua 会对 元方法的字符串名字作缓存，同时提到了 Lua 字符串分为长短字符串。这一篇主要是谈论一下 Lua 的长短字符串是怎么设计的？为什么要分长短这两种类型？</p>
+<h2 id="TString-结构"><a href="#TString-结构" class="headerlink" title="TString 结构"></a>TString 结构</h2><p>可以看到字符串内部会记录哈希值，每个字符串被创建出来就不能被改写，因此为了节约内存，Lua会复用相同的字符串，但是逐字节比较太慢了，因此会预处理将字符串hash，存入字符串的 <code>hash</code> 字段中。</p>
+<p>字符串的实际内容会追加到 <code>TString</code> 的后面。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">TString</span> &#123;</span></span><br><span class="line">  CommonHeader;  <span class="comment">// GC 回收</span></span><br><span class="line">  <span class="comment">// 短字符串时 0为需要被GC接管, 1为不被GC回收</span></span><br><span class="line">  <span class="comment">// 长字符串时 0为未hash, 1为已hash</span></span><br><span class="line">  lu_byte extra;</span><br><span class="line">  lu_byte shrlen; <span class="comment">// 短字符串长度, 如果是长字符串则无意义</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> hash; <span class="comment">// 字符串哈希值</span></span><br><span class="line">  <span class="keyword">union</span> &#123;</span><br><span class="line">    <span class="keyword">size_t</span> lnglen; <span class="comment">// 长字符串长度 如果为短字符串则无效</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TString</span>* <span class="title">hnext</span>;</span> <span class="comment">// 短字符串的时候 与相同哈希值的字符串串起的链表</span></span><br><span class="line">  &#125; u;</span><br><span class="line">&#125; TString;</span><br></pre></td></tr></table></figure>
+
+<p>短字符串全局只有一份，Lua解释器会将其存到 <code>stringtable</code> 这个结构中。字符串 <code>hash</code> 会根据 <code>global_State</code> 的 <code>seed</code> 进行哈希。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%89)-%E9%95%BF%E7%9F%AD%E5%AD%97%E7%AC%A6%E4%B8%B2/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2134,207 +2334,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" itemprop="url">
-                  C++ 内存管理 之 STL内存分配实现原理
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-05 12:38:20" itemprop="dateCreated datePublished" datetime="2019-11-05T12:38:20+08:00">2019-11-05</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" class="leancloud_visitors" data-flag-title="C++ 内存管理 之 STL内存分配实现原理">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文主要讲的是 各个C++版本 中的STL标准库中的默认内存分配器 的 各种实现</p>
-<h2 id="VC6-标准分配器实现"><a href="#VC6-标准分配器实现" class="headerlink" title="VC6 标准分配器实现"></a>VC6 标准分配器实现</h2><p>VC6 它什么内存管理都没做 直接调用的 <code>operator new</code> 而 <code>operator new</code> 内部实际上 调用的就是 <code>malloc</code></p>
-<p>此外 VC6 下 是以元素为单位 比如 int 的话 他就会分配 512 ints 如果是 double 则会分配 512 doubles</p>
-<p>而 <code>GNU-C++ 2.9</code> 以字节为单位 <code>GNU-C++ 4.9</code> 以元素为单位 在 G2.9 中的容器默认分配器 被移到了 <code>pool_allocator</code> 中</p>
-<p>注意 G2.9 的标准分配器 和 容器默认分配器 不一样噢!</p>
-<h2 id="GNU-C-2-9-标准分配器实现"><a href="#GNU-C-2-9-标准分配器实现" class="headerlink" title="GNU-C++ 2.9 标准分配器实现"></a>GNU-C++ 2.9 标准分配器实现</h2><p><code>std::allocator</code> 标准分配器 也是什么都没做</p>
-<p>但是 <code>G2.9</code> 容器使用的分配器 不是上面的那个 <code>std::allocator</code> 而是 <code>std::alloc</code></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2386,7 +2385,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
