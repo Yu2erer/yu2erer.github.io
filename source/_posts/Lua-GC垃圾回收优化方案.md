@@ -46,7 +46,7 @@ end
 
 原理简单，但是做起来确实挺难受的，要注意要手动关闭 `UpValue` 将其保留下来。
 
-目前已经开源，[Lua-NOGC](https://github.com/Yu2erer/Lua-NOGC)源码
+目前已经开源，[LuaJIT-5.3.6](https://github.com/Yu2erer/LuaJIT-5.3.6)源码。
 
 <!-- more -->
 

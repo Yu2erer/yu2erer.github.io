@@ -883,4 +883,4 @@ int rdbSaveBackground(char *filename, rdbSaveInfo *rsi) {
 
 `Redis` 除了命令执行是单线程，其他的网络和耗时操作尽可能都转化为 多进程或多线程，简化了开发，这一点在游戏服务器上是非常值得借鉴的。
 
-此外， `Redis` 通过子线程释放内存，这一点我认为可以将其引用到 `Lua` 的垃圾回收中，缩短 `stop the world` 的时间，找个时间，写个多线程垃圾回收的版本，看看其效果。
+此外， `Redis` 通过子线程释放内存，这一点我认为可以将其引用到 `Lua` 的垃圾回收中，缩短 `stop the world` 的时间，找个时间，写个多线程垃圾回收的版本，看看其效果。[LuaJIT-5.3.6](https://github.com/Yu2erer/LuaJIT-5.3.6)(更新时间 2021年07月04日，已实现 Lua 多线程垃圾回收版本)
