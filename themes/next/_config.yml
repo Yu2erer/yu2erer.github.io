@@ -504,6 +504,7 @@ valine:
   guest_info: nick,mail # custom comment header
   pageSize: 10 # pagination size
   visitor: true # leancloud-counter-security is not supported for now. When visitor is set to be true, appid and appkey are recommended to be the same as leancloud_visitors' for counter compatibility. Article reading statistic https://valine.js.org/visitor.html
+  serverURLs: https://4c1e52qa.api.lncldglobal.com
 
 # Support for LiveRe comments system.
 # You can get your uid from https://livere.com/insight/myCode (General web site)
