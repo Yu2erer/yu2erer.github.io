@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/avatar.jpeg?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/avatar.jpeg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Searching...","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"找到约 ${hits} 个结果 用时 ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="UE5 为游戏开发提供了一套基础的游戏框架，想要用好 UE5 首先就要去熟悉其所提供的 GameFramework 的接口，了解它为项目做了什么准备，为什么新建一个项目，就有一个小白人可以操纵？ 本文为 UE5 GameFramework 的第一篇，以 Pawn 为起点，没有以 Actor 为起点主要是里面过于复杂，且与业务逻辑没什么关系。从 Pawn 开始学习，一是容易产生兴趣，二是稍微轻松一些">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE5 GameFramework Pawn 源码剖析">
+<meta property="og:url" content="https://yuerer.com/UE5-GameFramework-Pawn%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Yuerer&#39;s Blog">
+<meta property="og:description" content="UE5 为游戏开发提供了一套基础的游戏框架，想要用好 UE5 首先就要去熟悉其所提供的 GameFramework 的接口，了解它为项目做了什么准备，为什么新建一个项目，就有一个小白人可以操纵？ 本文为 UE5 GameFramework 的第一篇，以 Pawn 为起点，没有以 Actor 为起点主要是里面过于复杂，且与业务逻辑没什么关系。从 Pawn 开始学习，一是容易产生兴趣，二是稍微轻松一些">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-02-20T07:16:20.000Z">
+<meta property="article:modified_time" content="2022-02-20T07:37:11.209Z">
+<meta property="article:author" content="Yuerer">
+<meta property="article:tag" content="UE4">
+<meta property="article:tag" content=" UE5">
+<meta property="article:tag" content=" GameFramework">
+<meta property="article:tag" content=" APawn">
+<meta property="article:tag" content=" Pawn">
+<meta name="twitter:card" content="summary">
+
+
+  
+
+
+  <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="https://yuerer.com/UE5-GameFramework-Pawn源码剖析/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>UE5 GameFramework Pawn 源码剖析 | Yuerer's Blog</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-129491388-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-129491388-1');
+</script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yuerer's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">钰儿的Blog</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/UE5-GameFramework-Pawn%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">UE5 GameFramework Pawn 源码剖析
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2022-02-20 15:16:20 / 修改时间：15:37:11" itemprop="dateCreated datePublished" datetime="2022-02-20T15:16:20+08:00">2022-02-20</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/UE5/" itemprop="url" rel="index"><span itemprop="name">UE5</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/UE5-GameFramework-Pawn%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/UE5-GameFramework-Pawn%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/UE5-GameFramework-Pawn%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="leancloud_visitors" data-flag-title="UE5 GameFramework Pawn 源码剖析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><code>UE5</code> 为游戏开发提供了一套基础的游戏框架，想要用好 <code>UE5</code> 首先就要去熟悉其所提供的 <code>GameFramework</code> 的接口，了解它为项目做了什么准备，为什么新建一个项目，就有一个小白人可以操纵？</p>
+<p>本文为 <code>UE5 GameFramework</code> 的第一篇，以 <code>Pawn</code> 为起点，没有以 <code>Actor</code> 为起点主要是里面过于复杂，且与业务逻辑没什么关系。从 <code>Pawn</code> 开始学习，一是容易产生兴趣，二是稍微轻松一些，这也意味着本文会忽视各种网络同步、输入栈等细节，暂时只要知道它能为我们做什么即可，着重学习 <code>Pawn</code> 为我们提供了什么便利的东西。</p>
+<h2 id="APawn"><a href="#APawn" class="headerlink" title="APawn"></a>APawn</h2><ul>
+<li>Pawn的英文翻译过来可以是兵卒，所以如果把UE游戏看作是一场棋盘上的游戏的话，那这些Pawn就可以看作是在UE的3D世界中玩家可以操纵的棋子，而其他的Actor则可以构成棋盘等。 - <strong><a href="https://zhuanlan.zhihu.com/p/23321666?refer=insideue4" target="_blank" rel="noopener">大钊 Inside UE4</a></strong></li>
+</ul>
+<p>既然 <code>Pawn</code> 可以被操纵就意味着 它一定有控制它的地方，也就是 <code>Controller</code>，其次它既然能被控制，那么也需要响应 <code>Input</code>，提供给玩家自定义按键输入，记录玩家的按键输入，最后它能够被移动，也就意味着需要支持 <code>Collision</code>，避免走出墙外。</p>
+<p>除了以上最重要的三点功能，还负责了传递 <code>PlayerState</code> 玩家数据给其他机器，支持伤害事件(尽管这是 Actor 本身就支持的)</p>
+<a id="more"></a>
+
+<h3 id="Controller"><a href="#Controller" class="headerlink" title="Controller"></a>Controller</h3><p>Pawn 作为可被操控的对象，当然需要一个控制器去操作它，控制器变更时将会通知到蓝图与代理广播。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代理广播控制器变更</span></span><br><span class="line">DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_ThreeParams(FPawnControllerChangedSignature, APawn, ReceiveControllerChangedDelegate, APawn*, Pawn, AController*, OldController, AController*, NewController);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 当前控制 Pawn 的 Controller</span></span><br><span class="line">UPROPERTY(replicatedUsing=OnRep_Controller)</span><br><span class="line"><span class="keyword">public</span> TObjectPtr&lt;AController&gt; Controller;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 上一次控制该 Pawn 的 Controller 用于通知控制器改变时使用</span></span><br><span class="line">UPROPERTY(transient)</span><br><span class="line"><span class="keyword">public</span> TObjectPtr&lt;AController&gt; PreviousController;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通知控制器变更(蓝图 + 代理广播)，同时记录变更前的控制器</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::NotifyControllerChanged</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 蓝图通知</span></span><br><span class="line">    ReceiveControllerChanged(PreviousController, Controller);</span><br><span class="line">    <span class="comment">// 代理广播</span></span><br><span class="line">    ReceiveControllerChangedDelegate.Broadcast(<span class="keyword">this</span>, PreviousController, Controller);</span><br><span class="line">    <span class="comment">// 通知 GameInstance</span></span><br><span class="line">    <span class="keyword">if</span> (UGameInstance* GameInstance = GetGameInstance())</span><br><span class="line">    &#123;</span><br><span class="line">        GameInstance-&gt;GetOnPawnControllerChanged().Broadcast(<span class="keyword">this</span>, Controller);</span><br><span class="line">    &#125;</span><br><span class="line">    PreviousController = Controller;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ControllerRotation"><a href="#ControllerRotation" class="headerlink" title="ControllerRotation"></a>ControllerRotation</h3><p>选择是否使用 Controller 的旋转量，在 FaceRotation 函数中被使用，而 FaceRotation 将会被 Controller 调用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Pawn)</span><br><span class="line"><span class="keyword">public</span> uint32 bUseControllerRotationPitch:<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Pawn)</span><br><span class="line"><span class="keyword">public</span> uint32 bUseControllerRotationYaw:<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Pawn)</span><br><span class="line"><span class="keyword">public</span> uint32 bUseControllerRotationRoll:<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// FaceRotation 是通过 Actor Rotation 覆盖 Control Rotation 实现</span></span><br><span class="line"><span class="comment">// 该函数在 APlayerController 的 UpdateRotation 中被调用</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">APawn::FaceRotation</span><span class="params">(FRotator NewControlRotation, <span class="keyword">float</span> DeltaTime = <span class="number">0.f</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (bUseControllerRotationPitch || bUseControllerRotationYaw || bUseControllerRotationRoll)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">const</span> FRotator CurrentRotation = GetActorRotation();</span><br><span class="line">        <span class="keyword">if</span> (!bUseControllerRotationPitch)</span><br><span class="line">        &#123;</span><br><span class="line">            NewControlRotation.Pitch = CurrentRotation.Pitch;</span><br><span class="line">        &#125;</span><br><span class="line">        ......</span><br><span class="line">        SetActorRotation(NewControlRotation);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="PlayerState"><a href="#PlayerState" class="headerlink" title="PlayerState"></a>PlayerState</h3><p>玩家状态数据，其实它在 Controller 中也存在一份，但是 Controller 是不会同步的，因此当 Pawn 被控制的时候，需要从 Controller 设置 PlayerState 给 Pawn，让 Pawn 来同步 PlayerState。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">UPROPERTY(replicatedUsing=OnRep_PlayerState, BlueprintReadOnly, Category=Pawn, meta=(AllowPrivateAccess=<span class="string">"true"</span>))</span><br><span class="line"><span class="keyword">private</span> TObjectPtr&lt;APlayerState&gt; PlayerState;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::OnRep_PlayerState</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    SetPlayerState(PlayerState);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// FSetPlayerStatePawn 是为了给 PlayerState 设置 PawnPrivate 所实现的一个绕过访问权限的方法 可看作 PlayerState-&gt;PawnPrivate = this;</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">APawn::SetPlayerState</span><span class="params">(APlayerState* NewPlayerState)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (PlayerState &amp;&amp; PlayerState-&gt;GetPawn() == <span class="keyword">this</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        FSetPlayerStatePawn(PlayerState, <span class="literal">nullptr</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    PlayerState = NewPlayerState;</span><br><span class="line">    <span class="keyword">if</span> (PlayerState)</span><br><span class="line">    &#123;</span><br><span class="line">        FSetPlayerStatePawn(PlayerState, <span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Input"><a href="#Input" class="headerlink" title="Input"></a>Input</h3><p>输入重载了 <code>Actor</code> 的 <code>EnableInput</code>(这也说明了 Actor 也支持输入)，在 Controller 中将根据 <code>InputEnabled()</code> 来决定是否建立输入栈，不建立则自然是不接受输入。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 是否接受输入, 该变量的前提是被控制(Processed)</span></span><br><span class="line"><span class="keyword">private</span> uint32 bInputEnabled:<span class="number">1</span>;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">InputEnabled</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> bInputEnabled; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Controller 由 PossessedBy函数传入</span></span><br><span class="line"><span class="comment">// EnableInput 仅有在传入的PlayerController为空或是与控制该Pawn的Controller相同</span></span><br><span class="line"><span class="comment">// 才可修改是否允许输入, 注意此处完全覆写了 AActor 中的 EnableInput</span></span><br><span class="line"><span class="comment">// 这个属性在 APlayerController 创建输入栈(BuildInputStack)的时候才有用到</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">APawn::EnableInput</span><span class="params">(class APlayerController* PlayerController)</span> <span class="keyword">override</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (PlayerController == Controller || PlayerController == <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        bInputEnabled = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        UE_LOG(LogPawn, Error, TEXT(<span class="string">"EnableInput can only be specified on a Pawn for its Controller"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理输入的 Component，bInputEnabled 开启的情况下生效</span></span><br><span class="line">UPROPERTY(DuplicateTransient)</span><br><span class="line">TObjectPtr&lt;<span class="class"><span class="keyword">class</span> <span class="title">UInputComponent</span>&gt; <span class="title">InputComponent</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个支持自定义输入绑定的 component</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> UInputComponent* <span class="title">CreatePlayerInputComponent</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">const</span> FName <span class="title">InputComponentName</span><span class="params">(TEXT(<span class="string">"PawnInputComponent0"</span>))</span></span>;</span><br><span class="line">    <span class="keyword">return</span> NewObject&lt;UInputComponent&gt;(<span class="keyword">this</span>, UInputSettings::GetDefaultInputComponentClass(), InputComponentName);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// UnPossessed 脱离控制的时候，销毁输入组件</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::DestroyPlayerInputComponent</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (InputComponent)</span><br><span class="line">    &#123;</span><br><span class="line">        InputComponent-&gt;DestroyComponent();</span><br><span class="line">        InputComponent = <span class="literal">nullptr</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 空函数，预留给子类使用 InputComponent 绑定输入按键，我们平时使用的就是这个函数</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SetupPlayerInputComponent</span><span class="params">(UInputComponent* PlayerInputComponent)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Movement"><a href="#Movement" class="headerlink" title="Movement"></a>Movement</h3><p>接收了输入自然要能够移动，Pawn 自身已经提供了最基础的移动功能(其实也不是提供了移动功能，Pawn 本身不负责移动，而是将移动的输入存储起来，供 MovementComponent 消费使用)，其中 <code>UPawnMovementComponent</code> 的 <code>AddInputVector</code> 依然调回了 <code>Internal_AddMovementInput</code> ，应该就是方便使用者覆盖 <code>AddInputVector</code> 定制移动规则了。</p>
+<p>带 <code>Internal</code> 前缀的都是给 <code>PawnMovementComponent</code> 直接使用的，不带前缀则是给开发者提供便利的。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 移动输入存储的向量, 供 MovementComponent 使用</span></span><br><span class="line">UPROPERTY(Transient)</span><br><span class="line"><span class="keyword">protected</span> FVector ControlInputVector;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 最后一次处理控制移动输入的向量</span></span><br><span class="line">UPROPERTY(Transient)</span><br><span class="line"><span class="keyword">protected</span> FVector LastControlInputVector;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方便获取 MovementComponent, 但 APawn 本身并不自带 MovementComponent, 需要使用者自行添加注册</span></span><br><span class="line">UFUNCTION(BlueprintCallable, meta=(Tooltip=<span class="string">"Return our PawnMovementComponent, if we have one."</span>), Category=Pawn)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> UPawnMovementComponent* <span class="title">GetMovementComponent</span><span class="params">()</span> <span class="keyword">const</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> FindComponentByClass&lt;UPawnMovementComponent&gt;();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 是否忽略移动输入, 在 Controller 处设置, 被 MovementComponent 所使用</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">APawn::IsMoveInputIgnored</span><span class="params">()</span> <span class="keyword">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Controller != <span class="literal">nullptr</span> &amp;&amp; Controller-&gt;IsMoveInputIgnored();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将移动输入添加, bForce 表示是否忽略 IsMoveInputIgnored() 的返回值</span></span><br><span class="line">UFUNCTION(BlueprintCallable, Category=<span class="string">"Pawn|Input"</span>, meta=(Keywords=<span class="string">"AddInput"</span>))</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">AddMovementInput</span><span class="params">(FVector WorldDirection, <span class="keyword">float</span> ScaleValue = <span class="number">1.0f</span>, <span class="keyword">bool</span> bForce = <span class="literal">false</span>)</span> </span>&#123;</span><br><span class="line">    UPawnMovementComponent* MovementComponent = GetMovementComponent();</span><br><span class="line">    <span class="keyword">if</span> (MovementComponent)</span><br><span class="line">    &#123;</span><br><span class="line">        MovementComponent-&gt;AddInputVector(WorldDirection * ScaleValue, bForce);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        Internal_AddMovementInput(WorldDirection * ScaleValue, bForce);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Internal_AddMovementInput</span><span class="params">(FVector WorldAccel, <span class="keyword">bool</span> bForce = <span class="literal">false</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (bForce || !IsMoveInputIgnored())</span><br><span class="line">    &#123;</span><br><span class="line">        ControlInputVector += WorldAccel;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MovementComponent 消耗输入向量 做出移动操作</span></span><br><span class="line">UFUNCTION(BlueprintCallable, Category=<span class="string">"Pawn|Input"</span>, meta=(Keywords=<span class="string">"ConsumeInput"</span>))</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> FVector <span class="title">ConsumeMovementInputVector</span><span class="params">()</span> </span>&#123;</span><br><span class="line">UPawnMovementComponent* MovementComponent = GetMovementComponent();</span><br><span class="line">    <span class="keyword">if</span> (MovementComponent)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> MovementComponent-&gt;ConsumeInputVector();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> Internal_ConsumeMovementInputVector();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> FVector <span class="title">APawn::Internal_ConsumeMovementInputVector</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    LastControlInputVector = ControlInputVector;</span><br><span class="line">    ControlInputVector = FVector::ZeroVector;</span><br><span class="line">    <span class="keyword">return</span> LastControlInputVector;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加旋转, 主要还是将操作转给 Controller 处理</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::AddControllerPitchInput</span><span class="params">(<span class="keyword">float</span> Val)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Val != <span class="number">0.f</span> &amp;&amp; Controller &amp;&amp; Controller-&gt;IsLocalPlayerController())</span><br><span class="line">    &#123;</span><br><span class="line">        APlayerController* <span class="keyword">const</span> PC = CastChecked&lt;APlayerController&gt;(Controller);</span><br><span class="line">        PC-&gt;AddPitchInput(Val);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Possess"><a href="#Possess" class="headerlink" title="Possess"></a>Possess</h3><p>我觉得应该翻译为 <code>附身</code></p>
+<ul>
+<li>玩家附身</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 自动用本地哪套输入来控制该 Pawn, 用于支持单个主机多个玩家的游戏, 一般都是用 Player0</span></span><br><span class="line"><span class="comment">// 蓝图中设置</span></span><br><span class="line">UPROPERTY(EditAnywhere, Category=Pawn)</span><br><span class="line">TEnumAsByte&lt;EAutoReceiveInput::Type&gt; AutoPossessPlayer;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>AI 附身</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 该 Pawn 被AI控制的条件, 与 AutoPossessPlayer 互斥</span></span><br><span class="line">UPROPERTY(EditAnywhere, Category=Pawn)</span><br><span class="line">EAutoPossessAI AutoPossessAI;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 该 Pawn 被哪个 AIController 的子类控制 蓝图中设置</span></span><br><span class="line">UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName=<span class="string">"AI Controller Class"</span>), Category=Pawn)</span><br><span class="line">TSubclassOf&lt;AController&gt; AIControllerClass;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>控制器附身 Pawn</li>
+</ul>
+<p>只能由服务端(<code>NM_Standalone</code> 的 <code>role</code> 属于 <code>ROLE_Authority</code>)调用，修改控制器后强制发给其他客户端。</p>
+<p>如果 <code>Pawn</code> 的控制器是 <code>PlayerController</code> 则应当同步给其他客户端，最后通知给蓝图和监听该事件的代理。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::PossessedBy</span><span class="params">(AController* NewController)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    SetOwner(NewController);</span><br><span class="line"></span><br><span class="line">    AController* <span class="keyword">const</span> OldController = Controller;</span><br><span class="line">    Controller = NewController;</span><br><span class="line">    ForceNetUpdate();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (Controller-&gt;PlayerState != <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        SetPlayerState(Controller-&gt;PlayerState);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (APlayerController* PlayerController = Cast&lt;APlayerController&gt;(Controller))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (GetNetMode() != NM_Standalone)</span><br><span class="line">        &#123;</span><br><span class="line">            SetReplicates(<span class="literal">true</span>);</span><br><span class="line">            SetAutonomousProxy(<span class="literal">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        CopyRemoteRoleFrom(GetDefault&lt;APawn&gt;());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (OldController != NewController)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 蓝图实现，用于通知蓝图</span></span><br><span class="line">        ReceivePossessed(Controller);</span><br><span class="line">        <span class="comment">// 通知控制器变更(前面有介绍)</span></span><br><span class="line">        NotifyControllerChanged();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>restart</li>
+</ul>
+<p>被附身后, <code>Controller</code> 会调用 <code>Pawn</code> 的 <code>DispatchRestart</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">APawn::DispatchRestart</span><span class="params">(<span class="keyword">bool</span> bCallClientRestart)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (bCallClientRestart)</span><br><span class="line">    &#123;</span><br><span class="line">        PawnClientRestart();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        Restart();</span><br><span class="line">    &#125;</span><br><span class="line">    NotifyRestarted();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">APawn::Restart</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    UPawnMovementComponent* MovementComponent = GetMovementComponent();</span><br><span class="line">    <span class="keyword">if</span> (MovementComponent)</span><br><span class="line">    &#123;</span><br><span class="line">        MovementComponent-&gt;StopMovementImmediately();</span><br><span class="line">    &#125;</span><br><span class="line">    ConsumeMovementInputVector();</span><br><span class="line">    RecalculateBaseEyeHeight();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>控制器取消附身 Pawn</li>
+</ul>
+<p>也是只能由服务端调用，强制更新给其他客户端，同时还原属性。</p>
+<p>通知蓝图和监听控制器变更的代理。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::UnPossessed</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AController* <span class="keyword">const</span> OldController = Controller;</span><br><span class="line"></span><br><span class="line">    ForceNetUpdate();</span><br><span class="line"></span><br><span class="line">    SetPlayerState(<span class="literal">nullptr</span>);</span><br><span class="line">    SetOwner(<span class="literal">nullptr</span>);</span><br><span class="line">    Controller = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">    DestroyPlayerInputComponent();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (OldController)</span><br><span class="line">    &#123;</span><br><span class="line">        ReceiveUnpossessed(OldController);</span><br><span class="line">    &#125;</span><br><span class="line">    NotifyControllerChanged();</span><br><span class="line"></span><br><span class="line">    ConsumeMovementInputVector();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Damage"><a href="#Damage" class="headerlink" title="Damage"></a>Damage</h3><p>伤害是从 <code>Actor</code> 中继承下来的，这也意味着任何一个 <code>Actor</code> 都能受到伤害。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 最后一次被哪个Actor的控制器击中</span></span><br><span class="line">UPROPERTY(BlueprintReadOnly, transient, Category=<span class="string">"Pawn"</span>)</span><br><span class="line">TObjectPtr&lt;AController&gt; LastHitBy;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 只有在服务器上且能够受到伤害(在 Actor中变量控制) 且 有 Gamemode 且伤害不为0 才能受伤</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">ShouldTakeDamage</span><span class="params">(<span class="keyword">float</span> Damage, FDamageEvent <span class="keyword">const</span>&amp; DamageEvent, AController* EventInstigator, AActor* DamageCauser)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ((GetLocalRole() &lt; ROLE_Authority) || !CanBeDamaged() || !GetWorld()-&gt;GetAuthGameMode() || (Damage == <span class="number">0.f</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 伤害通知是在父类 也就是 Actor 中做的, Pawn 中只是记录最后一次被谁的控制器打了而已</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">float</span> <span class="title">TakeDamage</span><span class="params">(<span class="keyword">float</span> Damage, struct FDamageEvent <span class="keyword">const</span>&amp; DamageEvent, AController* EventInstigator, AActor* DamageCauser)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!ShouldTakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0.f</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">float</span> ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);</span><br><span class="line">    <span class="keyword">if</span> (ActualDamage != <span class="number">0.f</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ( EventInstigator &amp;&amp; EventInstigator != Controller )</span><br><span class="line">        &#123;</span><br><span class="line">            LastHitBy = EventInstigator;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ActualDamage;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Lifecycle"><a href="#Lifecycle" class="headerlink" title="Lifecycle"></a>Lifecycle</h3><p>在此处将开始关注 <code>Pawn</code> 的生命周期，为什么会在这就关注，主要是后面有个出界的处理，需要销毁对象，因此放到此处去关注。</p>
+<p>在这里分析的生命周期不是完整的！只是 <code>Pawn</code> 中所 <code>override</code> 的。但是时序是正确的。</p>
+<ol>
+<li><code>PostLoad</code> 从磁盘加载后被调用</li>
+<li><code>PostRegisterAllComponents</code> 组件被注册后的回调</li>
+<li><code>PreInitializeComponents</code> 组件初始化前被调用</li>
+<li><code>PostInitializeComponents</code> 组件初始化后被调用</li>
+<li><code>BeginPlay</code> 开始游戏事件(此处没有)</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Pawn 如果被调用了 PostLoad 则说明是从磁盘加载，则说明是处于关卡中被一起加载</span></span><br><span class="line"><span class="comment">// Pawn 若本身就处于关卡中，则不应该接受输入</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::PostLoad</span><span class="params">()</span> <span class="keyword">override</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::PostLoad();</span><br><span class="line">    AutoReceiveInput = EAutoReceiveInput::Disabled;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::PostRegisterAllComponents</span><span class="params">()</span> <span class="keyword">override</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::PostRegisterAllComponents();</span><br><span class="line">    UpdateNavAgent();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用控制器去控制 Pawn, PC-&gt;Possess 只会被 ROLE_Authority 所执行</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::PreInitializeComponents</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::PreInitializeComponents();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (GetInstigator() == <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        SetInstigator(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (AutoPossessPlayer != EAutoReceiveInput::Disabled &amp;&amp; GetNetMode() != NM_Client )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">const</span> int32 PlayerIndex = int32(AutoPossessPlayer.GetValue()) - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        APlayerController* PC = UGameplayStatics::GetPlayerController(<span class="keyword">this</span>, PlayerIndex);</span><br><span class="line">        <span class="keyword">if</span> (PC)</span><br><span class="line">        &#123;</span><br><span class="line">            PC-&gt;Possess(<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            GetWorld()-&gt;PersistentLevel-&gt;RegisterActorForAutoReceiveInput(<span class="keyword">this</span>, PlayerIndex);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    UpdateNavigationRelevance();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 主要处理 AI</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::PostInitializeComponents</span><span class="params">()</span> <span class="keyword">override</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    QUICK_SCOPE_CYCLE_COUNTER(STAT_Pawn_PostInitComponents);</span><br><span class="line"></span><br><span class="line">    Super::PostInitializeComponents();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!IsPendingKill())</span><br><span class="line">    &#123;</span><br><span class="line">        UWorld* World = GetWorld();</span><br><span class="line">        <span class="keyword">if</span> (AutoPossessPlayer == EAutoReceiveInput::Disabled</span><br><span class="line">        &amp;&amp; AutoPossessAI != EAutoPossessAI::Disabled &amp;&amp; Controller == <span class="literal">nullptr</span> &amp;&amp; GetNetMode() != NM_Client</span><br><span class="line">        #<span class="keyword">if</span> WITH_EDITOR</span><br><span class="line">        &amp;&amp; (GIsEditor == <span class="literal">false</span> || World-&gt;IsGameWorld())</span><br><span class="line">        #endif <span class="comment">// WITH_EDITOR</span></span><br><span class="line">        )</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">bool</span> bPlacedInWorld = (World-&gt;bStartup);</span><br><span class="line">            <span class="keyword">if</span> ((AutoPossessAI == EAutoPossessAI::PlacedInWorldOrSpawned) ||</span><br><span class="line">            (AutoPossessAI == EAutoPossessAI::PlacedInWorld &amp;&amp; bPlacedInWorld) ||</span><br><span class="line">            (AutoPossessAI == EAutoPossessAI::Spawned &amp;&amp; !bPlacedInWorld))</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// 生成 AI控制器</span></span><br><span class="line">                SpawnDefaultController();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// update movement component's nav agent values</span></span><br><span class="line">        UpdateNavAgent();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解除控制器控制</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::EndPlay</span><span class="params">(<span class="keyword">const</span> EEndPlayReason::Type EndPlayReason)</span> <span class="keyword">override</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (EndPlayReason != EEndPlayReason::Destroyed)</span><br><span class="line">    &#123;</span><br><span class="line">        DetachFromControllerPendingDestroy();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Super::EndPlay(EndPlayReason);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="OutsideWorldBounds"><a href="#OutsideWorldBounds" class="headerlink" title="OutsideWorldBounds"></a>OutsideWorldBounds</h3><p>是否超出游戏边界，这也是从 <code>Actor</code> 中继承下来的，会被 <code>MovementComponent</code> 的 <code>CheckStillInWorld</code> 所调用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用于判断是否在执行越界逻辑, 避免多次进入</span></span><br><span class="line"><span class="keyword">private</span> uint32 bProcessingOutsideWorldBounds : <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 停止物理 动画 移动</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::TurnOff</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (GetLocalRole() == ROLE_Authority)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 同步给其他机器</span></span><br><span class="line">        SetReplicates(<span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    SetActorEnableCollision(<span class="literal">false</span>);</span><br><span class="line">    UPawnMovementComponent* MovementComponent = GetMovementComponent();</span><br><span class="line">    <span class="keyword">if</span> (MovementComponent)</span><br><span class="line">    &#123;</span><br><span class="line">        MovementComponent-&gt;StopMovementImmediately();</span><br><span class="line">        MovementComponent-&gt;SetComponentTickEnabled(<span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    DisableComponentsSimulatePhysics();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OutsideWorldBounds</span><span class="params">()</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line"><span class="keyword">if</span> ( !bProcessingOutsideWorldBounds )</span><br><span class="line">&#123;</span><br><span class="line">    bProcessingOutsideWorldBounds = <span class="literal">true</span>;</span><br><span class="line">    <span class="comment">// 只有权威服务器且为玩家Controller才销毁</span></span><br><span class="line">    <span class="keyword">if</span> (GetLocalRole() == ROLE_Authority &amp;&amp; Cast&lt;APlayerController&gt;(Controller) == <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        Destroy();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 解除控制器控制</span></span><br><span class="line">        DetachFromControllerPendingDestroy();</span><br><span class="line">        TurnOff();</span><br><span class="line">        SetActorHiddenInGame(<span class="literal">true</span>);</span><br><span class="line">        <span class="comment">// 设置其寿命, 为0则永生..., 默认就是0</span></span><br><span class="line">        SetLifeSpan( FMath::Clamp(InitialLifeSpan, <span class="number">0.1f</span>, <span class="number">1.0f</span>) );</span><br><span class="line">    &#125;</span><br><span class="line">    bProcessingOutsideWorldBounds = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Replication"><a href="#Replication" class="headerlink" title="Replication"></a>Replication</h3><p>加入 PlayerState, Controller, RemoteViewPitch 网络同步</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::GetLifetimeReplicatedProps</span><span class="params">( TArray&lt; FLifetimeProperty &gt; &amp; OutLifetimeProps )</span> <span class="keyword">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::GetLifetimeReplicatedProps( OutLifetimeProps );</span><br><span class="line"></span><br><span class="line">    DOREPLIFETIME( APawn, PlayerState ); </span><br><span class="line">    DOREPLIFETIME( APawn, Controller );</span><br><span class="line"></span><br><span class="line">    DOREPLIFETIME_CONDITION( APawn, RemoteViewPitch, 	COND_SkipOwner );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">APawn::PreReplication</span><span class="params">( IRepChangedPropertyTracker &amp; ChangedPropertyTracker )</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::PreReplication( ChangedPropertyTracker );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (GetLocalRole() == ROLE_Authority &amp;&amp; GetController())</span><br><span class="line">    &#123;</span><br><span class="line">        SetRemoteViewPitch(GetController()-&gt;GetControlRotation().Pitch);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Actor 自身就带了速度和位置旋转的同步 ReplicatedMovement, 因此在 Pawn 中只需要将值应用</span></span><br><span class="line"><span class="comment">// 当然位置和旋转量要做平滑 Smooth</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PostNetReceiveLocationAndRotation</span><span class="params">()</span> <span class="keyword">override</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PostNetReceiveVelocity</span><span class="params">(<span class="keyword">const</span> FVector&amp; NewVelocity)</span> <span class="keyword">override</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="碰撞"><a href="#碰撞" class="headerlink" title="碰撞"></a>碰撞</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 返回Pawn的移动当前处于状态(站立 移动)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> UPrimitiveComponent* <span class="title">GetMovementBase</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> <span class="literal">nullptr</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="杂七杂八"><a href="#杂七杂八" class="headerlink" title="杂七杂八"></a>杂七杂八</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Pawn 中还默认带了个开火的空函数。。。这点令我很意外</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PawnStartFire</span><span class="params">(uint8 FireModeNum = <span class="number">0</span>)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>剩下的还有弄出声音让 AI知道，以及一些辅助函数。。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE5/" rel="tag"># UE5</a>
+          
+            <a href="/tags/GameFramework/" rel="tag"># GameFramework</a>
+          
+            <a href="/tags/Pawn/" rel="tag"># Pawn</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/LuaJIT-5.3.6/" rel="next" title="LuaJIT 5.3.6 方案">
+                <i class="fa fa-chevron-left"></i> LuaJIT 5.3.6 方案
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="Yuerer" />
+            
+              <p class="site-author-name" itemprop="name">Yuerer</p>
+              <p class="site-description motion-element" itemprop="description">钰儿的Blog</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/%20%7C%7C%20archive">
+                
+                    <span class="site-state-item-count">51</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">14</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">69</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Yu2erer" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:yu2erer@gmail.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#APawn"><span class="nav-text">APawn</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Controller"><span class="nav-text">Controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ControllerRotation"><span class="nav-text">ControllerRotation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PlayerState"><span class="nav-text">PlayerState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Input"><span class="nav-text">Input</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Movement"><span class="nav-text">Movement</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Possess"><span class="nav-text">Possess</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Damage"><span class="nav-text">Damage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lifecycle"><span class="nav-text">Lifecycle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OutsideWorldBounds"><span class="nav-text">OutsideWorldBounds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Replication"><span class="nav-text">Replication</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#碰撞"><span class="nav-text">碰撞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#杂七杂八"><span class="nav-text">杂七杂八</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuerer</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//code.bdstatic.com/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '4c1E52qAqL8mu0dHBxYy5MxV-MdYXbMMI',
+        appKey: 'FUYa35QiKu2nxrabaP2R8Cpp',
+        placeholder: '说些什么?',
+        avatar:'retro',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: true,
+        serverURLs: 'https://4c1e52qa.api.lncldglobal.com'
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

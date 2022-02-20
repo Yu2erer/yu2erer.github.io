@@ -1858,7 +1858,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #73162b;
+  background: #45d9ff;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -2819,5 +2819,33 @@ hr {
   .footer-inner {
     width: auto;
     text-align: center;
+  }
+}
+.blueprintue {
+  position: relative;
+  width: 100%;
+}
+@media only screen and (max-width: 767px) {
+  .blueprintue {
+    height: 15em;
+    max-width: 40em;
+  }
+}
+@media blueprintue screen and (min-width: 768px) and (max-width: 991px) {
+  .bilibili {
+    height: 20em;
+    max-width: 50em;
+  }
+}
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+  .blueprintue {
+    height: 30em;
+    max-width: 55em;
+  }
+}
+@media only screen and (min-width: 1200px) {
+  .blueprintue {
+    height: 40em;
+    max-width: 60em;
   }
 }
