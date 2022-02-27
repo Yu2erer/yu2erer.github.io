@@ -1976,7 +1976,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2021-07-04 09:43:15" itemprop="dateModified" datetime="2021-07-04T09:43:15+08:00">2021-07-04</time>
+                <time title="修改时间：2022-02-27 12:19:49" itemprop="dateModified" datetime="2022-02-27T12:19:49+08:00">2022-02-27</time>
               
             
           </span>
@@ -2058,7 +2058,7 @@
 </ol>
 <h3 id="使用内存池"><a href="#使用内存池" class="headerlink" title="使用内存池"></a>使用内存池</h3><p>第一种思路，我觉得不合理，因为现代的内存分配器早就有内存池的设计了，手写一个内存池的收益并不大。</p>
 <h3 id="减少对象生成"><a href="#减少对象生成" class="headerlink" title="减少对象生成"></a>减少对象生成</h3><p>第二种思路，是比较合理的。因为我在项目的代码中发现很多处地方有动态生成 <code>Closure</code> 的情况。</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span><span class="params">()</span></span></span><br><span class="line">	<span class="keyword">local</span> fn = <span class="function"><span class="keyword">function</span><span class="params">()</span></span></span><br><span class="line">		<span class="built_in">print</span>(<span class="string">"test"</span>)</span><br><span class="line">	<span class="keyword">end</span></span><br><span class="line">	fn()</span><br><span class="line">	fn()</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span><span class="params">()</span></span></span><br><span class="line">  <span class="keyword">local</span> fn = <span class="function"><span class="keyword">function</span><span class="params">()</span></span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"test"</span>)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  fn()</span><br><span class="line">  fn()</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 
 <p>上面那个例子，每次调用到 <code>test</code> 函数的时候，都会动态根据 <code>fn</code> 的 函数原型，生成一个 <code>Closure</code> </p>
 <p>可能有人会问，Proto 不是有一个 cache 指向 <code>Closure</code> 吗？按道理这里 没有 <code>UpValue</code>（即代表UpValue 完全相同），应该会复用啊，但是很可惜，执行完这个函数以后，因为没有对象指向 <code>Closure</code> 用完再不久的将来又会被回收。</p>
