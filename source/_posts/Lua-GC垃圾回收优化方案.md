@@ -26,11 +26,11 @@ tags: [Lua, Lua虚拟机]
 
 ```lua
 function test()
-	local fn = function()
-		print("test")
-	end
-	fn()
-	fn()
+  local fn = function()
+    print("test")
+  end
+  fn()
+  fn()
 end
 ```
 
@@ -83,7 +83,7 @@ Table 中的元素支持，字符串，整数，浮点数，布尔值，表，Lu
 #include "YGC.h"
 
 static const luaL_Reg base_funcs[] = {
-    ....
+  ....
   {"nogc", nogc},
   {NULL, NULL}
 };
@@ -100,7 +100,7 @@ static const luaL_Reg base_funcs[] = {
 #include "YGC.h"
 
 if (!isblack(p) && !Y_isnogc(p) && !Y_isnogc(ncl))
-    p->cache = ncl;
+  p->cache = ncl;
 }
 
 ```
@@ -111,10 +111,10 @@ if (!isblack(p) && !Y_isnogc(p) && !Y_isnogc(ncl))
 
 ```c
 typedef struct global_State {
-	....
-	lu_mem Y_GCmemnogc; /* memory size of nogc linked list */
-	GCObject *Y_nogc;  /* list of objects not to be traversed or collected */
-	....
+  ....
+  lu_mem Y_GCmemnogc; /* memory size of nogc linked list */
+  GCObject *Y_nogc;  /* list of objects not to be traversed or collected */
+  ....
 }
 ```
 
@@ -124,10 +124,10 @@ typedef struct global_State {
 
 ```c
 LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
-	....
-	g->Y_GCmemnogc = 0;
-	g->Y_nogc = NULL;
-	....
+  ....
+  g->Y_GCmemnogc = 0;
+  g->Y_nogc = NULL;
+  ....
 }
 ```
 
