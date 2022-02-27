@@ -327,6 +327,199 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/UE5-GameFramework-Controller-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/UE5-GameFramework-Controller-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" itemprop="url">
+                  UE5 GameFramework Controller 源码剖析
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2022-02-27 12:08:20 / 修改时间：12:15:02" itemprop="dateCreated datePublished" datetime="2022-02-27T12:08:20+08:00">2022-02-27</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/UE5/" itemprop="url" rel="index"><span itemprop="name">UE5</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/UE5-GameFramework-Controller-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/UE5-GameFramework-Controller-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/UE5-GameFramework-Controller-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="leancloud_visitors" data-flag-title="UE5 GameFramework Controller 源码剖析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>一个 <code>Controller</code> 需要什么？</p>
+<ol>
+<li>能够控制 Pawn</li>
+<li>需要拥有位置与旋转，需要旋转是因为 我们需要根据 Controller 的旋转来控制 Pawn 的旋转，需要位置是因为我们可以提供给开发者选择是在 Controller 的位置附身 Pawn 还是 挂靠在 Pawn 的肩上</li>
+<li>需要有状态信息（StateName）Playing Spectating Inactive 运行 观察 非激活</li>
+</ol>
+<h2 id="AController"><a href="#AController" class="headerlink" title="AController"></a>AController</h2><h3 id="Constructor"><a href="#Constructor" class="headerlink" title="Constructor"></a>Constructor</h3><p><code>Controller</code> 作为一个抽象出来的控制器，自然是不需要在场景中显示的，因此会取消显示。</p>
+<p>其次 <code>Controller</code> 只同步复制给所有者。</p>
+<p>最后是需要一个 <code>SceneComponent</code> 组件，因为 <code>Controller</code> 需要能记录自己的位置和旋转信息。</p>
+<p>根据以上几点初始化好 <code>AController</code> 。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">AController::AController(<span class="keyword">const</span> FObjectInitializer&amp; ObjectInitializer)</span><br><span class="line">    : Super(ObjectInitializer)</span><br><span class="line">&#123;</span><br><span class="line">    PrimaryActorTick.bCanEverTick = <span class="literal">true</span>;</span><br><span class="line">    SetHidden(<span class="literal">true</span>);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> WITH_EDITORONLY_DATA</span></span><br><span class="line">    bHiddenEd = <span class="literal">true</span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// WITH_EDITORONLY_DATA</span></span></span><br><span class="line">    <span class="comment">// 仅同步给对应客户端</span></span><br><span class="line">    bOnlyRelevantToOwner = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    TransformComponent = CreateDefaultSubobject&lt;USceneComponent&gt;(TEXT(<span class="string">"TransformComponent0"</span>));</span><br><span class="line">    RootComponent = TransformComponent;</span><br><span class="line"></span><br><span class="line">    SetCanBeDamaged(<span class="literal">false</span>);</span><br><span class="line">    bAttachToPawn = <span class="literal">false</span>;</span><br><span class="line">    bIsPlayerController = <span class="literal">false</span>;</span><br><span class="line">    bCanPossessWithoutAuthority = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (RootComponent)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 因为 Controller 会附身到 Pawn 身上</span></span><br><span class="line">        <span class="comment">// 旋转会用到 Pawn 的局部坐标系的值</span></span><br><span class="line">        <span class="comment">// 设置这个参数 可以使得旋转值为世界坐标的相对量</span></span><br><span class="line">        RootComponent-&gt;SetUsingAbsoluteRotation(<span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/UE5-GameFramework-Controller-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/UE5-GameFramework-Pawn%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -373,12 +566,24 @@
                 
               
 
-              <time title="创建时间：2022-02-20 15:16:20 / 修改时间：15:37:11" itemprop="dateCreated datePublished" datetime="2022-02-20T15:16:20+08:00">2022-02-20</time>
+              <time title="创建时间：2022-02-20 15:16:20" itemprop="dateCreated datePublished" datetime="2022-02-20T15:16:20+08:00">2022-02-20</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2022-02-27 12:00:10" itemprop="dateModified" datetime="2022-02-27T12:00:10+08:00">2022-02-27</time>
               
             
           </span>
@@ -2107,210 +2312,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" itemprop="url">
-                  Lua 5.3 设计实现(六) GC 垃圾回收
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-12-11 20:20:20" itemprop="dateCreated datePublished" datetime="2020-12-11T20:20:20+08:00">2020-12-11</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-12-19 10:07:04" itemprop="dateModified" datetime="2020-12-19T10:07:04+08:00">2020-12-19</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(六) GC 垃圾回收">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>虽然本系列主要讲的是 Lua 5.3 中的实现，不过在本篇中，想先聊聊 Lua 垃圾回收的历史。只有了解其历史，才知道为什么这么设计。</p>
-<h2 id="Lua-GC-历史"><a href="#Lua-GC-历史" class="headerlink" title="Lua GC 历史"></a>Lua GC 历史</h2><h3 id="Lua-5-0-之前"><a href="#Lua-5-0-之前" class="headerlink" title="Lua 5.0 之前"></a>Lua 5.0 之前</h3><p>在 Lua 5.0 之前，Lua 因为没有 <code>userdata</code> ，垃圾回收的工作就很简单了，因为没有 <code>userdata</code> 也就没有了 <code>__gc</code> 元方法，也就不需要针对有特殊析构操作的对象进行特殊处理。</p>
-<p>Lua 从早期到现在 <code>2020年</code> 推出的 最新版 Lua 5.4 都是采用的标记扫描算法，垃圾回收算法一般分为两类。</p>
-<ol>
-<li>标记扫描算法</li>
-<li>引用计数算法</li>
-</ol>
-<p>引用计数的话，每个对象都要占用多一块内存，同时需要频繁的增减引用计数值，特别指的是在栈上的时候，Lua 解释器做的又非常简单，如果采用引用计数，还要对指令进行优化。</p>
-<p>而早期 标记扫描 也是比较简单，首先它每次扫描且回收垃圾都是需要一次执行完的，其次它只有两种标记，用到或没用到，而且每次创建新对象都会跑一次GC。</p>
-<p>显然，这种垃圾回收注定了没人敢用。。。我每创建一个对象，你都跑一次GC，这谁顶得住？</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2362,7 +2363,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">51</span>
+                    <span class="site-state-item-count">52</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2554,7 +2555,15 @@
                     
                       
                     
-                    <span class="site-state-item-count">69</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>

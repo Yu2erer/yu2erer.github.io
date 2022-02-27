@@ -116,13 +116,15 @@
 <meta property="og:description" content="UE5 为游戏开发提供了一套基础的游戏框架，想要用好 UE5 首先就要去熟悉其所提供的 GameFramework 的接口，了解它为项目做了什么准备，为什么新建一个项目，就有一个小白人可以操纵？ 本文为 UE5 GameFramework 的第一篇，以 Pawn 为起点，没有以 Actor 为起点主要是里面过于复杂，且与业务逻辑没什么关系。从 Pawn 开始学习，一是容易产生兴趣，二是稍微轻松一些">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-02-20T07:16:20.000Z">
-<meta property="article:modified_time" content="2022-02-20T07:37:11.209Z">
+<meta property="article:modified_time" content="2022-02-27T04:00:10.219Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="UE4">
 <meta property="article:tag" content=" UE5">
 <meta property="article:tag" content=" GameFramework">
 <meta property="article:tag" content=" APawn">
 <meta property="article:tag" content=" Pawn">
+<meta property="article:tag" content=" ADefaultPawn">
+<meta property="article:tag" content=" ASpectatorPawn">
 <meta name="twitter:card" content="summary">
 
 
@@ -368,12 +370,24 @@
                 
               
 
-              <time title="创建时间：2022-02-20 15:16:20 / 修改时间：15:37:11" itemprop="dateCreated datePublished" datetime="2022-02-20T15:16:20+08:00">2022-02-20</time>
+              <time title="创建时间：2022-02-20 15:16:20" itemprop="dateCreated datePublished" datetime="2022-02-20T15:16:20+08:00">2022-02-20</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2022-02-27 12:00:10" itemprop="dateModified" datetime="2022-02-27T12:00:10+08:00">2022-02-27</time>
               
             
           </span>
@@ -526,7 +540,22 @@
 <h3 id="杂七杂八"><a href="#杂七杂八" class="headerlink" title="杂七杂八"></a>杂七杂八</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Pawn 中还默认带了个开火的空函数。。。这点令我很意外</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PawnStartFire</span><span class="params">(uint8 FireModeNum = <span class="number">0</span>)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
 
 <p>剩下的还有弄出声音让 AI知道，以及一些辅助函数。。</p>
+<h2 id="ADefaultPawn"><a href="#ADefaultPawn" class="headerlink" title="ADefaultPawn"></a>ADefaultPawn</h2><p><code>DefaultPawn</code> 是从 <code>Pawn</code> 上继承出来的一个默认套餐，自带了 <code>StaticMeshComponent</code> 、 <code>MovementComponent</code> 、 <code>CollisionComponent</code> 分别代表了模型、移动、碰撞。同时内建了飞行移动，还有默认的输入。</p>
+<h3 id="StaticMeshComponent"><a href="#StaticMeshComponent" class="headerlink" title="StaticMeshComponent"></a>StaticMeshComponent</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">UPROPERTY(Category = Pawn, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = <span class="string">"true"</span>))</span><br><span class="line"><span class="keyword">private</span> TObjectPtr&lt;UStaticMeshComponent&gt; MeshComponent;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> UStaticMeshComponent* <span class="title">GetMeshComponent</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> MeshComponent; &#125;</span><br></pre></td></tr></table></figure>
 
+<h3 id="MovementComponent"><a href="#MovementComponent" class="headerlink" title="MovementComponent"></a>MovementComponent</h3><p>重写了 <code>APawn</code> 的 <code>GetMovementComponent</code> ，因为在父类中，查找 <code>MovementComponent</code> 使用的是 <code>FindComponentByClass</code> 效率略低。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">UPROPERTY(Category = Pawn, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = <span class="string">"true"</span>))</span><br><span class="line"><span class="keyword">protected</span> TObjectPtr&lt;UPawnMovementComponent&gt; MovementComponent;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于自定义移动组件时使用</span></span><br><span class="line"><span class="comment">// ObjectInitializer.SetDefaultSubobjectClass&lt;UMyPawnMovementComponent&gt;(ADefault::MovementComponentName)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> FName MovementComponentName;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> UPawnMovementComponent* <span class="title">GetMovementComponent</span><span class="params">()</span> <span class="keyword">const</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> MovementComponent;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="CollisionComponent"><a href="#CollisionComponent" class="headerlink" title="CollisionComponent"></a>CollisionComponent</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">UPROPERTY(Category = Pawn, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = <span class="string">"true"</span>))</span><br><span class="line"><span class="keyword">private</span> TObjectPtr&lt;USphereComponent&gt; CollisionComponent;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 也是用于子类自定义碰撞组件使用</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> FName CollisionComponentName;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> USphereComponent* <span class="title">GetCollisionComponent</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> CollisionComponent; &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Input-1"><a href="#Input-1" class="headerlink" title="Input"></a>Input</h3><p><code>DefaultPawn</code> 默认内建了一系列的输入，这里其实和项目设置里填写输入是一样的。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping(<span class="string">"DefaultPawn_MoveForward"</span>, EKeys::W, <span class="number">1.f</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在从 APawn 继承来的 SetupPlayerInputComponent 绑定输入</span></span><br><span class="line">PlayerInputComponent-&gt;BindAxis(<span class="string">"DefaultPawn_MoveForward"</span>, <span class="keyword">this</span>, &amp;ADefaultPawn::MoveForward);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">ADefaultPawn::MoveForward</span><span class="params">(<span class="keyword">float</span> Val)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Val != <span class="number">0.f</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (Controller)</span><br><span class="line">        &#123;</span><br><span class="line">            FRotator <span class="keyword">const</span> ControlSpaceRot = Controller-&gt;GetControlRotation();</span><br><span class="line">            AddMovementInput( FRotationMatrix(ControlSpaceRot).GetScaledAxis( EAxis::X ), Val);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">ADefaultPawn::LookUpAtRate</span><span class="params">(<span class="keyword">float</span> Rate)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()-&gt;GetDeltaSeconds() * CustomTimeDilation);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ASpectatorPawn"><a href="#ASpectatorPawn" class="headerlink" title="ASpectatorPawn"></a>ASpectatorPawn</h3><p>用于观战，自带不带重力漂浮的移动组件<code>USpectatorPawnMovement</code> ，取消创建 <code>StaticMeshComponent</code> ，设置碰撞通道为 <code>Spectator</code> 。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">ASpectatorPawn::ASpectatorPawn(<span class="keyword">const</span> FObjectInitializer&amp; ObjectInitializer)</span><br><span class="line">    : Super(ObjectInitializer</span><br><span class="line">    .SetDefaultSubobjectClass&lt;USpectatorPawnMovement&gt;(Super::MovementComponentName)</span><br><span class="line">    .DoNotCreateDefaultSubobject(Super::MeshComponentName)</span><br><span class="line">    )</span><br><span class="line">&#123;</span><br><span class="line">    SetCanBeDamaged(<span class="literal">false</span>);</span><br><span class="line">    BaseEyeHeight = <span class="number">0.0f</span>;</span><br><span class="line">    <span class="comment">// 编辑器放置时是否有碰撞</span></span><br><span class="line">    bCollideWhenPlacing = <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// 生成时若有碰撞则总是生成</span></span><br><span class="line">    SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;</span><br><span class="line">    MovementComponent-&gt;bComponentShouldUpdatePhysicsVolume = <span class="literal">false</span>;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// 修改碰撞配置为 Spectator</span></span><br><span class="line">    <span class="function"><span class="keyword">static</span> FName <span class="title">CollisionProfileName</span><span class="params">(TEXT(<span class="string">"Spectator"</span>))</span></span>;</span><br><span class="line">    GetCollisionComponent()-&gt;SetCollisionProfileName(CollisionProfileName);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重写了三个函数， <code>PossessedBy</code> 主要是避免自动同步给其他机器，<code>TurnAtRate</code> 与 <code>LookUpAtRate</code> 主要是当没有时间膨胀，则直接取相对时间。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">ASpectatorPawn::TurnAtRate</span><span class="params">(<span class="keyword">float</span> Rate)</span> <span class="keyword">override</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AWorldSettings* <span class="keyword">const</span> WorldSettings = GetWorldSettings();</span><br><span class="line">    <span class="keyword">if</span> (WorldSettings)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">float</span> TimeDilation = WorldSettings-&gt;GetEffectiveTimeDilation();</span><br><span class="line">        <span class="keyword">if</span> (TimeDilation &lt;= KINDA_SMALL_NUMBER)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">float</span> DeltaTime = FApp::GetDeltaTime();</span><br><span class="line">            AddControllerYawInput(Rate * BaseTurnRate * DeltaTime * CustomTimeDilation);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    Super::TurnAtRate(Rate);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -552,6 +581,10 @@
           
             <a href="/tags/Pawn/" rel="tag"># Pawn</a>
           
+            <a href="/tags/ADefaultPawn/" rel="tag"># ADefaultPawn</a>
+          
+            <a href="/tags/ASpectatorPawn/" rel="tag"># ASpectatorPawn</a>
+          
         </div>
       
 
@@ -572,6 +605,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/UE5-GameFramework-Controller-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="prev" title="UE5 GameFramework Controller 源码剖析">
+                UE5 GameFramework Controller 源码剖析 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -648,7 +685,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">51</span>
+                    <span class="site-state-item-count">52</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -840,7 +877,15 @@
                     
                       
                     
-                    <span class="site-state-item-count">69</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -897,7 +942,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#APawn"><span class="nav-text">APawn</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Controller"><span class="nav-text">Controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ControllerRotation"><span class="nav-text">ControllerRotation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PlayerState"><span class="nav-text">PlayerState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Input"><span class="nav-text">Input</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Movement"><span class="nav-text">Movement</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Possess"><span class="nav-text">Possess</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Damage"><span class="nav-text">Damage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lifecycle"><span class="nav-text">Lifecycle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OutsideWorldBounds"><span class="nav-text">OutsideWorldBounds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Replication"><span class="nav-text">Replication</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#碰撞"><span class="nav-text">碰撞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#杂七杂八"><span class="nav-text">杂七杂八</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#APawn"><span class="nav-text">APawn</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Controller"><span class="nav-text">Controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ControllerRotation"><span class="nav-text">ControllerRotation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PlayerState"><span class="nav-text">PlayerState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Input"><span class="nav-text">Input</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Movement"><span class="nav-text">Movement</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Possess"><span class="nav-text">Possess</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Damage"><span class="nav-text">Damage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lifecycle"><span class="nav-text">Lifecycle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OutsideWorldBounds"><span class="nav-text">OutsideWorldBounds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Replication"><span class="nav-text">Replication</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#碰撞"><span class="nav-text">碰撞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#杂七杂八"><span class="nav-text">杂七杂八</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ADefaultPawn"><span class="nav-text">ADefaultPawn</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#StaticMeshComponent"><span class="nav-text">StaticMeshComponent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MovementComponent"><span class="nav-text">MovementComponent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CollisionComponent"><span class="nav-text">CollisionComponent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Input-1"><span class="nav-text">Input</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ASpectatorPawn"><span class="nav-text">ASpectatorPawn</span></a></li></ol></li></ol></div>
             
 
           </div>
