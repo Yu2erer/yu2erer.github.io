@@ -2,8 +2,8 @@
 title: UE5 GameFramework Pawn 源码剖析
 categories: UE5
 date: 2022-02-20 15:16:20
-keywords: UE4, UE5, GameFramework, APawn, Pawn
-tags: [UE5, GameFramework, Pawn]
+keywords: UE4, UE5, GameFramework, APawn, Pawn, ADefaultPawn, ASpectatorPawn
+tags: [UE5, GameFramework, Pawn, ADefaultPawn, ASpectatorPawn]
 ---
 
 `UE5` 为游戏开发提供了一套基础的游戏框架，想要用好 `UE5` 首先就要去熟悉其所提供的 `GameFramework` 的接口，了解它为项目做了什么准备，为什么新建一个项目，就有一个小白人可以操纵？
@@ -593,3 +593,117 @@ public virtual void PawnStartFire(uint8 FireModeNum = 0) {}
 ```
 
 剩下的还有弄出声音让 AI知道，以及一些辅助函数。。
+
+## ADefaultPawn
+
+`DefaultPawn` 是从 `Pawn` 上继承出来的一个默认套餐，自带了 `StaticMeshComponent` 、 `MovementComponent` 、 `CollisionComponent` 分别代表了模型、移动、碰撞。同时内建了飞行移动，还有默认的输入。
+
+### StaticMeshComponent
+
+```cpp
+UPROPERTY(Category = Pawn, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+private TObjectPtr<UStaticMeshComponent> MeshComponent;
+
+public UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
+```
+
+### MovementComponent
+
+重写了 `APawn` 的 `GetMovementComponent` ，因为在父类中，查找 `MovementComponent` 使用的是 `FindComponentByClass` 效率略低。
+
+```cpp
+UPROPERTY(Category = Pawn, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+protected TObjectPtr<UPawnMovementComponent> MovementComponent;
+
+// 用于自定义移动组件时使用
+// ObjectInitializer.SetDefaultSubobjectClass<UMyPawnMovementComponent>(ADefault::MovementComponentName)
+public static FName MovementComponentName;
+
+public virtual UPawnMovementComponent* GetMovementComponent() const override {
+    return MovementComponent;
+}
+```
+
+### CollisionComponent
+
+```cpp
+UPROPERTY(Category = Pawn, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+private TObjectPtr<USphereComponent> CollisionComponent;
+
+// 也是用于子类自定义碰撞组件使用
+public static FName CollisionComponentName;
+
+public USphereComponent* GetCollisionComponent() const { return CollisionComponent; }
+```
+
+### Input
+
+`DefaultPawn` 默认内建了一系列的输入，这里其实和项目设置里填写输入是一样的。
+
+```cpp
+UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping("DefaultPawn_MoveForward", EKeys::W, 1.f));
+
+// 在从 APawn 继承来的 SetupPlayerInputComponent 绑定输入
+PlayerInputComponent->BindAxis("DefaultPawn_MoveForward", this, &ADefaultPawn::MoveForward);
+
+public virtual void ADefaultPawn::MoveForward(float Val)
+{
+    if (Val != 0.f)
+    {
+        if (Controller)
+        {
+            FRotator const ControlSpaceRot = Controller->GetControlRotation();
+            AddMovementInput( FRotationMatrix(ControlSpaceRot).GetScaledAxis( EAxis::X ), Val);
+        }
+    }
+}
+public virtual void ADefaultPawn::LookUpAtRate(float Rate)
+{
+    AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds() * CustomTimeDilation);
+}
+```
+
+### ASpectatorPawn
+
+用于观战，自带不带重力漂浮的移动组件`USpectatorPawnMovement` ，取消创建 `StaticMeshComponent` ，设置碰撞通道为 `Spectator` 。
+
+```cpp
+ASpectatorPawn::ASpectatorPawn(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer
+    .SetDefaultSubobjectClass<USpectatorPawnMovement>(Super::MovementComponentName)
+    .DoNotCreateDefaultSubobject(Super::MeshComponentName)
+    )
+{
+    SetCanBeDamaged(false);
+    BaseEyeHeight = 0.0f;
+    // 编辑器放置时是否有碰撞
+    bCollideWhenPlacing = false;
+    // 生成时若有碰撞则总是生成
+    SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    MovementComponent->bComponentShouldUpdatePhysicsVolume = false;
+	
+    // 修改碰撞配置为 Spectator
+    static FName CollisionProfileName(TEXT("Spectator"));
+    GetCollisionComponent()->SetCollisionProfileName(CollisionProfileName);
+}
+```
+
+重写了三个函数， `PossessedBy` 主要是避免自动同步给其他机器，`TurnAtRate` 与 `LookUpAtRate` 主要是当没有时间膨胀，则直接取相对时间。
+
+```cpp
+public virtual void ASpectatorPawn::TurnAtRate(float Rate) override
+{
+    AWorldSettings* const WorldSettings = GetWorldSettings();
+    if (WorldSettings)
+    {
+        float TimeDilation = WorldSettings->GetEffectiveTimeDilation();
+        if (TimeDilation <= KINDA_SMALL_NUMBER)
+        {
+            const float DeltaTime = FApp::GetDeltaTime();
+            AddControllerYawInput(Rate * BaseTurnRate * DeltaTime * CustomTimeDilation);
+            return;
+        }
+    }
+    Super::TurnAtRate(Rate);
+}
+```
