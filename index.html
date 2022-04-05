@@ -327,6 +327,197 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/" itemprop="url">
+                  Python3 源码剖析(一) - float 诞生
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2022-04-05 10:30:54 / 修改时间：14:53:09" itemprop="dateCreated datePublished" datetime="2022-04-05T10:30:54+08:00">2022-04-05</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Python3/" itemprop="url" rel="index"><span itemprop="name">Python3</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/" class="leancloud_visitors" data-flag-title="Python3 源码剖析(一) - float 诞生">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>去年 <code>2021</code> 年的时候，我的工作主要集中在改进 <code>Lua虚拟机</code> ，后来由于工作变动，现在主要的工作语言已经切换为了 <code>Python</code> ，因此打算阅读下 <code>Python 3.10</code> 的源码，学习一下它的设计，对比 <code>Lua</code> 的优势。</p>
+<p>希望在接下来的阅读过程中，能够体会到一种 <code>回家</code> 的畅快感。</p>
+<p>本篇将以 <code>float</code> 作为起点，了解如何创建出一个浮点对象，深入剖析 <code>float</code> 其内部实现。</p>
+<h2 id="一切皆对象"><a href="#一切皆对象" class="headerlink" title="一切皆对象"></a>一切皆对象</h2><p>一切皆对象 这句话都要被讲烂了，但是还要讲多一次。</p>
+<p><code>Python</code> 是一门面向对象的强类型动态语言，里面的任何东西都是对象，以浮点数为例。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># a 是一个浮点实例对象，类型是 float</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a = <span class="number">3.14159</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>type(a)</span><br><span class="line">&lt;<span class="class"><span class="keyword">class</span> '<span class="title">float</span>'&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class"># <span class="title">float</span> 也是个对象，但它是 类型对象</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">float</span></span></span><br><span class="line"><span class="class">&lt;<span class="title">class</span> '<span class="title">float</span>'&gt;</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">float</span><span class="params">()</span></span></span><br><span class="line"><span class="class">0.0</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class"># <span class="title">float</span>这个类型对象的类型是 <span class="title">type</span></span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">type</span><span class="params">(float)</span></span></span><br><span class="line"><span class="class">&lt;<span class="title">class</span> '<span class="title">type</span>'&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>以上我们可以确定，<code>Python</code> 中类型也是对象。</p>
+<p>此外所有对象的类型都是 <code>type</code> ，可以称其为元类。而所有对象都继承自 <code>object</code> 。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/LuaJIT-5.3.6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -390,7 +581,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2022-02-20 15:24:59" itemprop="dateModified" datetime="2022-02-20T15:24:59+08:00">2022-02-20</time>
+                <time title="修改时间：2022-04-04 23:03:28" itemprop="dateModified" datetime="2022-04-04T23:03:28+08:00">2022-04-04</time>
               
             
           </span>
@@ -2122,216 +2313,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/" itemprop="url">
-                  Lua 5.3 设计实现(五) Coroutine
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-12-09 12:20:20" itemprop="dateCreated datePublished" datetime="2020-12-09T12:20:20+08:00">2020-12-09</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-12-19 10:05:38" itemprop="dateModified" datetime="2020-12-19T10:05:38+08:00">2020-12-19</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(五) Coroutine">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>Lua的协程和 Golang的协程不同，它是在同一个主线程上跑的协程，个人感觉用途不是很大，毕竟没有发挥多核的优势，不过还是有不少人认为这是 Lua的一个亮点，可以用来实现异步代码改写为同步代码，减轻人脑负担，然而很多人用的时候，并不了解当 Lua协程调用到C函数而C函数又调用到Lua函数后又执行 <code>yield</code> 的解决方案。本篇主要是来探讨Lua协程的设计。</p>
-<h2 id="Lua协程的设计思路"><a href="#Lua协程的设计思路" class="headerlink" title="Lua协程的设计思路"></a>Lua协程的设计思路</h2><p>试想一下，如果你来设计一个在同一个主线程上跑，且没有调度的协程，你会怎么做？</p>
-<p>可能你会说这还不简单，我们都已经知道了 <code>CallInfo</code> 这样的结构，只需要创建一个新的Lua栈，将新的 函数设置进其 <code>CallInfo</code> ，当执行到 <code>resume</code> 时，则将 Lua栈 推入，去执行新的指令不就行了？</p>
-<p>如果Lua只在自己的世界里面玩，从来不调用 C函数，那就还好。但问题是Lua会与其宿主语言也就是C语言进行打交道，会调用C的函数，如果这个C函数又调用了Lua Function，而其又调用了 <code>yield</code>，等到它又被 <code>resume</code> 的时候，它就没办法继续执行那尚未执行完成的C函数。</p>
-<p>大致执行流程如下</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 因为 lua 的 resume，其实是在C中导出的</span></span><br><span class="line">(<span class="number">1</span>)Lua:resume-&gt;[C:resume]</span><br><span class="line"><span class="comment">// C函数又调用了 lua的函数 因此会执行到 lua_call</span></span><br><span class="line">-&gt;Lua:Function-&gt;[C:Function]-&gt;[C:lua_call]</span><br><span class="line"><span class="comment">// lua的函数被执行到后，又去执行 yield</span></span><br><span class="line">-&gt;(Lua:Function)-&gt;Lua:<span class="built_in">yield</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 某一刻协程又被启动，此时回不到 C:lua_call</span></span><br></pre></td></tr></table></figure>
-
-<p>一种可行的思路是，将Lua的协程与每一个系统线程绑定，消耗高(不过我觉得这样才能发挥出多线程的优势嘛)。</p>
-<p>Lua采用的方案则是，通过保存C函数和其状态，并标记状态，当 <code>resume</code>时根据已有信息，回到原来未执行完C函数的位置。</p>
-<p>以下的 <code>lua_pcallk</code> 为使用例子，倒数第二个参数为上下文，倒数第一个参数则是该C函数如果被中断后，应该继续执行的事情。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">luaB_pcall</span> <span class="params">(lua_State *L)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> status;</span><br><span class="line">  luaL_checkany(L, <span class="number">1</span>);</span><br><span class="line">  lua_pushboolean(L, <span class="number">1</span>);  <span class="comment">/* first result if no errors */</span></span><br><span class="line">  lua_insert(L, <span class="number">1</span>);  <span class="comment">/* put it in place */</span></span><br><span class="line">  status = lua_pcallk(L, lua_gettop(L) - <span class="number">2</span>, LUA_MULTRET, <span class="number">0</span>, <span class="number">0</span>, finishpcall);</span><br><span class="line">  <span class="keyword">return</span> finishpcall(L, status, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%94)-Coroutine/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
   </nav>
 
 
@@ -2378,7 +2364,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">50</span>
+                    <span class="site-state-item-count">51</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2417,7 +2403,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">13</span>
+                      
+                    
+                    <span class="site-state-item-count">14</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2562,7 +2550,15 @@
                     
                       
                     
-                    <span class="site-state-item-count">66</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">70</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
