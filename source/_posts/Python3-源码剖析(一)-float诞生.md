@@ -1,5 +1,5 @@
 ---
-title: Python3 源码剖析(一) - float 诞生
+title: Python3 源码剖析(一)-float诞生
 categories: Python3
 date: 2022-04-05 10:30:54
 keywords: Python3, CPython, float, floatobject
