@@ -7,8 +7,12 @@
         "id": "b92616cfff940bff",
         "type": "leaf",
         "state": {
-          "type": "empty",
-          "state": {}
+          "type": "markdown",
+          "state": {
+            "file": "_posts/Python3-源码剖析(二)-指令特化.md",
+            "mode": "source",
+            "source": false
+          }
         }
       }
     ],
@@ -65,6 +69,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "_posts/Python3-源码剖析(二)-指令特化.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -80,7 +85,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "_posts/Python3-源码剖析(二)-指令特化.md"
+              }
             }
           }
         ]
@@ -92,15 +99,15 @@
   },
   "active": "b92616cfff940bff",
   "lastOpenFiles": [
+    "_posts/Python3-源码剖析(二)-指令特化.md",
     "_posts/Python3-源码剖析(一)-float诞生.md",
     "_posts/LuaJIT-5.3.6.md",
     "_posts/Redis-6-剖析(二)-主从同步.md",
+    "_templates/template.md",
     "_posts/Redis-6-剖析(一)-异步机制.md",
     "_posts/Raft-共识算法解析.md",
     "_posts/Lua5.3-设计实现(三)-长短字符串.md",
     "images/python3-float-atan2.png",
-    "_posts/Lua5.3-设计实现(五)-Coroutine.md",
-    "_posts/操作系统之-虚拟存储概念.md",
-    "_templates/template.md"
+    "_posts/Lua5.3-设计实现(五)-Coroutine.md"
   ]
 }
