@@ -397,4 +397,9 @@ miss:
     }
 ```
 
+整个指令的变化可以参考下图。
+
+![python3-specializing](/images/python3-specializing.png)
+
+
 至此我们的分析结束，指令特化真好玩，下次(一定)我就将它实现到 `Lua` 上。

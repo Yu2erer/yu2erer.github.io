@@ -735,7 +735,7 @@ float_richcompare(PyObject *v, PyObject *w, int op)
             j = wsign * 2.0;
             goto Compare;
         }
-        // 数符加尾数占48位，指数符加指数占16位 所以48位铁定不会出问题
+        // 指数符加尾数占48位，指数符加指数占16位 所以48位铁定不会出问题
         if (nbits <= 48) {
             j = PyLong_AsDouble(w);
 
