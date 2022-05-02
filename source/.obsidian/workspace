@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "_posts/Python3-源码剖析(二)-指令特化.md",
+            "file": "_posts/Python3-源码剖析(三)-GC垃圾回收.md",
             "mode": "source",
             "source": false
           }
@@ -69,7 +69,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "_posts/Python3-源码剖析(二)-指令特化.md",
+                "file": "_posts/Python3-源码剖析(三)-GC垃圾回收.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -86,7 +86,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "_posts/Python3-源码剖析(二)-指令特化.md"
+                "file": "_posts/Python3-源码剖析(三)-GC垃圾回收.md"
               }
             }
           }
@@ -99,15 +99,15 @@
   },
   "active": "7ca2d7d746903516",
   "lastOpenFiles": [
+    "_posts/Python3-源码剖析(三)-GC垃圾回收.md",
     "_posts/Python3-源码剖析(二)-指令特化.md",
-    "_posts/Python3-源码剖析(一)-float诞生.md",
-    "images 1.md",
-    "images.md",
-    "_posts/LuaJIT-5.3.6.md",
     "_posts/Redis-6-剖析(二)-主从同步.md",
-    "_templates/template.md",
     "_posts/Redis-6-剖析(一)-异步机制.md",
-    "_posts/Raft-共识算法解析.md",
-    "_posts/Lua5.3-设计实现(三)-长短字符串.md"
+    "_posts/Gossip-协议解析.md",
+    "_posts/Python3-源码剖析(一)-float诞生.md",
+    "_posts/LuaJIT-5.3.6.md",
+    "_posts/Lua5.3-设计实现(三)-长短字符串.md",
+    "_posts/Lua 分代垃圾回收.md",
+    "_posts/Lua5.3-设计实现(六)-GC垃圾回收.md"
   ]
 }
