@@ -116,7 +116,7 @@
 <meta property="og:description" content="趁着五一难得有自己的时间，就来剖析一下 CPython 的自动垃圾回收机制，并尝试提出改进的思路。 引用计数相信有过计算机基础的人，哪怕对垃圾回收不那么熟悉，也肯定知道引用计数这个玩意。引用计数诞生于上个世纪，其主要思想是通过给每个对象增加计数，当计数为0时，则肯定没人使用该对象，可以放心将其删除。 虽然这个方法看起来有点糙，但在实际项目中，它的优点在于可以更实时的释放内存，释放内存的时机更精确，">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-01T06:34:28.000Z">
-<meta property="article:modified_time" content="2022-05-02T09:03:25.121Z">
+<meta property="article:modified_time" content="2022-05-02T09:08:55.353Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="Python3">
 <meta property="article:tag" content=" CPython">
@@ -384,7 +384,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2022-05-02 17:03:25" itemprop="dateModified" datetime="2022-05-02T17:03:25+08:00">2022-05-02</time>
+                <time title="修改时间：2022-05-02 17:08:55" itemprop="dateModified" datetime="2022-05-02T17:08:55+08:00">2022-05-02</time>
               
             
           </span>
@@ -525,8 +525,8 @@
 <p>这块虽然有点绕，但仔细品味一下还是非常简单的。</p>
 <p>接下来我们来讨论第三个问题，为什么 <code>untrack_dicts</code> 只在 第三代垃圾回收时触发？<br>这主要是因为 <code>dict</code> 插入一个对象时，会判断这个对象是不是容器，是容器就会将其追踪，但是每次都会在 <code>untrack_dicts</code> 去遍历检查是否可以取消追踪，这就很蠢了，有兴趣的可以阅读 <a href="https://hg.python.org/cpython/rev/47e6217d0e84" target="_blank" rel="noopener">Issue #14775</a>。</p>
 <p>其实还有些内容想讲，随便来个话题，在 <code>Python 2</code> 时代，当两个对象循环引用又同时有 <code>__del__</code> 时，垃圾回收会不回收这两个对象这类问题，但我不想在这里继续展开了，太累了，有兴趣可以阅读 <a href="https://peps.python.org/pep-0442/" target="_blank" rel="noopener">PEP-442</a> 进行学习。</p>
-<h2 id="想法"><a href="#想法" class="headerlink" title="想法"></a>想法</h2><h3 id="渐进分代？"><a href="#渐进分代？" class="headerlink" title="渐进分代？"></a>渐进分代？</h3><p><code>CPython</code> 的GC是 <code>Stop The World</code> 的，哪怕它已经很尽力用分代的方式去减少GC的损耗。是否可以将其改进为渐进的方式？我目前的想法是在容器操作时，进行 <code>Barrier</code> 操作，维护一个中间态，使得前面的扫描过程是可渐进的，最后处理垃圾的时候再停下来一次性处理完，减少停止的时间。</p>
-<h3 id="减少跟踪对象？"><a href="#减少跟踪对象？" class="headerlink" title="减少跟踪对象？"></a>减少跟踪对象？</h3><p>是否可以对其它常用容器也做 <code>untrack</code> 操作，当容器没有嵌套容器时，取消 <code>track</code> 操作，减少GC遍历损耗？</p>
+<h2 id="想法"><a href="#想法" class="headerlink" title="想法"></a>想法</h2><h3 id="渐进分代？"><a href="#渐进分代？" class="headerlink" title="渐进分代？"></a>渐进分代？</h3><p><code>CPython</code> 的GC是 <code>Stop The World</code> 的，哪怕它已经很尽力用分代的方式去减少GC的损耗。是否可以将其改进为渐进的方式？我目前的想法是在容器操作时，进行 <code>Barrier</code> 操作，维护一个中间态，使得前面的扫描过程是可渐进的，最后处理垃圾的时候再停下来一次性处理完，减少停止的时间。但这个思路貌似不行，原因是根集是不确定的，坑爹的语言设计。</p>
+<h3 id="减少跟踪对象？"><a href="#减少跟踪对象？" class="headerlink" title="减少跟踪对象？"></a>减少跟踪对象？</h3><p>是否可以对其它常用容器也做 <code>untrack</code> 操作，当容器没有嵌套容器时，取消 <code>track</code> 操作，减少GC遍历损耗？这个思路需要小心避免犯上面 <code>untrack_dicts</code> 的错误。</p>
 <p>甚至我们扩展 <code>gcmodule</code> 的接口，使得对一些常驻内存的对象进行标记，使其不要被跟踪？</p>
 <h3 id="尽可能少用-del"><a href="#尽可能少用-del" class="headerlink" title="尽可能少用 del"></a>尽可能少用 <strong>del</strong></h3><p>这点就不说啥了，<code>Lua</code> 里也最好别用 <code>__gc</code> 。</p>
 <p>最后的最后，感谢 <code>CPython</code> 这份非常漂亮的代码设计，让我在这个五一假期，受益良多，下一步可能会回到 <code>Lua 5.2</code> 中，阅读它 “失败” 的分代GC作品，我认为学习失败的经验比成功的经验要重要得多。</p>
