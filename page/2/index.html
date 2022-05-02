@@ -327,6 +327,209 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/" itemprop="url">
+                  Lua 服务端热更新
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-12-15 12:19:20" itemprop="dateCreated datePublished" datetime="2020-12-15T12:19:20+08:00">2020-12-15</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-12-19 10:09:48" itemprop="dateModified" datetime="2020-12-19T10:09:48+08:00">2020-12-19</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/" class="leancloud_visitors" data-flag-title="Lua 服务端热更新">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>游戏服务端之所以用 Lua，大多数时候是因为 Lua 方便做热更新，一般来说对 Lua 做热更新基本上都会使用以下两句语句。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">package</span>.<span class="built_in">loaded</span>[name] = <span class="literal">nil</span></span><br><span class="line"><span class="built_in">require</span>(name)</span><br></pre></td></tr></table></figure>
+
+<p>这种方式的热更好处就是简单，不过有的代码写起来就要特别小心，当你在代码中看到以下类似的片段，很有可能是为了热更新做的一种妥协。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Activity.c2sFun = Activity.c2sFun <span class="keyword">or</span> &#123;&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>同时，如果 Lua 代码中存有大量的 <code>upvalue</code> 时，还要记得保存原有的状态信息，否则会丢失原值，对于开发人员来说，这种热更方式费心费力。</p>
+<p>因此， <code>Lua HotFix</code> 就是为了摆脱以上的限制，或者说减少需要关心的事情，让开发人员能够更为简单的做热更新。之所以要自己写这么一套东西，主要是因为网络上开源的热更方案不适合项目，要么支持的Lua版本过旧，要么就约束的过多，项目已经进行到了中后期，这个时候再来规范已经来不及了，其次有很多的错误，这点我会在本文中的第二部分进行讨论。</p>
+<p>本文主要分为两个部分，第一部分为 HotFix 实现，第二部分为热更新的错误案例。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%85%AD)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2127,219 +2330,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/" itemprop="url">
-                  C++ 内存管理 之 Loki Allocator
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-08 15:00:20" itemprop="dateCreated datePublished" datetime="2019-11-08T15:00:20+08:00">2019-11-08</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/" class="leancloud_visitors" data-flag-title="C++ 内存管理 之 Loki Allocator">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>Loki Allocator 有三个类 这玩意对比起 pool allocator 的优点就在于 它有把内存还给系统</p>
-<p>但是它作为一个 内存分配器 却在里面使用了 vector 作为容器… 按道理来说 应该在其内部实现一个简易版的 vector 才不会那么奇怪 但也没所谓 只是 先用了一次标准库的分配器 后续使用容器的时候 就可以用 Loki 分配器了.</p>
-<ul>
-<li>Chunk</li>
-<li>FixedAllocator</li>
-<li>SmallObjAllocator</li>
-</ul>
-<h2 id="Chunk-解剖"><a href="#Chunk-解剖" class="headerlink" title="Chunk 解剖"></a>Chunk 解剖</h2><p>Chunk 是整个分配器的最底层 里面主要是三个 成员变量</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指向内存块</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> * pData_;</span><br><span class="line"><span class="comment">// 目前可用区块的第一块的索引</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> firstAvailableBlock_;</span><br><span class="line"><span class="comment">// 有多少块可用</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> blocksAvailable_;</span><br></pre></td></tr></table></figure>
-
-<p>Chunk 的几个关键函数 已进行 剪裁 和 修改</p>
-<h3 id="Chunk-分配"><a href="#Chunk-分配" class="headerlink" title="Chunk 分配"></a>Chunk 分配</h3><p>分配流程很简单 就是 申请了内存以后 将每个小区块的第一个字节设置为索引 排好号</p>
-<p>取的流程:</p>
-<ol>
-<li>从 当前可用区块的第一块索引中取 得当前可用区块</li>
-<li>当前可用区块会被返回</li>
-<li>被返回的可用区块中的索引 被设置到 当前可用区块索引去(这样下一次就会使用到它)</li>
-<li>可用区块数目 - 1</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-Loki-Allocator/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2391,7 +2381,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2589,7 +2579,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">72</span>
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
