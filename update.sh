@@ -1,1 +1,1 @@
-hexo cl && hexo g  && hexo d
+npx hexo cl && npx hexo g  && npx hexo d
