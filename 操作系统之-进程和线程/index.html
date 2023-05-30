@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/',
+    root: '',
     scheme: 'Mist',
     version: '6.4.1',
     sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -130,15 +130,11 @@
 <meta property="article:modified_time" content="2020-10-31T14:42:44.087Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="操作系统">
-<meta property="article:tag" content=" 进程">
-<meta property="article:tag" content=" 线程">
-<meta property="article:tag" content=" 进程控制块">
-<meta property="article:tag" content=" PCB">
+<meta property="article:tag" content="进程">
+<meta property="article:tag" content="线程">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yuerer.com/images/PCB_Context.png">
 
-
-  
 
 
   <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
@@ -203,7 +199,7 @@
   </style>
 </noscript>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
 
@@ -486,7 +482,7 @@
 </ul>
 </li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
 
 <h4 id="进程的特点"><a href="#进程的特点" class="headerlink" title="进程的特点"></a>进程的特点</h4><ul>
 <li>动态性<ul>
@@ -508,8 +504,8 @@
 </ul>
 <h4 id="进程与程序的联系"><a href="#进程与程序的联系" class="headerlink" title="进程与程序的联系"></a>进程与程序的联系</h4><p>进程是操作系统处于执行状态下的程序的抽象 同一个程序的多次执行<br>过程对应为不同的进程</p>
 <ul>
-<li>程序 = 文件(静态可执行文件)</li>
-<li>进程 = 执行中的程序 = 程序 + 执行状态</li>
+<li>程序 &#x3D; 文件(静态可执行文件)</li>
+<li>进程 &#x3D; 执行中的程序 &#x3D; 程序 + 执行状态</li>
 </ul>
 <h5 id="进程执行需要的资源"><a href="#进程执行需要的资源" class="headerlink" title="进程执行需要的资源"></a>进程执行需要的资源</h5><ul>
 <li>CPU 执行指令</li>
@@ -615,7 +611,7 @@
 </li>
 </ul>
 <p><img src="/images/process_state.png" alt="process_state"></p>
-<h5 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">进程 1 执行 sleep() 进入 内核 内核调用函数设置定时器</span><br><span class="line">进行调度 保存现场(到 PCB 中) 切换到 进程 2</span><br><span class="line">进程 2 开始执行 若此时定时器时间到了 定时器产生 中断</span><br><span class="line">中断服务例程 让 进程 2 暂停下来 并保护 进程 2 的现场 恢复 进程 1 的现场</span><br><span class="line">让 进程 1 继续执行 进程 1 执行结束 再回到 操作系统</span><br></pre></td></tr></table></figure>
+<h5 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h5><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">进程 1 执行 sleep() 进入 内核 内核调用函数设置定时器</span><br><span class="line">进行调度 保存现场(到 PCB 中) 切换到 进程 2</span><br><span class="line">进程 2 开始执行 若此时定时器时间到了 定时器产生 中断</span><br><span class="line">中断服务例程 让 进程 2 暂停下来 并保护 进程 2 的现场 恢复 进程 1 的现场</span><br><span class="line">让 进程 1 继续执行 进程 1 执行结束 再回到 操作系统</span><br></pre></td></tr></table></figure>
 <p><img src="/images/process_switching.png" alt="process_switching"></p>
 <h5 id="进程挂起"><a href="#进程挂起" class="headerlink" title="进程挂起"></a>进程挂起</h5><p>处在挂起状态的进程映像在磁盘上 目的是减少进程占用内存</p>
 <ul>
@@ -647,7 +643,7 @@
 </ul>
 <p><img src="/images/process_state_queue.png" alt="process_state_queue"></p>
 <h2 id="线程-Thread"><a href="#线程-Thread" class="headerlink" title="线程(Thread)"></a>线程(Thread)</h2><p>线程是进程的一部分 描述指令流执行状态 是进程中的指令执行最小单元 是 CPU 调度的基本单位</p>
-<h3 id="线程与进程的关系"><a href="#线程与进程的关系" class="headerlink" title="线程与进程的关系"></a>线程与进程的关系</h3><p>线程 = 进程 - 共享资源 = 执行流</p>
+<h3 id="线程与进程的关系"><a href="#线程与进程的关系" class="headerlink" title="线程与进程的关系"></a>线程与进程的关系</h3><p>线程 &#x3D; 进程 - 共享资源 &#x3D; 执行流</p>
 <ul>
 <li>线程的优点<ul>
 <li>一个进程中可以有多个线程</li>
@@ -677,7 +673,7 @@
 <li>轻权进程(LightWeight Process 在内核中实现 支持用户线程 结合了用户线程和内核线程的优点)</li>
 </ul>
 <h4 id="用户线程"><a href="#用户线程" class="headerlink" title="用户线程"></a>用户线程</h4><p>由一组用户级的线程库函数来完成线程的管理 包括线程的创建 终止 同步 调度等</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">操作系统内核里 仍然只有 PCB 来描述处理机调度的情况</span><br><span class="line">操作系统并不感知用户态有多线程的支持</span><br><span class="line">多线程的支持是用户的函数库支持的多线程</span><br><span class="line">在应用程序内部构造 线程控制块(TCB) 来控制多个线程的交替和同步</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">操作系统内核里 仍然只有 PCB 来描述处理机调度的情况</span><br><span class="line">操作系统并不感知用户态有多线程的支持</span><br><span class="line">多线程的支持是用户的函数库支持的多线程</span><br><span class="line">在应用程序内部构造 线程控制块(TCB) 来控制多个线程的交替和同步</span><br></pre></td></tr></table></figure>
 
 <p><img src="/images/user_thread.png" alt="user_thread"></p>
 <h5 id="用户线程的特征"><a href="#用户线程的特征" class="headerlink" title="用户线程的特征"></a>用户线程的特征</h5><p>不依赖于操作系统内核 </p>
@@ -710,9 +706,9 @@
 </ul>
 <h4 id="轻权进程-LightWeight-Process"><a href="#轻权进程-LightWeight-Process" class="headerlink" title="轻权进程(LightWeight Process)"></a>轻权进程(LightWeight Process)</h4><p>内核支持的用户线程 一个进程可有一个或多个轻量级进程 每个轻权<br>进程由一个单独的内核线程来支持</p>
 <p><img src="/images/lightWeight_process.png" alt="lightWeight_process"></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">永久绑定线程 可看作是 内核支持的线程</span><br><span class="line">未绑定的轻权进程 可由用户态来给出一些策略 提高应用的效率</span><br><span class="line">未绑定的轻权进程 就像用户线程实现的多线程 可以自己决定调度算法之类的</span><br><span class="line">但同时 永久绑定线程 又是 内核原生就支持的线程 所以轻权进程 是融合了 内核线程和用户线程的优点</span><br><span class="line">实际上轻权进程 优点没有体现出来 因此没被广泛使用</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">永久绑定线程 可看作是 内核支持的线程</span><br><span class="line">未绑定的轻权进程 可由用户态来给出一些策略 提高应用的效率</span><br><span class="line">未绑定的轻权进程 就像用户线程实现的多线程 可以自己决定调度算法之类的</span><br><span class="line">但同时 永久绑定线程 又是 内核原生就支持的线程 所以轻权进程 是融合了 内核线程和用户线程的优点</span><br><span class="line">实际上轻权进程 优点没有体现出来 因此没被广泛使用</span><br></pre></td></tr></table></figure>
 <h4 id="内核线程和用户线程和轻权进程的对应关系"><a href="#内核线程和用户线程和轻权进程的对应关系" class="headerlink" title="内核线程和用户线程和轻权进程的对应关系"></a>内核线程和用户线程和轻权进程的对应关系</h4><p><img src="/images/thread_relationship.png" alt="thread_relationship"></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">一对一 可看作是 多进程多线程操作系统</span><br><span class="line">多对一 可看作是 多进程单线程操作系统(用户态实现多线程)</span><br><span class="line">多对多 轻权进程</span><br><span class="line">实际上最广泛使用 一对一 多进程多线程操作系统</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">一对一 可看作是 多进程多线程操作系统</span><br><span class="line">多对一 可看作是 多进程单线程操作系统(用户态实现多线程)</span><br><span class="line">多对多 轻权进程</span><br><span class="line">实际上最广泛使用 一对一 多进程多线程操作系统</span><br></pre></td></tr></table></figure>
 
 
       
@@ -840,7 +836,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -1036,7 +1032,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -1093,7 +1093,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#进程"><span class="nav-text">进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程的组成"><span class="nav-text">进程的组成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程的特点"><span class="nav-text">进程的特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程与程序的联系"><span class="nav-text">进程与程序的联系</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#进程执行需要的资源"><span class="nav-text">进程执行需要的资源</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程与程序的区别"><span class="nav-text">进程与程序的区别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程控制块-PCB-Process-Control-Block"><span class="nav-text">进程控制块 (PCB Process Control Block)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程控制块存些什么"><span class="nav-text">进程控制块存些什么?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程控制块的组织-数据结构实现"><span class="nav-text">进程控制块的组织 (数据结构实现)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#链表"><span class="nav-text">链表</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#索引表"><span class="nav-text">索引表</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程状态"><span class="nav-text">进程状态</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#三状态进程模型"><span class="nav-text">三状态进程模型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程切换"><span class="nav-text">进程切换</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程挂起"><span class="nav-text">进程挂起</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#状态队列"><span class="nav-text">状态队列</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程-Thread"><span class="nav-text">线程(Thread)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#线程与进程的关系"><span class="nav-text">线程与进程的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程与进程的区别"><span class="nav-text">线程与进程的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程实现的三种方式"><span class="nav-text">线程实现的三种方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#用户线程"><span class="nav-text">用户线程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#用户线程的特征"><span class="nav-text">用户线程的特征</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#用户线程的不足"><span class="nav-text">用户线程的不足</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内核线程"><span class="nav-text">内核线程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#内核线程的特征"><span class="nav-text">内核线程的特征</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#轻权进程-LightWeight-Process"><span class="nav-text">轻权进程(LightWeight Process)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内核线程和用户线程和轻权进程的对应关系"><span class="nav-text">内核线程和用户线程和轻权进程的对应关系</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B"><span class="nav-text">进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E7%BB%84%E6%88%90"><span class="nav-text">进程的组成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-text">进程的特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%81%94%E7%B3%BB"><span class="nav-text">进程与程序的联系</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%89%A7%E8%A1%8C%E9%9C%80%E8%A6%81%E7%9A%84%E8%B5%84%E6%BA%90"><span class="nav-text">进程执行需要的资源</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%A8%8B%E5%BA%8F%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">进程与程序的区别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6%E5%9D%97-PCB-Process-Control-Block"><span class="nav-text">进程控制块 (PCB Process Control Block)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6%E5%9D%97%E5%AD%98%E4%BA%9B%E4%BB%80%E4%B9%88"><span class="nav-text">进程控制块存些什么?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6%E5%9D%97%E7%9A%84%E7%BB%84%E7%BB%87-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">进程控制块的组织 (数据结构实现)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8"><span class="nav-text">链表</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E8%A1%A8"><span class="nav-text">索引表</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="nav-text">进程状态</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%89%E7%8A%B6%E6%80%81%E8%BF%9B%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-text">三状态进程模型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E5%88%87%E6%8D%A2"><span class="nav-text">进程切换</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%8C%82%E8%B5%B7"><span class="nav-text">进程挂起</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%8A%B6%E6%80%81%E9%98%9F%E5%88%97"><span class="nav-text">状态队列</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B-Thread"><span class="nav-text">线程(Thread)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E4%B8%8E%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">线程与进程的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E4%B8%8E%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">线程与进程的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%AE%9E%E7%8E%B0%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F"><span class="nav-text">线程实现的三种方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B"><span class="nav-text">用户线程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%89%B9%E5%BE%81"><span class="nav-text">用户线程的特征</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="nav-text">用户线程的不足</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E7%BA%BF%E7%A8%8B"><span class="nav-text">内核线程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%89%B9%E5%BE%81"><span class="nav-text">内核线程的特征</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BD%BB%E6%9D%83%E8%BF%9B%E7%A8%8B-LightWeight-Process"><span class="nav-text">轻权进程(LightWeight Process)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E7%BA%BF%E7%A8%8B%E5%92%8C%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E5%92%8C%E8%BD%BB%E6%9D%83%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="nav-text">内核线程和用户线程和轻权进程的对应关系</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -1113,7 +1113,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
   <span class="with-love" id="animate">
     <i class="fa fa-heart"></i>
   </span>

@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/',
+    root: '',
     scheme: 'Mist',
     version: '6.4.1',
     sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -119,12 +119,10 @@
 <meta property="article:modified_time" content="2022-04-04T15:03:28.007Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="Lua">
-<meta property="article:tag" content=" LuaJIT">
-<meta property="article:tag" content=" Lua5.3.6JIT">
+<meta property="article:tag" content="Lua虚拟机">
+<meta property="article:tag" content="LuaJIT">
 <meta name="twitter:card" content="summary">
 
-
-  
 
 
   <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
@@ -189,7 +187,7 @@
   </style>
 </noscript>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
 
@@ -459,9 +457,9 @@
 <h2 id="Lua-多线程垃圾回收"><a href="#Lua-多线程垃圾回收" class="headerlink" title="Lua 多线程垃圾回收"></a>Lua 多线程垃圾回收</h2><p>这一块的思路主要是从 <code>Redis</code> 通过子线程释放内存这块学来的，通过这个小优化，使得我们游戏服务器在大量玩家下线时，不再出现大规模的掉帧，效果还是非常显著的。</p>
 <h2 id="LuaJIT-5-3-6"><a href="#LuaJIT-5-3-6" class="headerlink" title="LuaJIT 5.3.6"></a>LuaJIT 5.3.6</h2><p>之所以实现这个 <code>Lua 5.3.6 JIT</code>，其实是因为 <code>LuaJIT 2.0</code> 不支持 5.3的新扩展，而项目已经进行到了中后期，没有时间去调整代码了，最后花了半个月的时间去实现了一个小版本，通过了 Lua 的官方测试用例，也在项目用上了。性能方面提高了2-5倍，接入成本为0，不需要修改任何逻辑代码。</p>
 <p>至于解释器部分，借鉴了 <code>Lua 5.4</code> 的一个小优化点，将 <code>switch case</code> 修改为了 <code>computed goto</code> ，提升了约 <code>5%</code> 的性能，之后可能会学习 <code>Lua 5.4</code> 扩展字节码。如果这个项目还做下去的话(我有时间的话)，我会想尝试解释器执行脚本时记录各个操作数的类型，实现动态替换字节码，减少不必要的类型判断，从而提升一定的解释器速度。不过这个方案风险太大，暂时先搁置。</p>
-<p>在实现 <code>LuaJIT 5.3.6</code> 的过程中，顺带复习了一下编译原理的前端部分，实现了一些官方不支持的语法，比如 ‘+=’，自增表达式(当然没有提交)，还是非常有趣的。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>以上的代码实现已经开源，合并之前的 <code>NOGC</code> 优化思路，<a href="https://github.com/Yu2erer/LuaJIT-5.3.6" target="_blank" rel="noopener">LuaJIT-5.3.6</a>，欢迎 <code>Star</code> ，这对我很重要。</p>
-<a id="more"></a>
+<p>在实现 <code>LuaJIT 5.3.6</code> 的过程中，顺带复习了一下编译原理的前端部分，实现了一些官方不支持的语法，比如 ‘+&#x3D;’，自增表达式(当然没有提交)，还是非常有趣的。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>以上的代码实现已经开源，合并之前的 <code>NOGC</code> 优化思路，<a target="_blank" rel="noopener" href="https://github.com/Yu2erer/LuaJIT-5.3.6">LuaJIT-5.3.6</a>，欢迎 <code>Star</code> ，这对我很重要。</p>
+<span id="more"></span>
 
       
     </div>
@@ -509,8 +507,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%BA%8C)-%E6%8C%87%E4%BB%A4%E7%89%B9%E5%8C%96/" rel="prev" title="Python3-源码剖析(二)-指令特化">
-                Python3-源码剖析(二)-指令特化 <i class="fa fa-chevron-right"></i>
+              <a href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/" rel="prev" title="Python3 源码剖析(一)-float诞生">
+                Python3 源码剖析(一)-float诞生 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -588,7 +586,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -784,7 +782,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -841,7 +843,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lua-多线程垃圾回收"><span class="nav-text">Lua 多线程垃圾回收</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LuaJIT-5-3-6"><span class="nav-text">LuaJIT 5.3.6</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结语"><span class="nav-text">结语</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lua-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="nav-text">Lua 多线程垃圾回收</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LuaJIT-5-3-6"><span class="nav-text">LuaJIT 5.3.6</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-text">结语</span></a></li></ol></div>
             
 
           </div>
@@ -861,7 +863,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
   <span class="with-love" id="animate">
     <i class="fa fa-heart"></i>
   </span>

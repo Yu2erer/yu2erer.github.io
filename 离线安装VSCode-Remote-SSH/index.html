@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/',
+    root: '',
     scheme: 'Mist',
     version: '6.4.1',
     sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -120,14 +120,9 @@
 <meta property="article:modified_time" content="2020-10-31T14:42:44.088Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="VSCode">
-<meta property="article:tag" content=" Remote">
-<meta property="article:tag" content=" SSH">
-<meta property="article:tag" content=" 离线安装">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yuerer.com/images/VSCode_Remote_SSH.png">
 
-
-  
 
 
   <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
@@ -192,7 +187,7 @@
   </style>
 </noscript>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
 
@@ -460,16 +455,16 @@
       
         <p>VSCode 近期推出了 Remote-SSH 这个工具 使得 Linux开发者 能够在本地(Windows 机)上直接对开发机源码进行修改 简直拯救了一大批人啊… 但是却没有提到 如何离线安装 因此本文可能是最早 尝试离线安装的教程</p>
 <h2 id="离线安装"><a href="#离线安装" class="headerlink" title="离线安装"></a>离线安装</h2><ol>
-<li>本地上下载好 <a href="https://code.visualstudio.com/insiders/" target="_blank" rel="noopener">VSCode Insiders</a></li>
+<li>本地上下载好 <a target="_blank" rel="noopener" href="https://code.visualstudio.com/insiders/">VSCode Insiders</a></li>
 <li>安装 <code>Remote-SSH</code> 插件</li>
 </ol>
-<a id="more"></a>
+<span id="more"></span>
 
 <ol start="3">
 <li>为 <code>Remote-SSH</code> 配置好 服务器 信息 记得要将 <code>Show Login Terminal</code> 置 true</li>
 <li>直接连接(中途会多次要求输入密码) 此时 会显示一行 <code>Download XXXXXX</code> 我们不要去理他 直接开一个终端 连上服务器 </li>
 <li>输入命令 <code>ps aux | grep vscode</code> 可以看到 有一行 写者 <code>sh /tmp/vscode-remote-install.XXXXXXXXXXXX.sh</code></li>
-<li>我们将 XXXXXXX 复制下来 然后 在本地机器 也就是能联网的机器上 打开 以下链接<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">自行将 $COMMIT_ID 替换成 上面得到的数值</span><br><span class="line">https:&#x2F;&#x2F;update.code.visualstudio.com&#x2F;commit:$COMMIT_ID&#x2F;server-linux-x64&#x2F;insider</span><br></pre></td></tr></table></figure></li>
+<li>我们将 XXXXXXX 复制下来 然后 在本地机器 也就是能联网的机器上 打开 以下链接<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">自行将 $COMMIT_ID 替换成 上面得到的数值</span><br><span class="line">https://update.code.visualstudio.com/commit:$COMMIT_ID/server-linux-x64/insider</span><br></pre></td></tr></table></figure></li>
 <li>然后打开下载到本地机器 接着进入服务器中的 <code>~/.vscode-remote/bin</code> 这个目录 可以看到 有一个文件夹的名字 和我们上面获得的 数值是一样的 </li>
 <li>我们进去 可以看到有个文件的文件名中间有个 lock. 我们将其删除 并 输入命令 <code>touch 0</code> 然后把上面下载到的文件 上传到这个目录下</li>
 <li><code>tar -xf filename</code> 解压到当前目录(注意是当前目录)</li>
@@ -599,7 +594,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -795,7 +790,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -852,7 +851,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#离线安装"><span class="nav-text">离线安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#离线安装插件"><span class="nav-text">离线安装插件</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-text">离线安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85%E6%8F%92%E4%BB%B6"><span class="nav-text">离线安装插件</span></a></li></ol></div>
             
 
           </div>
@@ -872,7 +871,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
   <span class="with-love" id="animate">
     <i class="fa fa-heart"></i>
   </span>

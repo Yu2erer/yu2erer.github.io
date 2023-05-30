@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/',
+    root: '',
     scheme: 'Mist',
     version: '6.4.1',
     sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -144,17 +144,11 @@
 <meta property="article:modified_time" content="2020-10-31T14:42:44.086Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="操作系统">
-<meta property="article:tag" content=" 文件系统">
-<meta property="article:tag" content=" 文件">
-<meta property="article:tag" content=" 文件描述符">
-<meta property="article:tag" content=" RAID">
-<meta property="article:tag" content=" 冗余磁盘阵列">
-<meta property="article:tag" content=" 打开文件表">
+<meta property="article:tag" content="文件系统">
+<meta property="article:tag" content="冗余磁盘阵列">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yuerer.com/images/Hierarchical_File_System.png">
 
-
-  
 
 
   <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
@@ -219,7 +213,7 @@
   </style>
 </noscript>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
 
@@ -493,7 +487,7 @@
 </ul>
 </li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
 
 <h3 id="文件系统的功能"><a href="#文件系统的功能" class="headerlink" title="文件系统的功能"></a>文件系统的功能</h3><ul>
 <li>分配文件磁盘空间<ul>
@@ -636,7 +630,7 @@
 <h5 id="语义一致性"><a href="#语义一致性" class="headerlink" title="语义一致性"></a>语义一致性</h5><p>规定多进程如何同时访问共享文件</p>
 <ul>
 <li>与同步算法相似</li>
-<li>因磁盘I/O和网络延迟而设计简单</li>
+<li>因磁盘I&#x2F;O和网络延迟而设计简单</li>
 <li>Unix文件系统(UFS)语义(相当于把一致性问题丢回给用户自己处理)<ul>
 <li>对打开文件的写入内容立即对其他打开同一文件的其他用户可见</li>
 <li>共享文件指针允许多用户同时读取和写入文件</li>
@@ -730,7 +724,7 @@
 <h4 id="文件系统种类"><a href="#文件系统种类" class="headerlink" title="文件系统种类"></a>文件系统种类</h4><ul>
 <li>磁盘文件系统<ul>
 <li>文件存储在数据存储设备上 如磁盘</li>
-<li>FAT NTFS ext2/3 ISO9660</li>
+<li>FAT NTFS ext2&#x2F;3 ISO9660</li>
 </ul>
 </li>
 <li>数据库文件系统<ul>
@@ -739,20 +733,20 @@
 </ul>
 </li>
 <li>日志文件系统<ul>
-<li>记录文件系统的修改/事件</li>
+<li>记录文件系统的修改&#x2F;事件</li>
 <li>避免操作执行到一半没执行下去的数据丢失</li>
 </ul>
 </li>
-<li>网络/分布式文件系统<ul>
+<li>网络&#x2F;分布式文件系统<ul>
 <li>NFS SMB AFS GFS</li>
 </ul>
 </li>
-<li>特殊/虚拟文件系统<ul>
+<li>特殊&#x2F;虚拟文件系统<ul>
 <li>管道</li>
 </ul>
 </li>
 </ul>
-<h5 id="网络-分布式文件系统"><a href="#网络-分布式文件系统" class="headerlink" title="网络/分布式文件系统"></a>网络/分布式文件系统</h5><ul>
+<h5 id="网络-x2F-分布式文件系统"><a href="#网络-x2F-分布式文件系统" class="headerlink" title="网络&#x2F;分布式文件系统"></a>网络&#x2F;分布式文件系统</h5><ul>
 <li>文件可以通过网络被共享<ul>
 <li>文件处于远程服务器</li>
 <li>客户端远程挂载服务器文件系统</li>
@@ -795,7 +789,7 @@
 <li>文件卷控制块(Unix superblock)<ul>
 <li>每个文件系统一个</li>
 <li>文件系统详细信息</li>
-<li>块 块大小 空余块 计数/指针</li>
+<li>块 块大小 空余块 计数&#x2F;指针</li>
 </ul>
 </li>
 <li>文件控制块(Unix vnode or inode)<ul>
@@ -865,7 +859,7 @@
 </li>
 <li>文件数据块的页缓存<ul>
 <li>在虚拟内存中文件数据块被映射成页</li>
-<li>文件的读/写操作被转换成对内存的访问</li>
+<li>文件的读&#x2F;写操作被转换成对内存的访问</li>
 <li>可能导致缺页或被设置为脏页</li>
 <li>会带来问题 页面置换算法需要协调虚拟存储和页缓存间的页面数</li>
 </ul>
@@ -998,14 +992,14 @@
 <h3 id="空闲空间管理"><a href="#空闲空间管理" class="headerlink" title="空闲空间管理"></a>空闲空间管理</h3><p>跟踪记录文件卷中未分配的数据块</p>
 <h4 id="位图-组织空闲空间"><a href="#位图-组织空闲空间" class="headerlink" title="位图 组织空闲空间"></a>位图 组织空闲空间</h4><p>用位图代表空闲数据块列表</p>
 <ul>
-<li>Di = 0 表明数据块i为空闲 否则 表示已分配</li>
+<li>Di &#x3D; 0 表明数据块i为空闲 否则 表示已分配</li>
 <li>使用简单 但是可能会是一个很大的向量表<ul>
 <li>160GB磁盘-&gt;40M数据块(假设4kb为一块)-&gt;5MB位图</li>
 </ul>
 </li>
-<li>假定空闲空间在磁盘中均匀分布 则找到 空闲块之前要扫描 n/r<ul>
-<li>n = 磁盘上数据块的总数</li>
-<li>r = 空闲块的数目(空闲块占的越多 越容易找到)</li>
+<li>假定空闲空间在磁盘中均匀分布 则找到 空闲块之前要扫描 n&#x2F;r<ul>
+<li>n &#x3D; 磁盘上数据块的总数</li>
+<li>r &#x3D; 空闲块的数目(空闲块占的越多 越容易找到)</li>
 </ul>
 </li>
 </ul>
@@ -1030,7 +1024,7 @@
 </ul>
 </li>
 <li>硬件<ul>
-<li>RAID硬件控制器(I/O)</li>
+<li>RAID硬件控制器(I&#x2F;O)</li>
 </ul>
 </li>
 </ul>
@@ -1196,7 +1190,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -1392,7 +1386,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -1449,7 +1447,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统和文件"><span class="nav-text">文件系统和文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#文件系统的功能"><span class="nav-text">文件系统的功能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#文件属性"><span class="nav-text">文件属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件头"><span class="nav-text">文件头</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件描述符"><span class="nav-text">文件描述符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件的用户视图和系统视图"><span class="nav-text">文件的用户视图和系统视图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#用户视图到系统视图的转换"><span class="nav-text">用户视图到系统视图的转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#访问模式"><span class="nav-text">访问模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件内部结构"><span class="nav-text">文件内部结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件共享和访问控制"><span class="nav-text">文件共享和访问控制</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#语义一致性"><span class="nav-text">语义一致性</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分层文件系统"><span class="nav-text">分层文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#目录操作"><span class="nav-text">目录操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#目录实现"><span class="nav-text">目录实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#文件别名"><span class="nav-text">文件别名</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#文件目录中的循环"><span class="nav-text">文件目录中的循环</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#名字解析-路径遍历"><span class="nav-text">名字解析(路径遍历)</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件系统挂载"><span class="nav-text">文件系统挂载</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件系统种类"><span class="nav-text">文件系统种类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#网络-分布式文件系统"><span class="nav-text">网络&#x2F;分布式文件系统</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件系统实现"><span class="nav-text">文件系统实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟文件系统-VFS"><span class="nav-text">虚拟文件系统(VFS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件系统基本数据结构"><span class="nav-text">文件系统基本数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#文件系统的组织视图"><span class="nav-text">文件系统的组织视图</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件系统的存储结构"><span class="nav-text">文件系统的存储结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#文件系统的存储视图"><span class="nav-text">文件系统的存储视图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多种磁盘缓存位置"><span class="nav-text">多种磁盘缓存位置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#两种数据块缓存方式"><span class="nav-text">两种数据块缓存方式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#数据块缓存"><span class="nav-text">数据块缓存</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#页缓存"><span class="nav-text">页缓存</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#文件系统中打开文件的数据结构"><span class="nav-text">文件系统中打开文件的数据结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#打开文件锁"><span class="nav-text">打开文件锁</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件大小"><span class="nav-text">文件大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件分配"><span class="nav-text">文件分配</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#连续分配"><span class="nav-text">连续分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#链式分配"><span class="nav-text">链式分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#索引分配"><span class="nav-text">索引分配</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#大文件的索引分配"><span class="nav-text">大文件的索引分配</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UFS多级索引分配-UFS-Unix-File-System"><span class="nav-text">UFS多级索引分配(UFS Unix File System)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#空闲空间管理"><span class="nav-text">空闲空间管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#位图-组织空闲空间"><span class="nav-text">位图 组织空闲空间</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘分区"><span class="nav-text">磁盘分区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多磁盘管理"><span class="nav-text">多磁盘管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#冗余磁盘阵列-RAID-Redundant-Array-of-Inexpensive-Disks"><span class="nav-text">冗余磁盘阵列(RAID Redundant Array of Inexpensive Disks)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#冗余磁盘阵列的实现"><span class="nav-text">冗余磁盘阵列的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-0-磁盘条带化"><span class="nav-text">RAID-0(磁盘条带化)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-1-磁盘镜像"><span class="nav-text">RAID-1(磁盘镜像)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-4-带校验的磁盘条带化"><span class="nav-text">RAID-4(带校验的磁盘条带化)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-5-带分布式校验的磁盘条带化"><span class="nav-text">RAID-5(带分布式校验的磁盘条带化)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#可纠正多个磁盘错误的冗余磁盘阵列"><span class="nav-text">可纠正多个磁盘错误的冗余磁盘阵列</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#RAID嵌套"><span class="nav-text">RAID嵌套</span></a></li></ol></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%92%8C%E6%96%87%E4%BB%B6"><span class="nav-text">文件系统和文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="nav-text">文件系统的功能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%B1%9E%E6%80%A7"><span class="nav-text">文件属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%A4%B4"><span class="nav-text">文件头</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="nav-text">文件描述符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%9A%84%E7%94%A8%E6%88%B7%E8%A7%86%E5%9B%BE%E5%92%8C%E7%B3%BB%E7%BB%9F%E8%A7%86%E5%9B%BE"><span class="nav-text">文件的用户视图和系统视图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E8%A7%86%E5%9B%BE%E5%88%B0%E7%B3%BB%E7%BB%9F%E8%A7%86%E5%9B%BE%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="nav-text">用户视图到系统视图的转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E6%A8%A1%E5%BC%8F"><span class="nav-text">访问模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="nav-text">文件内部结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB%E5%92%8C%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6"><span class="nav-text">文件共享和访问控制</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%AD%E4%B9%89%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-text">语义一致性</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E5%B1%82%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text">分层文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95%E6%93%8D%E4%BD%9C"><span class="nav-text">目录操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">目录实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%88%AB%E5%90%8D"><span class="nav-text">文件别名</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E4%B8%AD%E7%9A%84%E5%BE%AA%E7%8E%AF"><span class="nav-text">文件目录中的循环</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%90%8D%E5%AD%97%E8%A7%A3%E6%9E%90-%E8%B7%AF%E5%BE%84%E9%81%8D%E5%8E%86"><span class="nav-text">名字解析(路径遍历)</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%8C%82%E8%BD%BD"><span class="nav-text">文件系统挂载</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%A7%8D%E7%B1%BB"><span class="nav-text">文件系统种类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-x2F-%E5%88%86%E5%B8%83%E5%BC%8F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text">网络&#x2F;分布式文件系统</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0"><span class="nav-text">文件系统实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-VFS"><span class="nav-text">虚拟文件系统(VFS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">文件系统基本数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%BB%84%E7%BB%87%E8%A7%86%E5%9B%BE"><span class="nav-text">文件系统的组织视图</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84"><span class="nav-text">文件系统的存储结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%AD%98%E5%82%A8%E8%A7%86%E5%9B%BE"><span class="nav-text">文件系统的存储视图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%A7%8D%E7%A3%81%E7%9B%98%E7%BC%93%E5%AD%98%E4%BD%8D%E7%BD%AE"><span class="nav-text">多种磁盘缓存位置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%A4%E7%A7%8D%E6%95%B0%E6%8D%AE%E5%9D%97%E7%BC%93%E5%AD%98%E6%96%B9%E5%BC%8F"><span class="nav-text">两种数据块缓存方式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%9D%97%E7%BC%93%E5%AD%98"><span class="nav-text">数据块缓存</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%A1%B5%E7%BC%93%E5%AD%98"><span class="nav-text">页缓存</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%AD%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">文件系统中打开文件的数据结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6%E9%94%81"><span class="nav-text">打开文件锁</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F"><span class="nav-text">文件大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%88%86%E9%85%8D"><span class="nav-text">文件分配</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E5%88%86%E9%85%8D"><span class="nav-text">连续分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%93%BE%E5%BC%8F%E5%88%86%E9%85%8D"><span class="nav-text">链式分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E5%88%86%E9%85%8D"><span class="nav-text">索引分配</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A4%A7%E6%96%87%E4%BB%B6%E7%9A%84%E7%B4%A2%E5%BC%95%E5%88%86%E9%85%8D"><span class="nav-text">大文件的索引分配</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UFS%E5%A4%9A%E7%BA%A7%E7%B4%A2%E5%BC%95%E5%88%86%E9%85%8D-UFS-Unix-File-System"><span class="nav-text">UFS多级索引分配(UFS Unix File System)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A9%BA%E9%97%B2%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86"><span class="nav-text">空闲空间管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%8D%E5%9B%BE-%E7%BB%84%E7%BB%87%E7%A9%BA%E9%97%B2%E7%A9%BA%E9%97%B4"><span class="nav-text">位图 组织空闲空间</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A3%81%E7%9B%98%E5%88%86%E5%8C%BA"><span class="nav-text">磁盘分区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%A3%81%E7%9B%98%E7%AE%A1%E7%90%86"><span class="nav-text">多磁盘管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%97%E4%BD%99%E7%A3%81%E7%9B%98%E9%98%B5%E5%88%97-RAID-Redundant-Array-of-Inexpensive-Disks"><span class="nav-text">冗余磁盘阵列(RAID Redundant Array of Inexpensive Disks)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%97%E4%BD%99%E7%A3%81%E7%9B%98%E9%98%B5%E5%88%97%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">冗余磁盘阵列的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-0-%E7%A3%81%E7%9B%98%E6%9D%A1%E5%B8%A6%E5%8C%96"><span class="nav-text">RAID-0(磁盘条带化)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-1-%E7%A3%81%E7%9B%98%E9%95%9C%E5%83%8F"><span class="nav-text">RAID-1(磁盘镜像)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-4-%E5%B8%A6%E6%A0%A1%E9%AA%8C%E7%9A%84%E7%A3%81%E7%9B%98%E6%9D%A1%E5%B8%A6%E5%8C%96"><span class="nav-text">RAID-4(带校验的磁盘条带化)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID-5-%E5%B8%A6%E5%88%86%E5%B8%83%E5%BC%8F%E6%A0%A1%E9%AA%8C%E7%9A%84%E7%A3%81%E7%9B%98%E6%9D%A1%E5%B8%A6%E5%8C%96"><span class="nav-text">RAID-5(带分布式校验的磁盘条带化)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%AF%E7%BA%A0%E6%AD%A3%E5%A4%9A%E4%B8%AA%E7%A3%81%E7%9B%98%E9%94%99%E8%AF%AF%E7%9A%84%E5%86%97%E4%BD%99%E7%A3%81%E7%9B%98%E9%98%B5%E5%88%97"><span class="nav-text">可纠正多个磁盘错误的冗余磁盘阵列</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#RAID%E5%B5%8C%E5%A5%97"><span class="nav-text">RAID嵌套</span></a></li></ol></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -1469,7 +1467,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
   <span class="with-love" id="animate">
     <i class="fa fa-heart"></i>
   </span>

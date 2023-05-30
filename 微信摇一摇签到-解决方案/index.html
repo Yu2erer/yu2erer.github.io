@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/',
+    root: '',
     scheme: 'Mist',
     version: '6.4.1',
     sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -118,14 +118,9 @@
 <meta property="article:published_time" content="2018-11-20T05:52:20.000Z">
 <meta property="article:modified_time" content="2020-10-31T14:42:44.084Z">
 <meta property="article:author" content="Yuerer">
-<meta property="article:tag" content="微信">
-<meta property="article:tag" content=" 摇一摇">
-<meta property="article:tag" content=" 签到">
-<meta property="article:tag" content=" 破解">
+<meta property="article:tag" content="微信签到">
 <meta name="twitter:card" content="summary">
 
-
-  
 
 
   <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
@@ -190,7 +185,7 @@
   </style>
 </noscript>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
 
@@ -459,7 +454,7 @@
         <p>所在学校在2016年的时候 使用了 微信摇一摇作为签到的系统</p>
 <p>摇一摇签到是基于 iBeacon(低功耗蓝牙通信)</p>
 <h3 id="iBeacon-组成"><a href="#iBeacon-组成" class="headerlink" title="iBeacon 组成"></a>iBeacon 组成</h3><p>iBeacon 由 UUID Major Minor 组成<br>那么 理论上我们只要获取到了以上信息 就能在任何地方(一般都会进行定位认证 所以任何地方是有条件的)发射出一个教室的信号 进行摇一摇签到</p>
-<a id="more"></a>
+<span id="more"></span>
 <ol>
 <li>获取微信摇一摇的 UUID(唯一标识符) 能从微信摇一摇的开发页面上得到</li>
 </ol>
@@ -475,7 +470,7 @@
 <p>实际测试得知 学校的签到系统 没有对签到的教室进行认证 换句话说 你爱签哪个教室都行<br>只要你签到了 就显示签到成功了</p>
 <p>另外 学校的这套系统并没有定位认证 一般做这种摇一摇的系统 都是要进行定位确认的<br>抓包得知 只是假模假样的 post 个 Position 但并没有后台确认(真的很会偷懒)</p>
 <h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><p>以下为 Swift 的代码实现(大一时所写) 直接做成 App 装在 iPhone 上面 一打开就能摇一摇签到(自己摇不到 只能给别人摇)</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> UIKit</span><br><span class="line"><span class="keyword">import</span> CoreLocation</span><br><span class="line"><span class="keyword">import</span> CoreBluetooth</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">let</span> uuid = <span class="type">UUID</span>(uuidString: <span class="string">"FDA50693-A4E2-4FB1-AFCF-C6EB07647825"</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ViewController</span>: <span class="title">UIViewController</span> </span>&#123;</span><br><span class="line">    <span class="keyword">fileprivate</span> <span class="built_in">lazy</span> <span class="keyword">var</span> data = <span class="type">NSMutableDictionary</span>()</span><br><span class="line">    <span class="keyword">fileprivate</span> <span class="built_in">lazy</span> <span class="keyword">var</span> manager = <span class="type">CBPeripheralManager</span>()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">func</span> <span class="title">viewDidLoad</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.viewDidLoad()</span><br><span class="line">        <span class="keyword">let</span> major: <span class="type">CLBeaconMajorValue</span> = <span class="number">10099</span></span><br><span class="line">        <span class="keyword">let</span> minor: <span class="type">CLBeaconMinorValue</span> = <span class="number">21920</span></span><br><span class="line">        <span class="keyword">let</span> beaconRegion = <span class="type">CLBeaconRegion</span>(proximityUUID: uuid!, major: major, minor: minor, identifier: <span class="string">"id"</span>)</span><br><span class="line">        data = beaconRegion.peripheralData(withMeasuredPower: <span class="literal">nil</span>)</span><br><span class="line">        manager = <span class="type">CBPeripheralManager</span>(delegate: <span class="keyword">self</span>, queue: <span class="literal">nil</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">ViewController</span>: <span class="title">CBPeripheralManagerDelegate</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">peripheralManagerDidUpdateState</span><span class="params">(<span class="number">_</span> peripheral: CBPeripheralManager)</span></span> &#123;</span><br><span class="line">        <span class="keyword">self</span>.manager.startAdvertising(<span class="keyword">self</span>.data <span class="keyword">as</span>? [<span class="type">String</span> : <span class="type">Any</span>])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> UIKit</span><br><span class="line"><span class="keyword">import</span> CoreLocation</span><br><span class="line"><span class="keyword">import</span> CoreBluetooth</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">let</span> uuid <span class="operator">=</span> <span class="type">UUID</span>(uuidString: <span class="string">&quot;FDA50693-A4E2-4FB1-AFCF-C6EB07647825&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ViewController</span>: <span class="title class_">UIViewController</span> &#123;</span><br><span class="line">    <span class="keyword">fileprivate</span> <span class="keyword">lazy</span> <span class="keyword">var</span> data <span class="operator">=</span> <span class="type">NSMutableDictionary</span>()</span><br><span class="line">    <span class="keyword">fileprivate</span> <span class="keyword">lazy</span> <span class="keyword">var</span> manager <span class="operator">=</span> <span class="type">CBPeripheralManager</span>()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">func</span> <span class="title function_">viewDidLoad</span>() &#123;</span><br><span class="line">        <span class="keyword">super</span>.viewDidLoad()</span><br><span class="line">        <span class="keyword">let</span> major: <span class="type">CLBeaconMajorValue</span> <span class="operator">=</span> <span class="number">10099</span></span><br><span class="line">        <span class="keyword">let</span> minor: <span class="type">CLBeaconMinorValue</span> <span class="operator">=</span> <span class="number">21920</span></span><br><span class="line">        <span class="keyword">let</span> beaconRegion <span class="operator">=</span> <span class="type">CLBeaconRegion</span>(proximityUUID: uuid<span class="operator">!</span>, major: major, minor: minor, identifier: <span class="string">&quot;id&quot;</span>)</span><br><span class="line">        data <span class="operator">=</span> beaconRegion.peripheralData(withMeasuredPower: <span class="literal">nil</span>)</span><br><span class="line">        manager <span class="operator">=</span> <span class="type">CBPeripheralManager</span>(delegate: <span class="keyword">self</span>, queue: <span class="literal">nil</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extension</span> <span class="title class_">ViewController</span>: <span class="title class_">CBPeripheralManagerDelegate</span> &#123;</span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">peripheralManagerDidUpdateState</span>(<span class="keyword">_</span> <span class="params">peripheral</span>: <span class="type">CBPeripheralManager</span>) &#123;</span><br><span class="line">        <span class="keyword">self</span>.manager.startAdvertising(<span class="keyword">self</span>.data <span class="keyword">as?</span> [String : <span class="keyword">Any</span>])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -597,7 +592,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -793,7 +788,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -850,7 +849,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#iBeacon-组成"><span class="nav-text">iBeacon 组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码实现"><span class="nav-text">代码实现</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#iBeacon-%E7%BB%84%E6%88%90"><span class="nav-text">iBeacon 组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">代码实现</span></a></li></ol></div>
             
 
           </div>
@@ -870,7 +869,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
   <span class="with-love" id="animate">
     <i class="fa fa-heart"></i>
   </span>

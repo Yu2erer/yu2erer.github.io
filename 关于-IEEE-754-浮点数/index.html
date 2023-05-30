@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/',
+    root: '',
     scheme: 'Mist',
     version: '6.4.1',
     sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -119,14 +119,9 @@
 <meta property="article:modified_time" content="2020-10-31T14:42:44.084Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="浮点数">
-<meta property="article:tag" content=" IEEE 754">
-<meta property="article:tag" content=" 有符号数">
-<meta property="article:tag" content=" 无符号数">
-<meta property="article:tag" content=" 数的标识">
+<meta property="article:tag" content="计算机基础">
 <meta name="twitter:card" content="summary">
 
-
-  
 
 
   <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
@@ -191,7 +186,7 @@
   </style>
 </noscript>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
 
@@ -461,7 +456,7 @@
 <h2 id="数的机器表示"><a href="#数的机器表示" class="headerlink" title="数的机器表示"></a>数的机器表示</h2><p>众所周知 机器很笨 它是不认识什么 有符号数 和 无符号数的 它只认识 二进制串 那么在计算机上 是如何表示 有符号数和无符号数的呢?</p>
 <h3 id="计算机不区分有符号数和无符号数"><a href="#计算机不区分有符号数和无符号数" class="headerlink" title="计算机不区分有符号数和无符号数"></a>计算机不区分有符号数和无符号数</h3><p>首先在计算机眼中 它确确实实只认识 二进制串 二进制串所表示的数 是有符号数还是无符号数 取决于 用户(编码者)怎么看 当你认为 <code>0xffff</code> 为正数时 它就是 <code>65535</code> 当你认为 <code>0xffff</code> 为负数时 就为 <code>-1</code></p>
 <p>其次 在计算机中 它会将送进来的数 统一用补码计算 使用补码计算就不用区分 是有符号数还是无符号数 因为补码的加减法的规则相同</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <p>比如 一个二进制为: <code>1000 0001</code> 当你对其 <code>+1</code> 后 则为 <code>1000 0010</code> </p>
 <ul>
@@ -476,10 +471,10 @@
 <li>双精度浮点数: exp宽为 11位 frac宽为52位</li>
 </ul>
 <h4 id="规格化浮点数"><a href="#规格化浮点数" class="headerlink" title="规格化浮点数"></a>规格化浮点数</h4><p><code>exp != 000...0 &amp;&amp; exp != 111...1</code> 则为规格化浮点数</p>
-<p>此时 E + Bias = Exp</p>
+<p>此时 E + Bias &#x3D; Exp</p>
 <ul>
 <li>Bias取值<ul>
-<li>Bias = 2^e-1 e = exp位数</li>
+<li>Bias &#x3D; 2^e-1 e &#x3D; exp位数</li>
 <li>单精度数: 127</li>
 <li>双精度数: 1023</li>
 </ul>
@@ -487,47 +482,47 @@
 </ul>
 <p>之所以 E 要 Exp 减去 Bias 的原因是 E是一个 <code>unsigned int</code> 而科学计数法中的 E 是有正有负的 因此 E要减去一个中间数</p>
 <p>frac域的第一位隐含为 1 在 32位浮点数中 frac的宽为 23位 省略了第一位以后 则多了一位 可以保存24位</p>
-<h5 id="规格化浮点数实例"><a href="#规格化浮点数实例" class="headerlink" title="规格化浮点数实例"></a>规格化浮点数实例</h5><p>Float F = 15213.0</p>
+<h5 id="规格化浮点数实例"><a href="#规格化浮点数实例" class="headerlink" title="规格化浮点数实例"></a>规格化浮点数实例</h5><p>Float F &#x3D; 15213.0</p>
 <ul>
-<li>15213D = 11101101101101B = 1.1101101101101B X 2^13</li>
-<li>M = 1.1101101101101B</li>
-<li>frac= 1101101101101B(规格化浮点数 舍弃第一位)</li>
-<li>E = 13</li>
-<li>Bias = 127(因为是32位浮点数)</li>
-<li>Exp = 13 + 127 = 140 = 10001100B</li>
+<li>15213D &#x3D; 11101101101101B &#x3D; 1.1101101101101B X 2^13</li>
+<li>M &#x3D; 1.1101101101101B</li>
+<li>frac&#x3D; 1101101101101B(规格化浮点数 舍弃第一位)</li>
+<li>E &#x3D; 13</li>
+<li>Bias &#x3D; 127(因为是32位浮点数)</li>
+<li>Exp &#x3D; 13 + 127 &#x3D; 140 &#x3D; 10001100B</li>
 </ul>
 <p>最终在机器中表示为 <code>[0|1000 1100|1101 1011 0110 1]</code></p>
 <h4 id="非规格化浮点数"><a href="#非规格化浮点数" class="headerlink" title="非规格化浮点数"></a>非规格化浮点数</h4><p><code>exp = 000...0</code></p>
 <ul>
-<li>E = -Bias + 1 Bias = 2^e-1 e = exp位数</li>
-<li>M = 0.xxxxx</li>
-<li>当 exp = 000…0, frac = 000…0<ul>
+<li>E &#x3D; -Bias + 1 Bias &#x3D; 2^e-1 e &#x3D; exp位数</li>
+<li>M &#x3D; 0.xxxxx</li>
+<li>当 exp &#x3D; 000…0, frac &#x3D; 000…0<ul>
 <li>表示 0</li>
 <li>有 +0 与 -0</li>
 </ul>
 </li>
-<li>当 exp = 000…0, frac != 000…0<ul>
+<li>当 exp &#x3D; 000…0, frac !&#x3D; 000…0<ul>
 <li>表示 非常接近于 0</li>
 <li>会逐步丧失精度</li>
 </ul>
 </li>
-<li>当 exp = 111…1, frac = 000…0<ul>
+<li>当 exp &#x3D; 111…1, frac &#x3D; 000…0<ul>
 <li>表示无穷</li>
-<li>1.0/0.0 = +无穷 -1.0/0.0 = -无穷</li>
+<li>1.0&#x2F;0.0 &#x3D; +无穷 -1.0&#x2F;0.0 &#x3D; -无穷</li>
 </ul>
 </li>
-<li>当 exp = 111…1, frac != 000…0<ul>
+<li>当 exp &#x3D; 111…1, frac !&#x3D; 000…0<ul>
 <li>NaN</li>
 </ul>
 </li>
 </ul>
-<h5 id="举个例子-Int-to-Float"><a href="#举个例子-Int-to-Float" class="headerlink" title="举个例子 Int to Float"></a>举个例子 Int to Float</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> num = <span class="number">8</span>;</span><br><span class="line"><span class="keyword">float</span>* pfloat = &amp;num;</span><br></pre></td></tr></table></figure>
+<h5 id="举个例子-Int-to-Float"><a href="#举个例子-Int-to-Float" class="headerlink" title="举个例子 Int to Float"></a>举个例子 Int to Float</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> num = <span class="number">8</span>;</span><br><span class="line"><span class="type">float</span>* pfloat = &amp;num;</span><br></pre></td></tr></table></figure>
 <p><code>*pfloat</code> 的值为多少?</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">首先 num 为 0x00000008</span><br><span class="line">第一位 为符号位 为 0 因为是正数</span><br><span class="line">其次 符号位后面八位 为exp域 为 0000 0000 全0 则 E &#x3D; -Bias + 1 &#x3D; 2^e-1 + 1 &#x3D; -126</span><br><span class="line">最后 M 23位 &#x3D; 000 0000 0000 0000 0000 1000</span><br><span class="line">(省略掉最前面的0 因为是非规格化浮点数 若为规格化浮点数则省略最前面的1)</span><br><span class="line">得到</span><br><span class="line">V &#x3D; (-1)^S * M * 2^E &#x3D; 0x0.00000000000000000001000 * 2^(-126) &#x3D; 1.000 * 2^(-146)</span><br><span class="line">很接近于0 因此 *pfloat 为 0.000000</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">首先 num 为 0x00000008</span><br><span class="line">第一位 为符号位 为 0 因为是正数</span><br><span class="line">其次 符号位后面八位 为exp域 为 0000 0000 全0 则 E = -Bias + 1 = 2^e-1 + 1 = -126</span><br><span class="line">最后 M 23位 = 000 0000 0000 0000 0000 1000</span><br><span class="line">(省略掉最前面的0 因为是非规格化浮点数 若为规格化浮点数则省略最前面的1)</span><br><span class="line">得到</span><br><span class="line">V = (-1)^S * M * 2^E = 0x0.00000000000000000001000 * 2^(-126) = 1.000 * 2^(-146)</span><br><span class="line">很接近于0 因此 *pfloat 为 0.000000</span><br></pre></td></tr></table></figure>
 
-<h5 id="再举个例子-Float-to-Int"><a href="#再举个例子-Float-to-Int" class="headerlink" title="再举个例子 Float to Int"></a>再举个例子 Float to Int</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> num = <span class="number">8</span>;</span><br><span class="line"><span class="keyword">float</span>* pfloat = &amp;num;</span><br><span class="line">*pfloat = <span class="number">8.0</span>;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">num 的值为多少?</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">首先 8.0 是一个正数 符号位 为 0</span><br><span class="line">其次 8.0 &#x3D; 1000.0B &#x3D; 1.000 * 2^3 E &#x3D; 3 exp &#x3D; E + Bias &#x3D; 3 + 127 &#x3D; 130 &#x3D; 1000 0010B</span><br><span class="line">M &#x3D; 000 补到 23位</span><br><span class="line">因此 在二进制为 [0|1000 0010|000 0000 0000 0000 0000] 转换为十进制 为 1107296256</span><br></pre></td></tr></table></figure>
+<h5 id="再举个例子-Float-to-Int"><a href="#再举个例子-Float-to-Int" class="headerlink" title="再举个例子 Float to Int"></a>再举个例子 Float to Int</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> num = <span class="number">8</span>;</span><br><span class="line"><span class="type">float</span>* pfloat = &amp;num;</span><br><span class="line">*pfloat = <span class="number">8.0</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">num 的值为多少?</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">首先 8.0 是一个正数 符号位 为 0</span><br><span class="line">其次 8.0 = 1000.0B = 1.000 * 2^3 E = 3 exp = E + Bias = 3 + 127 = 130 = 1000 0010B</span><br><span class="line">M = 000 补到 23位</span><br><span class="line">因此 在二进制为 [0|1000 0010|000 0000 0000 0000 0000] 转换为十进制 为 1107296256</span><br></pre></td></tr></table></figure>
 
 
       
@@ -653,7 +648,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -849,7 +844,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -906,7 +905,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数的机器表示"><span class="nav-text">数的机器表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#计算机不区分有符号数和无符号数"><span class="nav-text">计算机不区分有符号数和无符号数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#浮点数的表示"><span class="nav-text">浮点数的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#规格化浮点数"><span class="nav-text">规格化浮点数</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#规格化浮点数实例"><span class="nav-text">规格化浮点数实例</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#非规格化浮点数"><span class="nav-text">非规格化浮点数</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#举个例子-Int-to-Float"><span class="nav-text">举个例子 Int to Float</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#再举个例子-Float-to-Int"><span class="nav-text">再举个例子 Float to Int</span></a></li></ol></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E7%9A%84%E6%9C%BA%E5%99%A8%E8%A1%A8%E7%A4%BA"><span class="nav-text">数的机器表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%8D%E5%8C%BA%E5%88%86%E6%9C%89%E7%AC%A6%E5%8F%B7%E6%95%B0%E5%92%8C%E6%97%A0%E7%AC%A6%E5%8F%B7%E6%95%B0"><span class="nav-text">计算机不区分有符号数和无符号数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%AE%E7%82%B9%E6%95%B0%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">浮点数的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%84%E6%A0%BC%E5%8C%96%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="nav-text">规格化浮点数</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%A7%84%E6%A0%BC%E5%8C%96%E6%B5%AE%E7%82%B9%E6%95%B0%E5%AE%9E%E4%BE%8B"><span class="nav-text">规格化浮点数实例</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%9E%E8%A7%84%E6%A0%BC%E5%8C%96%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="nav-text">非规格化浮点数</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%BE%E4%B8%AA%E4%BE%8B%E5%AD%90-Int-to-Float"><span class="nav-text">举个例子 Int to Float</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%86%8D%E4%B8%BE%E4%B8%AA%E4%BE%8B%E5%AD%90-Float-to-Int"><span class="nav-text">再举个例子 Float to Int</span></a></li></ol></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -926,7 +925,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
   <span class="with-love" id="animate">
     <i class="fa fa-heart"></i>
   </span>

@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/',
+    root: '',
     scheme: 'Mist',
     version: '6.4.1',
     sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -126,12 +126,10 @@
 <meta property="article:modified_time" content="2020-10-31T14:42:44.087Z">
 <meta property="article:author" content="Yuerer">
 <meta property="article:tag" content="操作系统">
-<meta property="article:tag" content=" 虚拟存储">
+<meta property="article:tag" content="虚拟存储">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yuerer.com/images/overlay.png">
 
-
-  
 
 
   <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
@@ -196,7 +194,7 @@
   </style>
 </noscript>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
 
@@ -475,7 +473,7 @@
 <li>虚拟存储</li>
 </ul>
 <p>在有限容量的内存中 以页为单位自动装入更多更大的程序</p>
-<a id="more"></a>
+<span id="more"></span>
 <h3 id="覆盖和交换技术"><a href="#覆盖和交换技术" class="headerlink" title="覆盖和交换技术"></a>覆盖和交换技术</h3><h4 id="覆盖技术目标"><a href="#覆盖技术目标" class="headerlink" title="覆盖技术目标"></a>覆盖技术目标</h4><p>在较小的可用内存中运行较大的程序 (一个程序的运行内存空间都不够)</p>
 <h4 id="覆盖技术实现方法"><a href="#覆盖技术实现方法" class="headerlink" title="覆盖技术实现方法"></a>覆盖技术实现方法</h4><p>依据程序的逻辑结构 将程序模块划分为若干功能相对独立的模块<br>将不会同时执行的模块共享同一块内存区域</p>
 <ul>
@@ -485,39 +483,30 @@
 </ul>
 <p><img src="/images/overlay.png" alt="overlay"></p>
 <h5 id="覆盖技术的不足"><a href="#覆盖技术的不足" class="headerlink" title="覆盖技术的不足"></a>覆盖技术的不足</h5><ul>
-<li><p>增加编程难度</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">需要程序员 划分功能模块 并确定模块间的覆盖关系</span><br></pre></td></tr></table></figure></li>
-<li><p>增加执行时间</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">从外存 装入覆盖 模块 时间换空间</span><br></pre></td></tr></table></figure>
+<li>增加编程难度<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">需要程序员 划分功能模块 并确定模块间的覆盖关系</span><br></pre></td></tr></table></figure></li>
+<li>增加执行时间<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">从外存 装入覆盖 模块 时间换空间</span><br></pre></td></tr></table></figure></li>
+</ul>
 <h4 id="交换技术目标"><a href="#交换技术目标" class="headerlink" title="交换技术目标"></a>交换技术目标</h4><p>增加正在运行或需要运行的程序的内存 (一个程序的运行内存空间足够了 但是想要运行更多的进程)</p>
-<h4 id="交换技术实现方法"><a href="#交换技术实现方法" class="headerlink" title="交换技术实现方法"></a>交换技术实现方法</h4></li>
-<li><p>将暂时不能运行的程序放到外存</p>
-</li>
-<li><p>换入换出基本单位 整个进程的地址空间</p>
-</li>
-<li><p>换出(Swap out) 把一个进程的整个地址空间保存到外存</p>
-</li>
-<li><p>换入(Swap in) 把外存中的某进程的地址空间读入到内存</p>
-</li>
+<h4 id="交换技术实现方法"><a href="#交换技术实现方法" class="headerlink" title="交换技术实现方法"></a>交换技术实现方法</h4><ul>
+<li>将暂时不能运行的程序放到外存</li>
+<li>换入换出基本单位 整个进程的地址空间</li>
+<li>换出(Swap out) 把一个进程的整个地址空间保存到外存</li>
+<li>换入(Swap in) 把外存中的某进程的地址空间读入到内存</li>
 </ul>
 <p><img src="/images/swapping.png" alt="swapping"></p>
 <h4 id="交换技术有什么问题"><a href="#交换技术有什么问题" class="headerlink" title="交换技术有什么问题?"></a>交换技术有什么问题?</h4><ul>
-<li><p>交换时机</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当内存不够 或 有不够的可能时换出</span><br></pre></td></tr></table></figure></li>
-<li><p>交换区大小</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">存放所有用户进程的所有内存映像的拷贝</span><br></pre></td></tr></table></figure></li>
-<li><p>程序换入时的重定位 换出时再换入时要放在原处吗?</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">采用动态地址映射的方法</span><br></pre></td></tr></table></figure>
-<h4 id="覆盖与交换的比较"><a href="#覆盖与交换的比较" class="headerlink" title="覆盖与交换的比较"></a>覆盖与交换的比较</h4></li>
-<li><p>覆盖</p>
-<ul>
+<li>交换时机<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当内存不够 或 有不够的可能时换出</span><br></pre></td></tr></table></figure></li>
+<li>交换区大小<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">存放所有用户进程的所有内存映像的拷贝</span><br></pre></td></tr></table></figure></li>
+<li>程序换入时的重定位 换出时再换入时要放在原处吗?<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">采用动态地址映射的方法</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="覆盖与交换的比较"><a href="#覆盖与交换的比较" class="headerlink" title="覆盖与交换的比较"></a>覆盖与交换的比较</h4><ul>
+<li>覆盖<ul>
 <li>只能发生在没有调用关系的模块间</li>
 <li>程序员必须知道这种逻辑覆盖结构</li>
 <li>发生在运行程序的内部模块间</li>
 </ul>
 </li>
-<li><p>交换</p>
-<ul>
+<li>交换<ul>
 <li>以进程为单位</li>
 <li>不需要模块间的逻辑覆盖结构</li>
 <li>发生在内存进程间</li>
@@ -605,7 +594,7 @@
 <h4 id="虚拟页式存储地址转换"><a href="#虚拟页式存储地址转换" class="headerlink" title="虚拟页式存储地址转换"></a>虚拟页式存储地址转换</h4><p>其实和之前 非虚拟页式存储地址转换 是一样的 只不过页表项里会有一个 P 位 表示这个页是否存在 若不存在 就会发起缺页异常中断</p>
 <p><img src="/images/logaddr2phyaddr0.png" alt="logaddr2phyaddr0"></p>
 <p><img src="/images/X86pagetable.png" alt="x86pagetable"></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">地址转换依然是 逻辑地址的 前 10 位 加上 cr3 寄存器里面的 页目录表基址 找到 PDE </span><br><span class="line">读出 PDE 找到 页表项基址 加上 逻辑地址的中间 10位 找到 PTE</span><br><span class="line">再将 从 PTE 读出的 物理页面帧号 + 逻辑地址的 低 12 位 找到 物理地址</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">地址转换依然是 逻辑地址的 前 10 位 加上 cr3 寄存器里面的 页目录表基址 找到 PDE </span><br><span class="line">读出 PDE 找到 页表项基址 加上 逻辑地址的中间 10位 找到 PTE</span><br><span class="line">再将 从 PTE 读出的 物理页面帧号 + 逻辑地址的 低 12 位 找到 物理地址</span><br></pre></td></tr></table></figure>
 
 <p>页表项 结构和之前说的一样<br><img src="/images/pagetableentries.png" alt="pagetable_entries"></p>
 <ul>
@@ -614,13 +603,13 @@
 <li>D Dirty 脏页位 当 CPU 对这个页进行写操作时 会置 1</li>
 <li>PAT Page Attribute Table 页属性表位 置 0</li>
 <li>A Accessed 访问位 若为 1 则 说明 CPU 访问过了 CPU 会定时清 0 记录被置 1 的频率 当内存不足时 会将 使用频率较低的页面换出到外存 同时将 P位 置 0 下次访问 该页时 会引起 Pagefault 异常 中断处理程序再将此页换上</li>
-<li>PCD Page-level Cache Disable 页级高速缓存位 置 0 即可 读的时候 高速缓存是否有效 若有效则直接从高速缓存中读出 若无效的话 则必须实实在在的从 I/O 端口去读数据</li>
+<li>PCD Page-level Cache Disable 页级高速缓存位 置 0 即可 读的时候 高速缓存是否有效 若有效则直接从高速缓存中读出 若无效的话 则必须实实在在的从 I&#x2F;O 端口去读数据</li>
 <li>PWT Page-level Write-Through 页级通写位 控制是先写到高速缓存里再慢慢回写到内存里 还是 直接慢慢写到内存里</li>
-<li>US User/Superviosr 普通用户/超级用户位</li>
-<li>RW Read/Write 读写位</li>
+<li>US User&#x2F;Superviosr 普通用户&#x2F;超级用户位</li>
+<li>RW Read&#x2F;Write 读写位</li>
 <li>P Present 存在位 (虚拟页式存储的关键位 若为 0 则发起缺页异常)</li>
 </ul>
-<h4 id="缺页异常的处理例程"><a href="#缺页异常的处理例程" class="headerlink" title="缺页异常的处理例程"></a>缺页异常的处理例程</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">CPU 执行 Load M</span><br><span class="line">这条指令会去找 M 对应的 页表项 若 这个页表项有效(P 位 为 1) 则直接访问</span><br><span class="line">若无效 就会产生缺页异常 导致操作系统的缺页异常的服务例程会执行</span><br><span class="line">缺页异常服务例程 会去找外存中的那个页面 若找到 就将其读入内存</span><br><span class="line">读入内存之前 还要先判断物理内存中是否有空闲页 若找到空闲页 就将这页读进来 并修改页表项 最后重新执行 一开始的那条指令</span><br><span class="line">若找不到空闲页 依据页面置换算法 找一页不常用的页 若这一页被修改过 则将其写到外存 </span><br><span class="line">若未修改过 则将其丢弃 且 修改 这一页的 P 位 为 0 使其失效</span><br><span class="line">将需要访问的页装入被替换掉的页 且 修改 页表项的 P 位 为 1</span><br></pre></td></tr></table></figure>
+<h4 id="缺页异常的处理例程"><a href="#缺页异常的处理例程" class="headerlink" title="缺页异常的处理例程"></a>缺页异常的处理例程</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">CPU 执行 Load M</span><br><span class="line">这条指令会去找 M 对应的 页表项 若 这个页表项有效(P 位 为 1) 则直接访问</span><br><span class="line">若无效 就会产生缺页异常 导致操作系统的缺页异常的服务例程会执行</span><br><span class="line">缺页异常服务例程 会去找外存中的那个页面 若找到 就将其读入内存</span><br><span class="line">读入内存之前 还要先判断物理内存中是否有空闲页 若找到空闲页 就将这页读进来 并修改页表项 最后重新执行 一开始的那条指令</span><br><span class="line">若找不到空闲页 依据页面置换算法 找一页不常用的页 若这一页被修改过 则将其写到外存 </span><br><span class="line">若未修改过 则将其丢弃 且 修改 这一页的 P 位 为 0 使其失效</span><br><span class="line">将需要访问的页装入被替换掉的页 且 修改 页表项的 P 位 为 1</span><br></pre></td></tr></table></figure>
 <p><img src="/images/pagefault.png" alt="pagefault"></p>
 <h4 id="虚拟页式存储中的外存管理"><a href="#虚拟页式存储中的外存管理" class="headerlink" title="虚拟页式存储中的外存管理"></a>虚拟页式存储中的外存管理</h4><p>在何处保存未被映射的页?</p>
 <ul>
@@ -637,7 +626,7 @@
 <li>其他段 可以放到交换空间里去</li>
 </ul>
 <h4 id="虚拟页式存储管理的性能"><a href="#虚拟页式存储管理的性能" class="headerlink" title="虚拟页式存储管理的性能"></a>虚拟页式存储管理的性能</h4><p>有效存储访问时间 (Effective memory access time EAT)</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">EAT &#x3D; 访存时间 * (1 - p) + 缺页异常处理时间 * 缺页率p * (1 + 页修改概率q) (若不开启虚拟页式存储 则 EAT &#x3D; 访存时间)</span><br><span class="line">加多一个 页修改概率q 是因为被替换的页被修改过的话 还要写到外存里保存起来</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">EAT = 访存时间 * (1 - p) + 缺页异常处理时间 * 缺页率p * (1 + 页修改概率q) (若不开启虚拟页式存储 则 EAT = 访存时间)</span><br><span class="line">加多一个 页修改概率q 是因为被替换的页被修改过的话 还要写到外存里保存起来</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -761,7 +750,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-count">53</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -957,7 +946,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">71</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">73</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -1014,7 +1007,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么需要虚拟存储"><span class="nav-text">为什么需要虚拟存储?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何解决内存空间不够用"><span class="nav-text">如何解决内存空间不够用?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#覆盖和交换技术"><span class="nav-text">覆盖和交换技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#覆盖技术目标"><span class="nav-text">覆盖技术目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#覆盖技术实现方法"><span class="nav-text">覆盖技术实现方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#覆盖技术的不足"><span class="nav-text">覆盖技术的不足</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交换技术目标"><span class="nav-text">交换技术目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交换技术实现方法"><span class="nav-text">交换技术实现方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交换技术有什么问题"><span class="nav-text">交换技术有什么问题?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#覆盖与交换的比较"><span class="nav-text">覆盖与交换的比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#局部性原理-Principle-of-locality"><span class="nav-text">局部性原理 (Principle of locality)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#不同程序编写方法的局部性特征"><span class="nav-text">不同程序编写方法的局部性特征</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟存储"><span class="nav-text">虚拟存储</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟存储的目标"><span class="nav-text">虚拟存储的目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟存储思路"><span class="nav-text">虚拟存储思路</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟存储实现方式"><span class="nav-text">虚拟存储实现方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟存储基本特征"><span class="nav-text">虚拟存储基本特征</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟存储的支持技术"><span class="nav-text">虚拟存储的支持技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟页式存储"><span class="nav-text">虚拟页式存储</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟页式存储地址转换"><span class="nav-text">虚拟页式存储地址转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缺页异常的处理例程"><span class="nav-text">缺页异常的处理例程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟页式存储中的外存管理"><span class="nav-text">虚拟页式存储中的外存管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟页式存储管理的性能"><span class="nav-text">虚拟页式存储管理的性能</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8"><span class="nav-text">为什么需要虚拟存储?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E4%B8%8D%E5%A4%9F%E7%94%A8"><span class="nav-text">如何解决内存空间不够用?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E5%92%8C%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF"><span class="nav-text">覆盖和交换技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E6%8A%80%E6%9C%AF%E7%9B%AE%E6%A0%87"><span class="nav-text">覆盖技术目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E6%8A%80%E6%9C%AF%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95"><span class="nav-text">覆盖技术实现方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E6%8A%80%E6%9C%AF%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="nav-text">覆盖技术的不足</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF%E7%9B%AE%E6%A0%87"><span class="nav-text">交换技术目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95"><span class="nav-text">交换技术实现方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="nav-text">交换技术有什么问题?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E4%B8%8E%E4%BA%A4%E6%8D%A2%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-text">覆盖与交换的比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E6%80%A7%E5%8E%9F%E7%90%86-Principle-of-locality"><span class="nav-text">局部性原理 (Principle of locality)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E7%A8%8B%E5%BA%8F%E7%BC%96%E5%86%99%E6%96%B9%E6%B3%95%E7%9A%84%E5%B1%80%E9%83%A8%E6%80%A7%E7%89%B9%E5%BE%81"><span class="nav-text">不同程序编写方法的局部性特征</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8"><span class="nav-text">虚拟存储</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%9A%84%E7%9B%AE%E6%A0%87"><span class="nav-text">虚拟存储的目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E6%80%9D%E8%B7%AF"><span class="nav-text">虚拟存储思路</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-text">虚拟存储实现方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E5%9F%BA%E6%9C%AC%E7%89%B9%E5%BE%81"><span class="nav-text">虚拟存储基本特征</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%9A%84%E6%94%AF%E6%8C%81%E6%8A%80%E6%9C%AF"><span class="nav-text">虚拟存储的支持技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8"><span class="nav-text">虚拟页式存储</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="nav-text">虚拟页式存储地址转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86%E4%BE%8B%E7%A8%8B"><span class="nav-text">缺页异常的处理例程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8%E4%B8%AD%E7%9A%84%E5%A4%96%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-text">虚拟页式存储中的外存管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E7%9A%84%E6%80%A7%E8%83%BD"><span class="nav-text">虚拟页式存储管理的性能</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -1034,7 +1027,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
   <span class="with-love" id="animate">
     <i class="fa fa-heart"></i>
   </span>
