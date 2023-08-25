@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/avatar.jpeg?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/avatar.jpeg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Searching...","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"找到约 ${hits} 个结果 用时 ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言定时器的实现通常使用有序数据结构来实现，一般通过红黑树、跳表、最小堆、时间轮来实现。 其中又以最小堆最容易实现，红黑树最难实现。 Skynet 选择时间轮的原因估计是多线程，时间轮的插入平均复杂度比其他几个都要低，非常适用于多线程场景。 本篇就简单剖析一下 Skynet 实现的 TimingWheel。以下代码为方便阅读有删减。 时间轮首先实现上是采用数组 + 链表的形式进行实现。 先定义了一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Skynet 时间轮剖析">
+<meta property="og:url" content="https://yuerer.com/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Yuerer&#39;s Blog">
+<meta property="og:description" content="前言定时器的实现通常使用有序数据结构来实现，一般通过红黑树、跳表、最小堆、时间轮来实现。 其中又以最小堆最容易实现，红黑树最难实现。 Skynet 选择时间轮的原因估计是多线程，时间轮的插入平均复杂度比其他几个都要低，非常适用于多线程场景。 本篇就简单剖析一下 Skynet 实现的 TimingWheel。以下代码为方便阅读有删减。 时间轮首先实现上是采用数组 + 链表的形式进行实现。 先定义了一">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-08-26T00:20:20.000Z">
+<meta property="article:modified_time" content="2023-08-25T14:52:12.601Z">
+<meta property="article:author" content="Yuerer">
+<meta property="article:tag" content="Lua">
+<meta property="article:tag" content="Skynet">
+<meta property="article:tag" content="TimingWheel">
+<meta property="article:tag" content="Timer">
+<meta name="twitter:card" content="summary">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="https://yuerer.com/Skynet时间轮剖析/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Skynet 时间轮剖析 | Yuerer's Blog</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-129491388-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-129491388-1');
+</script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yuerer's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">钰儿的Blog</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Skynet 时间轮剖析
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2023-08-26 08:20:20" itemprop="dateCreated datePublished" datetime="2023-08-26T08:20:20+08:00">2023-08-26</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2023-08-25 22:52:12" itemprop="dateModified" datetime="2023-08-25T22:52:12+08:00">2023-08-25</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Skynet/" itemprop="url" rel="index"><span itemprop="name">Skynet</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/" class="leancloud_visitors" data-flag-title="Skynet 时间轮剖析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>定时器的实现通常使用有序数据结构来实现，一般通过红黑树、跳表、最小堆、时间轮来实现。</p>
+<p>其中又以最小堆最容易实现，红黑树最难实现。</p>
+<p>Skynet 选择时间轮的原因估计是多线程，时间轮的插入平均复杂度比其他几个都要低，非常适用于多线程场景。</p>
+<p>本篇就简单剖析一下 Skynet 实现的 TimingWheel。以下代码为方便阅读有删减。</p>
+<h2 id="时间轮"><a href="#时间轮" class="headerlink" title="时间轮"></a>时间轮</h2><p>首先实现上是采用数组 + 链表的形式进行实现。</p>
+<p>先定义了一个链表，存放了过期时间，从 <code>*tail</code> 可以看出，此结构为尾插法，毕竟后插入的定时器后执行，很合理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> *<span class="title">next</span>;</span></span><br><span class="line">	<span class="type">uint32_t</span> expire;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">link_list</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> <span class="title">head</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> *<span class="title">tail</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<p>时间轮数据结构中含有一把自旋锁，时间轮在框架中会被多线程访问，又由于插入的时候冲突的粒度比较小，所以用自旋锁而不是互斥锁。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> TIME_NEAR_SHIFT 12</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TIME_NEAR (1 &lt;&lt; TIME_NEAR_SHIFT)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TIME_LEVEL_SHIFT 5</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TIME_LEVEL (1 &lt;&lt; TIME_LEVEL_SHIFT)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TIME_NEAR_MASK (TIME_NEAR-1)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TIME_LEVEL_MASK (TIME_LEVEL-1)</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timer</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">link_list</span> <span class="title">near</span>[<span class="title">TIME_NEAR</span>];</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">link_list</span> <span class="title">t</span>[4][<span class="title">TIME_LEVEL</span>];</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">spinlock</span> <span class="title">lock</span>;</span></span><br><span class="line">	<span class="type">uint32_t</span> time;</span><br><span class="line">	<span class="type">uint64_t</span> current;</span><br><span class="line">	<span class="type">uint64_t</span> current_point;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>从中可以看出，Skynet 的时间轮有5个层级，其中会执行的那层 为 <code>near</code> 数组，其他的4层均不会被执行到。</p>
+<p>之所以要分为5层，是为了节约内存，不然你完全可以定义一个巨大的数组，每个槽位表示每秒要执行的任务。</p>
+<p>其中第一层大小为 <code>1 &lt;&lt; 12</code> 即 <code>4096</code>，2-5层为 <code>1&lt;&lt;5</code> 即 <code>32</code> 。</p>
+<p>可以看出定时器最大值为 12 + (4 * 5) &#x3D; 32 位。</p>
+<p>每当遍历完整个 <code>near</code> 数组后，则从下面几层中取出一个槽位，将其填充到 <code>near</code> 数组继续模拟计时。</p>
+<p>大致了解数据结构之后，再来看初始化逻辑。</p>
+<h3 id="定时器初始化"><a href="#定时器初始化" class="headerlink" title="定时器初始化"></a>定时器初始化</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span></span><br><span class="line"><span class="title function_">skynet_timer_init</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">	TI = timer_create_timer();</span><br><span class="line">	<span class="type">uint32_t</span> current = <span class="number">0</span>;</span><br><span class="line">	TI-&gt;current = current;</span><br><span class="line">	TI-&gt;current_point = gettime();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>均为简单的初始化链表。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">struct</span> timer *</span><br><span class="line"><span class="title function_">timer_create_timer</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer</span> *<span class="title">r</span>=</span>(<span class="keyword">struct</span> timer *)skynet_malloc(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> timer));</span><br><span class="line">	<span class="built_in">memset</span>(r,<span class="number">0</span>,<span class="keyword">sizeof</span>(*r));</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> i,j;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (i=<span class="number">0</span>;i&lt;TIME_NEAR;i++) &#123;</span><br><span class="line">		link_clear(&amp;r-&gt;near[i]);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (i=<span class="number">0</span>;i&lt;<span class="number">4</span>;i++) &#123;</span><br><span class="line">		<span class="keyword">for</span> (j=<span class="number">0</span>;j&lt;TIME_LEVEL;j++) &#123;</span><br><span class="line">			link_clear(&amp;r-&gt;t[i][j]);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	SPIN_INIT(r)</span><br><span class="line"></span><br><span class="line">	r-&gt;current = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> r;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>gettime</code> 使用了 <code>clock_gettime</code> 而且还是单调时间，避免系统时间被修改。 <code>clock_gettime</code> 的时间精度为纳秒，此函数进行换算后，最后精度为毫秒，而且还是10毫秒，此时我们可以猜测时间轮的精度为10ms。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">uint64_t</span></span><br><span class="line"><span class="title function_">gettime</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="type">uint64_t</span> t;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">ti</span>;</span></span><br><span class="line">	clock_gettime(CLOCK_MONOTONIC, &amp;ti);</span><br><span class="line">	t = (<span class="type">uint64_t</span>)ti.tv_sec * <span class="number">1000</span>;</span><br><span class="line">	t += ti.tv_nsec / <span class="number">1000000</span>;</span><br><span class="line">	<span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="定时器更新"><a href="#定时器更新" class="headerlink" title="定时器更新"></a>定时器更新</h3><p>定时器更新由定时器线程去执行，每隔 100 微秒(也就是 0.1毫秒) 触发一次定时器更新，之所以外面调用是 0.1 毫秒，而时间轮精度为10 毫秒，是为了留足时间给定时器回调函数执行，否则某些函数执行时间过长，可能会导致定时器越来越晚触发。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> *</span><br><span class="line"><span class="title function_">thread_timer</span><span class="params">(<span class="type">void</span> *p)</span> &#123;</span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">		skynet_updatetime();</span><br><span class="line">		usleep(<span class="number">100</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>skynet_updatetime</code> 还考虑到时间倒流的问题，虽然我认为是不会触发，因为 <code>clock_gettime</code> 取的是 <code>CLOCK_MONOTONIC</code> 的时间，即系统启动后至今的时间，不会倒流。</p>
+<p>之所以此处 要判断  <code>(cp != TI-&gt;current_point)</code> 是因为 <code>update</code> 的间隔为 0.1 毫秒，而时间轮精度为10 毫秒，可能 <code>update</code> 执行的时候 还没到定时的最小精度，最终触发 <code>timer_update</code> 。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span></span><br><span class="line"><span class="title function_">skynet_updatetime</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">	<span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">	<span class="type">uint64_t</span> cp = gettime();</span><br><span class="line">	<span class="keyword">if</span>(cp &lt; TI-&gt;current_point) &#123;</span><br><span class="line">		skynet_error(<span class="literal">NULL</span>, <span class="string">&quot;ERROR: time diff error: change from %lld to %lld&quot;</span>, cp, TI-&gt;current_point);</span><br><span class="line">		TI-&gt;current_point = cp;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> (cp != TI-&gt;current_point) &#123;</span><br><span class="line">		<span class="type">uint32_t</span> diff = (<span class="type">uint32_t</span>)(cp - TI-&gt;current_point);</span><br><span class="line">		TI-&gt;current_point = cp;</span><br><span class="line">		TI-&gt;current += diff;</span><br><span class="line">		<span class="type">int</span> i;</span><br><span class="line">		<span class="keyword">for</span> (i=<span class="number">0</span>;i&lt;diff;i++) &#123;</span><br><span class="line">			count += timer_update(TI);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="时间轮执行"><a href="#时间轮执行" class="headerlink" title="时间轮执行"></a>时间轮执行</h3><p>先加自旋锁，然后进行执行 timeout 为 0 的回调，否则后面进行 转移 2-4 层的时间轮，将 <code>near</code> 层时间轮覆盖后，就再也执行不到了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">int</span></span><br><span class="line"><span class="title function_">timer_update</span><span class="params">(<span class="keyword">struct</span> timer *T)</span> &#123;</span><br><span class="line">	<span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	SPIN_LOCK(T);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// try to dispatch timeout 0 (rare condition)</span></span><br><span class="line">	count += timer_execute(T);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// shift time first, and then dispatch timer message</span></span><br><span class="line">	timer_shift(T);</span><br><span class="line"></span><br><span class="line">	count += timer_execute(T);</span><br><span class="line"></span><br><span class="line">	SPIN_UNLOCK(T);</span><br><span class="line">	<span class="keyword">return</span> count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行逻辑很简单，用当前 time(为tick) % 4096 找到需要执行的槽位的链表，在代码中为了提升性能用了位运算 &amp; 实现。这里还能注意到小细节，执行回调函数链表时不需要加锁。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span></span><br><span class="line"><span class="title function_">timer_execute</span><span class="params">(<span class="keyword">struct</span> timer *T)</span> &#123;</span><br><span class="line">	<span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> idx = T-&gt;time &amp; TIME_NEAR_MASK;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> (T-&gt;near[idx].head.next) &#123;</span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> *<span class="title">current</span> =</span> link_clear(&amp;T-&gt;near[idx]);</span><br><span class="line">		SPIN_UNLOCK(T);</span><br><span class="line">		<span class="comment">// dispatch_list don&#x27;t need lock T</span></span><br><span class="line">		count += dispatch_list(current);</span><br><span class="line">		SPIN_LOCK(T);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="时间轮-Shift-操作"><a href="#时间轮-Shift-操作" class="headerlink" title="时间轮 Shift 操作"></a>时间轮 Shift 操作</h3><p>该函数由于用了大量位运算，所以看起来会比较难看，可以先从 while 的条件开始看，先是用当前 tick 也就是 ct % 4096，如果为 0，则说明 <code>near</code> 层的槽位已经全部走完 此时走完了 4096 * 10 毫秒，大约是40.96秒。接下来就是要找到正确的层次，然后从层次中找到正确的槽位，将其填充到 <code>near</code> 数组，即 ct &#x2F; 4096 % 32，若为 0，则说明不在当前层次，还能再 除以一个 32。总之将位运算代码 &amp; 翻译为 取余，&gt;&gt; 翻译为 除法，此函数的逻辑便不言自明。</p>
+<p>同时 T→time 会一直递增，最后溢出回到0，uint32 的最大值为 <strong><code>4294967295</code></strong> 溢出为 0，则说明正确的值为 <strong><code>4294967296</code></strong> 那么 用该值 &#x2F; 4096 &#x2F; 32 &#x2F; 32 &#x2F; 32 &#x2F; 32 发现 为 1，这就说明我们此时需要将 第四层的第0个槽位挪到 <code>near</code> 数组。 非常简单。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span></span><br><span class="line"><span class="title function_">timer_shift</span><span class="params">(<span class="keyword">struct</span> timer *T)</span> &#123;</span><br><span class="line">	<span class="type">int</span> mask = TIME_NEAR;</span><br><span class="line">	<span class="type">uint32_t</span> ct = ++T-&gt;time;</span><br><span class="line">	<span class="keyword">if</span> (ct == <span class="number">0</span>) &#123;</span><br><span class="line">		move_list(T, <span class="number">3</span>, <span class="number">0</span>);</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="type">uint32_t</span> time = ct &gt;&gt; TIME_NEAR_SHIFT;</span><br><span class="line">		<span class="type">int</span> i=<span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">while</span> ((ct &amp; (mask<span class="number">-1</span>))==<span class="number">0</span>) &#123;</span><br><span class="line">			<span class="type">int</span> idx=time &amp; TIME_LEVEL_MASK;</span><br><span class="line">			<span class="keyword">if</span> (idx!=<span class="number">0</span>) &#123;</span><br><span class="line">				move_list(T, i, idx);</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			mask &lt;&lt;= TIME_LEVEL_SHIFT;</span><br><span class="line">			time &gt;&gt;= TIME_LEVEL_SHIFT;</span><br><span class="line">			++i;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="时间轮添加"><a href="#时间轮添加" class="headerlink" title="时间轮添加"></a>时间轮添加</h3><p><code>timer_add</code> 告诉了我们定时器传进来的参数 <code>time</code> 并不是要计时的值，而是多少个 <code>tick</code> ，比如 <code>time</code> 传入 10 时，则以为这 10个 <code>tick</code> 也就是 10 * 10 毫秒后到时。 <code>expire</code> 表示的就是多少个 <code>tick</code> 后到时。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span></span><br><span class="line"><span class="title function_">timer_add</span><span class="params">(<span class="keyword">struct</span> timer *T,<span class="type">void</span> *arg,<span class="type">size_t</span> sz,<span class="type">int</span> time)</span> &#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> *<span class="title">node</span> =</span> (<span class="keyword">struct</span> timer_node *)skynet_malloc(<span class="keyword">sizeof</span>(*node)+sz);</span><br><span class="line">	<span class="built_in">memcpy</span>(node+<span class="number">1</span>,arg,sz);</span><br><span class="line"></span><br><span class="line">	SPIN_LOCK(T);</span><br><span class="line"></span><br><span class="line">		node-&gt;expire=time+T-&gt;time;</span><br><span class="line">		add_node(T,node);</span><br><span class="line"></span><br><span class="line">	SPIN_UNLOCK(T);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>又是一大坨位运算，就是判断 <code>expire</code> 应该插入到哪一层，如果将其改写，则需要大量的 if 判断。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span></span><br><span class="line"><span class="title function_">add_node</span><span class="params">(<span class="keyword">struct</span> timer *T,<span class="keyword">struct</span> timer_node *node)</span> &#123;</span><br><span class="line">	<span class="type">uint32_t</span> time=node-&gt;expire;</span><br><span class="line">	<span class="type">uint32_t</span> current_time=T-&gt;time;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ((time|TIME_NEAR_MASK)==(current_time|TIME_NEAR_MASK)) &#123;</span><br><span class="line">		link(&amp;T-&gt;near[time&amp;TIME_NEAR_MASK],node);</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="type">int</span> i;</span><br><span class="line">		<span class="type">uint32_t</span> mask=TIME_NEAR &lt;&lt; TIME_LEVEL_SHIFT;</span><br><span class="line">		<span class="keyword">for</span> (i=<span class="number">0</span>;i&lt;<span class="number">3</span>;i++) &#123;</span><br><span class="line">			<span class="keyword">if</span> ((time|(mask<span class="number">-1</span>))==(current_time|(mask<span class="number">-1</span>))) &#123;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			mask &lt;&lt;= TIME_LEVEL_SHIFT;</span><br><span class="line">		&#125;</span><br><span class="line">		link(&amp;T-&gt;t[i][((time&gt;&gt;(TIME_NEAR_SHIFT + i*TIME_LEVEL_SHIFT)) &amp; TIME_LEVEL_MASK)],node);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Lua/" rel="tag"># Lua</a>
+          
+            <a href="/tags/Skynet/" rel="tag"># Skynet</a>
+          
+            <a href="/tags/TimingWheel/" rel="tag"># TimingWheel</a>
+          
+            <a href="/tags/Timer/" rel="tag"># Timer</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/Lua%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7/" rel="next" title="Lua 内存监控工具">
+                <i class="fa fa-chevron-left"></i> Lua 内存监控工具
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="Yuerer" />
+            
+              <p class="site-author-name" itemprop="name">Yuerer</p>
+              <p class="site-description motion-element" itemprop="description">钰儿的Blog</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/%20%7C%7C%20archive">
+                
+                    <span class="site-state-item-count">55</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">15</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Yu2erer" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:yu2erer@gmail.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE"><span class="nav-text">时间轮</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">定时器初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E6%9B%B4%E6%96%B0"><span class="nav-text">定时器更新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE%E6%89%A7%E8%A1%8C"><span class="nav-text">时间轮执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE-Shift-%E6%93%8D%E4%BD%9C"><span class="nav-text">时间轮 Shift 操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE%E6%B7%BB%E5%8A%A0"><span class="nav-text">时间轮添加</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuerer</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//code.bdstatic.com/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '4c1E52qAqL8mu0dHBxYy5MxV-MdYXbMMI',
+        appKey: 'FUYa35QiKu2nxrabaP2R8Cpp',
+        placeholder: '说些什么?',
+        avatar:'retro',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: true,
+        serverURLs: 'https://4c1e52qa.api.lncldglobal.com'
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

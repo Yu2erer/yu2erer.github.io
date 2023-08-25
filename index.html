@@ -319,6 +319,392 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/" itemprop="url">
+                  Skynet 时间轮剖析
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2023-08-26 08:20:20" itemprop="dateCreated datePublished" datetime="2023-08-26T08:20:20+08:00">2023-08-26</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2023-08-25 22:52:12" itemprop="dateModified" datetime="2023-08-25T22:52:12+08:00">2023-08-25</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Skynet/" itemprop="url" rel="index"><span itemprop="name">Skynet</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/" class="leancloud_visitors" data-flag-title="Skynet 时间轮剖析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>定时器的实现通常使用有序数据结构来实现，一般通过红黑树、跳表、最小堆、时间轮来实现。</p>
+<p>其中又以最小堆最容易实现，红黑树最难实现。</p>
+<p>Skynet 选择时间轮的原因估计是多线程，时间轮的插入平均复杂度比其他几个都要低，非常适用于多线程场景。</p>
+<p>本篇就简单剖析一下 Skynet 实现的 TimingWheel。以下代码为方便阅读有删减。</p>
+<h2 id="时间轮"><a href="#时间轮" class="headerlink" title="时间轮"></a>时间轮</h2><p>首先实现上是采用数组 + 链表的形式进行实现。</p>
+<p>先定义了一个链表，存放了过期时间，从 <code>*tail</code> 可以看出，此结构为尾插法，毕竟后插入的定时器后执行，很合理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> *<span class="title">next</span>;</span></span><br><span class="line">	<span class="type">uint32_t</span> expire;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">link_list</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> <span class="title">head</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">timer_node</span> *<span class="title">tail</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7/" itemprop="url">
+                  Lua 内存监控工具
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2023-08-25 22:42:20 / 修改时间：22:48:11" itemprop="dateCreated datePublished" datetime="2023-08-25T22:42:20+08:00">2023-08-25</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7/" class="leancloud_visitors" data-flag-title="Lua 内存监控工具">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Lua 项目中，通常需要工具进行内存监控，目前开源的工具中有 <a target="_blank" rel="noopener" href="https://github.com/cloudwu/lua-snapshot">lua-snapshot</a>，但这个工具的缺陷是开销比较大，在调用接口之后，会扫描整个GC链表，找出所有的GC对象，并进行统计，最后会创建大量的 Lua 对象，将结果存在里面，这就会导致本身内存已经够高了，再用这个工具的话，很可能会触发 OOM 或者是 STW，业务无法正常提供服务。</p>
+<p>作为补充，期望有个工具能够监控所有的对象开辟的位置和大小信息，进行精确定位代码问题。</p>
+<p>最终实现的效果如下图所示：</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%89)-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1912,412 +2298,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="url">
-                  ptmalloc2 内存管理
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2021-02-28 10:45:20 / 修改时间：10:50:13" itemprop="dateCreated datePublished" datetime="2021-02-28T10:45:20+08:00">2021-02-28</time>
-            
-
-            
-              
-
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/" itemprop="url" rel="index"><span itemprop="name">内存分配</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" class="leancloud_visitors" data-flag-title="ptmalloc2 内存管理">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>近期在压测服务器的过程中发现内存随着用户数增加而暴涨，用户数减少内存却没有释放回内核，一开始怀疑是内存泄漏，后面上了工具排查，最终定位到是 <code>glibc</code> 的内存管理并没有将内存释放给OS，为了解决这个问题，对 <code>ptmalloc2</code> 进行了剖析。</p>
-<p>本篇中，不谈论  <code>brk</code> 和 <code>mmap</code> 系统调用的使用方法，默认环境为 <code>Linux-x86-64</code>，讨论的 <code>ptmalloc2</code> 的版本为 <code>glibc 2.17</code> 的版本。</p>
-<h2 id="chunk"><a href="#chunk" class="headerlink" title="chunk"></a>chunk</h2><p><code>ptmalloc2</code> 分配给用户的内存都以 chunk 来表示，可以理解为 chunk 为分配释放内存的载体。</p>
-<p><img src="/images/chunk.png" alt="chunk"></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> INTERNAL_SIZE_T</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INTERNAL_SIZE_T size_t</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The corresponding word size */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SIZE_SZ                (sizeof(INTERNAL_SIZE_T))</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span> &#123;</span></span><br><span class="line">  INTERNAL_SIZE_T      prev_size;  <span class="comment">/* Size of previous chunk (if free).  */</span></span><br><span class="line">  INTERNAL_SIZE_T      size;       <span class="comment">/* Size in bytes, including overhead. */</span></span><br><span class="line"><span class="comment">// -----------------------------------------------------------------------</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd</span>;</span>         <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Only used for large blocks: pointer to next larger size.  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd_nextsize</span>;</span> <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk_nextsize</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>chunk 由以上几部分组成， <code>INTERNAL_SIZE_T</code> 为 <code>size_t</code> 为了屏蔽平台之间的差异，这里只谈论64位平台，为8字节。</p>
-<ol>
-<li><code>prev_size</code> 代表着上一个 chunk 的大小，是否有效取决于 <code>size</code> 的属性位 <code>P</code>。</li>
-<li><code>size</code> 代表当前 chunk 的大小和属性，其中低3位为属性位 <code>[A|M|P]</code>。</li>
-<li>当这个 chunk 为空闲时，则会使用 <code>fd, bk</code> 将其加入链表中管理。</li>
-<li>同上， <code>fd_nextsize bk_nextsize</code> 只用在 <code>large bin</code> 中，表示 上&#x2F;下一个大小的指针，加快链表遍历。</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" itemprop="url">
-                  Lua GC垃圾回收优化方案
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-12-19 10:09:20" itemprop="dateCreated datePublished" datetime="2020-12-19T10:09:20+08:00">2020-12-19</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2022-02-27 12:19:49" itemprop="dateModified" datetime="2022-02-27T12:19:49+08:00">2022-02-27</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" class="leancloud_visitors" data-flag-title="Lua GC垃圾回收优化方案">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>最近接手的一个游戏项目是重 <code>Lua</code> 的结构（网络模块在 C++，其余逻辑全在 Lua）。和许多用 Lua 的游戏项目一样，遇到了 Lua 的垃圾回收的性能问题，经常跑着跑着就会掉帧，因此花了一周的时间，给 Lua 虚拟机写了个模块，把 Lua 垃圾回收的速度提高了一个量级。</p>
-<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><p>这个思路其实在之前的一篇博客中也有提到，想要 垃圾回收快，无非就那么几种思路。</p>
-<ol>
-<li>使用内存池</li>
-<li>减少对象生成</li>
-<li>垃圾回收提速</li>
-</ol>
-<h3 id="使用内存池"><a href="#使用内存池" class="headerlink" title="使用内存池"></a>使用内存池</h3><p>第一种思路，我觉得不合理，因为现代的内存分配器早就有内存池的设计了，手写一个内存池的收益并不大。</p>
-<h3 id="减少对象生成"><a href="#减少对象生成" class="headerlink" title="减少对象生成"></a>减少对象生成</h3><p>第二种思路，是比较合理的。因为我在项目的代码中发现很多处地方有动态生成 <code>Closure</code> 的情况。</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span><span class="params">()</span></span></span><br><span class="line">  <span class="keyword">local</span> fn = <span class="function"><span class="keyword">function</span><span class="params">()</span></span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;test&quot;</span>)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  fn()</span><br><span class="line">  fn()</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
-
-<p>上面那个例子，每次调用到 <code>test</code> 函数的时候，都会动态根据 <code>fn</code> 的 函数原型，生成一个 <code>Closure</code> </p>
-<p>可能有人会问，Proto 不是有一个 cache 指向 <code>Closure</code> 吗？按道理这里 没有 <code>UpValue</code>（即代表UpValue 完全相同），应该会复用啊，但是很可惜，执行完这个函数以后，因为没有对象指向 <code>Closure</code> 用完再不久的将来又会被回收。</p>
-<p>因此，少写这种代码就可以减少对象的生成。</p>
-<h2 id="垃圾回收提速"><a href="#垃圾回收提速" class="headerlink" title="垃圾回收提速"></a>垃圾回收提速</h2><p>第三种思路，我的想法是，让垃圾回收所要遍历的对象大幅减少，就可以为垃圾回收提速了，由于我们是重 Lua 的框架，因此我们的所有配置都存在于 Lua 的 table中，而这一部分肯定是不需要被回收的，但是每次垃圾回收的时候，又会不停的扫描递归遍历，不合理。同时代码中的很多全局函数，也是根本不需要被回收的，也会被扫描到，于是就想到一个想法，给这些对象打上标记，让他们不被遍历不被清理，就可以大幅度的提速了。</p>
-<p>原理简单，但是做起来确实挺难受的，要注意要手动关闭 <code>UpValue</code> 将其保留下来。</p>
-<p>目前已经开源，<a target="_blank" rel="noopener" href="https://github.com/Yu2erer/LuaJIT-5.3.6">LuaJIT-5.3.6</a>源码。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2369,7 +2349,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">53</span>
+                    <span class="site-state-item-count">55</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2410,7 +2390,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">14</span>
+                      
+                    
+                    <span class="site-state-item-count">15</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2569,7 +2551,15 @@
                     
                       
                     
-                    <span class="site-state-item-count">73</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
