@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/avatar.jpeg?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/avatar.jpeg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Searching...","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"找到约 ${hits} 个结果 用时 ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言Lua 开发者通常听说或使用过 LuaJIT，但是可能因为种种原因未能理解其工作原理，在这里分享一篇 Jakob Erlandsson 和 Simon Kärrman 的硕士毕业论文，TigerShrimp: An Understandable Tracing JIT Compiler，该论文讲述了如何为 JVM 开发一个 Tracing JIT，并附带了源码以及可视化工具。下文将简要剖析一些">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一个好理解的Tracing JIT Compiler">
+<meta property="og:url" content="https://yuerer.com/%E4%B8%80%E4%B8%AA%E5%A5%BD%E7%90%86%E8%A7%A3%E7%9A%84Tracing-JIT-Compiler/index.html">
+<meta property="og:site_name" content="Yuerer&#39;s Blog">
+<meta property="og:description" content="前言Lua 开发者通常听说或使用过 LuaJIT，但是可能因为种种原因未能理解其工作原理，在这里分享一篇 Jakob Erlandsson 和 Simon Kärrman 的硕士毕业论文，TigerShrimp: An Understandable Tracing JIT Compiler，该论文讲述了如何为 JVM 开发一个 Tracing JIT，并附带了源码以及可视化工具。下文将简要剖析一些">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yuerer.com/images/TigerShrimp.png">
+<meta property="og:image" content="https://yuerer.com/images/TigerShrimp_Stitching.png">
+<meta property="article:published_time" content="2023-10-12T12:00:20.000Z">
+<meta property="article:modified_time" content="2023-10-14T13:11:59.879Z">
+<meta property="article:author" content="Yuerer">
+<meta property="article:tag" content="编译器">
+<meta property="article:tag" content="tracing jit">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yuerer.com/images/TigerShrimp.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="https://yuerer.com/一个好理解的Tracing-JIT-Compiler/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>一个好理解的Tracing JIT Compiler | Yuerer's Blog</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-129491388-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-129491388-1');
+</script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yuerer's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">钰儿的Blog</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E4%B8%80%E4%B8%AA%E5%A5%BD%E7%90%86%E8%A7%A3%E7%9A%84Tracing-JIT-Compiler/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">一个好理解的Tracing JIT Compiler
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2023-10-12 20:00:20" itemprop="dateCreated datePublished" datetime="2023-10-12T20:00:20+08:00">2023-10-12</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2023-10-14 21:11:59" itemprop="dateModified" datetime="2023-10-14T21:11:59+08:00">2023-10-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E7%BC%96%E8%AF%91%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">编译器</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/%E4%B8%80%E4%B8%AA%E5%A5%BD%E7%90%86%E8%A7%A3%E7%9A%84Tracing-JIT-Compiler/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E4%B8%80%E4%B8%AA%E5%A5%BD%E7%90%86%E8%A7%A3%E7%9A%84Tracing-JIT-Compiler/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/%E4%B8%80%E4%B8%AA%E5%A5%BD%E7%90%86%E8%A7%A3%E7%9A%84Tracing-JIT-Compiler/" class="leancloud_visitors" data-flag-title="一个好理解的Tracing JIT Compiler">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Lua 开发者通常听说或使用过 LuaJIT，但是可能因为种种原因未能理解其工作原理，在这里分享一篇 Jakob Erlandsson 和 Simon Kärrman 的硕士毕业论文，<strong>TigerShrimp: An Understandable Tracing JIT Compiler</strong>，该论文讲述了如何为 JVM 开发一个 Tracing JIT，并附带了<a href="(https://github.com/TigerShrimp/TracingJITCompiler)">源码</a>以及可视化工具。下文将简要剖析一些其实现原理。</p>
+<h2 id="编译流程"><a href="#编译流程" class="headerlink" title="编译流程"></a>编译流程</h2><p>TigerShrimp 基于 JVM Bytecode，使用 <code>Javac</code> 将 Java 代码文件编译为 <code>.class</code> 文件，后直接进行 decode <code>.class</code> 文件，通过这种方式绕过 <code>Parser</code> 阶段，得到 <code>bytecode</code>。</p>
+<h2 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h2><p>TigerShrimp 内部有个简单的 <code>Interpreter</code>，用以直接执行 <code>bytecode</code>，执行每一条 <code>Instruction</code>时，会记录当前的 <code>pc</code> (二元组，记录函数索引和指令索引，不然指令索引可能重复)，是否为热路径，若为热路径，则会执行 <code>record</code> 流程，记录每一条执行的指令。(通常记录循环，循环有回边，记录执行次数，执行次数大于一阈值，则认为是热路径)。</p>
+<p>若已经有 <code>native code</code>，即已经是热路径并完成了生成机器码的工作，则直接执行 <code>native code</code>。</p>
+<span id="more"></span>
+
+<p><img src="/images/TigerShrimp.png"></p>
+<h2 id="记录流程"><a href="#记录流程" class="headerlink" title="记录流程"></a>记录流程</h2><p>常规操作，记录每一条 <code>Instruction</code>，只有在分支语句时需要特殊处理。因为这里是 <code>record</code> 的过程中，是顺序执行的，所以一定不会有分支，相当于这些 <code>Instruction</code> 组成了一个 <code>BasicBlock</code>，但是原始的指令是有分支的，需要将分支进行翻转处理。具体例子如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>: <span class="keyword">if</span> (a &lt; b):</span><br><span class="line"><span class="number">2</span>:	x()</span><br><span class="line"><span class="number">3</span>: <span class="keyword">else</span>:</span><br><span class="line"><span class="number">4</span>:	y()</span><br></pre></td></tr></table></figure>
+
+<p>若 <code>a &gt; b</code> 则会执行到 <code>y()</code> 即 <code>pc = 4</code> 的位置，若原样记录 <code>a &lt; b</code> 这条指令，逻辑就错了，因此需要翻转指令为 <code>a &gt;= b</code> 。</p>
+<p>指令记录到 <code>return</code> 时或回到循环开始的位置，则该条热路径记录完成。</p>
+<h2 id="记录编译"><a href="#记录编译" class="headerlink" title="记录编译"></a>记录编译</h2><p>热路径记录完成后，需要进行编译为机器代码，TigerShrimp 选择了 <code>asmjit</code> 库来帮助生成机器代码。具体的字节码翻译过程此处略过，只分析函数进入的准备工作，以及分支判断失败时的处理(如何正确的回退到解释器)。</p>
+<h3 id="Prologue"><a href="#Prologue" class="headerlink" title="Prologue"></a>Prologue</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">initCode.<span class="built_in">push_back</span>(</span><br><span class="line">      &#123;x86::ENTER, &#123;IMMEDIATE, .val = <span class="built_in">Value</span>(<span class="number">0</span>)&#125;, &#123;IMMEDIATE, .val = <span class="built_in">Value</span>(<span class="number">0</span>)&#125;&#125;);</span><br><span class="line"></span><br><span class="line">Op rdi = &#123;REGISTER, .reg = RDI&#125;;</span><br><span class="line">Op rsi = &#123;REGISTER, .reg = RSI&#125;;</span><br><span class="line">Op rax = &#123;REGISTER, .reg = RAX&#125;;</span><br><span class="line">Op rdiPtr = &#123;MEMORY, .mem = &#123;RDI, <span class="number">0</span>&#125;&#125;;</span><br><span class="line">initCode.<span class="built_in">push_back</span>(&#123;x86::PUSH, rdi&#125;); <span class="comment">// arg1 ExitInformation</span></span><br><span class="line">initCode.<span class="built_in">push_back</span>(&#123;x86::PUSH, rsi&#125;); <span class="comment">// arg2 handleTraceExit</span></span><br><span class="line">initCode.<span class="built_in">push_back</span>(&#123;x86::MOV, rdi, rdiPtr&#125;); <span class="comment">// ExitInformation-&gt;variables</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">ExitInformation</span> &#123;</span><br><span class="line">  Value::Data* variables;</span><br><span class="line">  <span class="type">uint8_t</span>** traces;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="type">int</span> <span class="title">handleTraceExit</span><span class="params">(ExitInformation*, <span class="type">int</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>ExitInformation</code> 用于描述当前执行的堆栈信息，使用数组来模拟堆栈，以便在执行 <code>native code</code> 过程中，因为分支判断失败跳回 <code>Interpreter</code> 时恢复当前的堆栈信息，继续解释执行。</p>
+<p><code>traces</code> 用于存储所有跳出点的 <code>native code</code> 地址，用于实现 Trace Stitching，简单的说就是当分支判断失败后，不要直接回到解释器，而是先看看这个退出点是否存在另一条热路径，若有则直接转移控制权。</p>
+<h3 id="Bailout"><a href="#Bailout" class="headerlink" title="Bailout"></a>Bailout</h3><p>若分支判断失败，将会直接跳转到 <code>bailoutcode</code> 的位置，此时 <code>RSI</code> 寄存器已经存储了当前的 <code>pc</code> 值，便于之后恢复到寄存器执行。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">Compiler::compileBailoutFor</span><span class="params">(Op label)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (operandStack.<span class="built_in">size</span>() != <span class="number">0</span>) &#123;</span><br><span class="line">    cerr &lt;&lt; <span class="string">&quot;Operand stack not empty upon leaving trace&quot;</span> &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">throw</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  bailoutCode.<span class="built_in">push_back</span>(&#123;x86::LABEL, label&#125;);</span><br><span class="line">  <span class="type">long</span> idForPc = exitId++;</span><br><span class="line">  exitPoints[idForPc] = label.pc;</span><br><span class="line">  bailoutCode.<span class="built_in">push_back</span>(</span><br><span class="line">      &#123;x86::MOV, &#123;REGISTER, .reg = RSI&#125;, &#123;IMMEDIATE, .val = <span class="built_in">Value</span>(idForPc)&#125;&#125;);</span><br><span class="line">  bailoutCode.<span class="built_in">push_back</span>(&#123;x86::JMP, exitLabel&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于执行执行过程中不会使用到物理栈，都是通过 <code>ExitInfomation-&gt;variables</code> 数组来模拟，所以此时的 <code>RAX</code> 为 <code>handleTraceExit</code> ， <code>RDI</code> 为 <code>ExitInformation</code> ，跳入 <code>_handleTraceExit</code> </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bailoutCode.<span class="built_in">push_back</span>(&#123;x86::LABEL, exitLabel&#125;);</span><br><span class="line">bailoutCode.<span class="built_in">push_back</span>(&#123;x86::POP, rax&#125;);</span><br><span class="line">bailoutCode.<span class="built_in">push_back</span>(&#123;x86::POP, rdi&#125;);</span><br><span class="line">bailoutCode.<span class="built_in">push_back</span>(&#123;x86::LEAVE&#125;);</span><br><span class="line">bailoutCode.<span class="built_in">push_back</span>(&#123;x86::JMP, rax&#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">asm</span>(<span class="string">&quot;_handleTraceExit:;&quot;</span></span><br><span class="line">    <span class="string">&quot;push %rdi;&quot;</span> <span class="comment">// ExitInformation</span></span><br><span class="line">    <span class="string">&quot;mov $8, %r8;&quot;</span> <span class="comment">// r8 = 8</span></span><br><span class="line">    <span class="string">&quot;mov (%rdi, %r8), %rdi;&quot;</span> <span class="comment">// rdi = (rdi + 8) = (traces)</span></span><br><span class="line">    <span class="string">&quot;mov (%rdi, %rsi, 8), %r8;&quot;</span> <span class="comment">// r8 = (rdi + rsi*8) rsi is pc</span></span><br><span class="line">    <span class="string">&quot;pop %rdi;&quot;</span> <span class="comment">// rdi = ExitInformation</span></span><br><span class="line">    <span class="string">&quot;cmp $0, %r8;&quot;</span> <span class="comment">// r8 == 0</span></span><br><span class="line">    <span class="string">&quot;je return;&quot;</span> <span class="comment">// r8 == 0 jmp to return label</span></span><br><span class="line">    <span class="string">&quot;lea _handleTraceExit(%rip), %rsi;&quot;</span> <span class="comment">// rsi = &amp;_handleTraceExit</span></span><br><span class="line">    <span class="string">&quot;jmp *%r8;&quot;</span> <span class="comment">// jmp _handleTraceExit</span></span><br><span class="line">    <span class="string">&quot;return:;&quot;</span> <span class="comment">// return lebel</span></span><br><span class="line">    <span class="string">&quot;mov %rsi, %rax;&quot;</span> <span class="comment">// return value = rax = pc</span></span><br><span class="line">    <span class="string">&quot;ret;&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>查找当前退出 <code>pc</code> 是否有一条热路径，若有则直接跳入继续执行，没有就将退出 <code>pc</code> 返回回去。</p>
+<p><img src="/images/TigerShrimp_Stitching.png"></p>
+<p>使用 <code>JMP</code> 尾调用，避免多次函数调用的性能损耗。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>TigerShrimp 为了实现简单，选择直接从 <code>bytecode</code> 解释执行，跳过繁杂的 <code>Parser</code> 生成 <code>AST</code> 阶段，其次为了实现栈上替换(OSR)，直接不使用物理栈，使用数组模拟，方便回退到解释器，易于理解。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%BC%96%E8%AF%91%E5%99%A8/" rel="tag"># 编译器</a>
+          
+            <a href="/tags/tracing-jit/" rel="tag"># tracing jit</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/Skynet%E6%97%B6%E9%97%B4%E8%BD%AE%E5%89%96%E6%9E%90/" rel="next" title="Skynet 时间轮剖析">
+                <i class="fa fa-chevron-left"></i> Skynet 时间轮剖析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="Yuerer" />
+            
+              <p class="site-author-name" itemprop="name">Yuerer</p>
+              <p class="site-description motion-element" itemprop="description">钰儿的Blog</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/%20%7C%7C%20archive">
+                
+                    <span class="site-state-item-count">56</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">16</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">79</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Yu2erer" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:yu2erer@gmail.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E6%B5%81%E7%A8%8B"><span class="nav-text">编译流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-text">执行流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E6%B5%81%E7%A8%8B"><span class="nav-text">记录流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E7%BC%96%E8%AF%91"><span class="nav-text">记录编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Prologue"><span class="nav-text">Prologue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Bailout"><span class="nav-text">Bailout</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2023</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuerer</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//code.bdstatic.com/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '4c1E52qAqL8mu0dHBxYy5MxV-MdYXbMMI',
+        appKey: 'FUYa35QiKu2nxrabaP2R8Cpp',
+        placeholder: '说些什么?',
+        avatar:'retro',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: true,
+        serverURLs: 'https://4c1e52qa.api.lncldglobal.com'
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

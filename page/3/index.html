@@ -319,6 +319,213 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" itemprop="url">
+                  SkipList 原理及在游戏排行榜中的应用
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-09-12 15:05:20" itemprop="dateCreated datePublished" datetime="2020-09-12T15:05:20+08:00">2020-09-12</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%B8%B8%E6%88%8F%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">游戏设计</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" class="leancloud_visitors" data-flag-title="SkipList 原理及在游戏排行榜中的应用">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>近期工作的内容主要是设计一个通用的游戏排行榜服务器, 通用的含义指的是同时为多个项目组提供一套通用的解决方案, 经过不断的调研, 最终写下此文.</p>
+<p>本文将会讲述 排行榜的多种实现方式, 不过最终我选择了 SkipList 作为底层的数据结构, 因此会着重讲SkipList.</p>
+<p>先来讲一下排行榜的主要功能.</p>
+<h2 id="排行榜主要功能"><a href="#排行榜主要功能" class="headerlink" title="排行榜主要功能"></a>排行榜主要功能</h2><ul>
+<li>更新&#x2F;删除&#x2F;获取 一个 Key 在某个 排行榜 上的 排名, 及展示信息</li>
+<li>获取 一个排行榜 任意区间(例如排名区间) 的展示信息</li>
+</ul>
+<h2 id="排行榜排序方案"><a href="#排行榜排序方案" class="headerlink" title="排行榜排序方案"></a>排行榜排序方案</h2><p>游戏中的排行榜的排序方案无非就两种</p>
+<ul>
+<li>实时排序, 即玩家数值变化的瞬间, 就完成了对它的排序</li>
+<li>非实时排序, 亦可称之为定时排序, 玩家数据变动不立即排序, 而是直到策划所配的时间点到的时候才进行排序</li>
+</ul>
+<p>这两种排序方案没有好坏之分, 主要是看策划他想要什么? <del>(或许他自己也不知道想要什么, 他都想试试看, 他只顾着他自己)</del></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/SkipList-%E5%8E%9F%E7%90%86%E5%8F%8A%E5%9C%A8%E6%B8%B8%E6%88%8F%E6%8E%92%E8%A1%8C%E6%A6%9C%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8BIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2152,211 +2359,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E5%AE%9E%E7%8E%B0-SOCKS5-%E7%BD%91%E7%BB%9C%E6%B7%B7%E6%B7%86%E4%BB%A3%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E5%AE%9E%E7%8E%B0-SOCKS5-%E7%BD%91%E7%BB%9C%E6%B7%B7%E6%B7%86%E4%BB%A3%E7%90%86/" itemprop="url">
-                  实现 SOCKS5 网络混淆代理
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-02-22 09:42:20" itemprop="dateCreated datePublished" datetime="2019-02-22T09:42:20+08:00">2019-02-22</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-10-31 22:42:44" itemprop="dateModified" datetime="2020-10-31T22:42:44+08:00">2020-10-31</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%90%9E%E4%B8%9C%E6%90%9E%E8%A5%BF/" itemprop="url" rel="index"><span itemprop="name">搞东搞西</span></a></span>
-
-                
-                
-                  ，
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">计算机网络</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/%E5%AE%9E%E7%8E%B0-SOCKS5-%E7%BD%91%E7%BB%9C%E6%B7%B7%E6%B7%86%E4%BB%A3%E7%90%86/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E5%AE%9E%E7%8E%B0-SOCKS5-%E7%BD%91%E7%BB%9C%E6%B7%B7%E6%B7%86%E4%BB%A3%E7%90%86/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/%E5%AE%9E%E7%8E%B0-SOCKS5-%E7%BD%91%E7%BB%9C%E6%B7%B7%E6%B7%86%E4%BB%A3%E7%90%86/" class="leancloud_visitors" data-flag-title="实现 SOCKS5 网络混淆代理">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在天朝这么久 你曾为网络状况不佳而烦恼过吗? 平时使用的 Shadowsocks 是怎么实现?<br>这篇讲的就是 如何用 Golang 实现一个最为基础的 Shdowsocks 的功能的软件 我将本文实现的软件取名叫 GoSocksProxy</p>
-<p>老规矩先介绍一遍 什么是 GoSocksProxy? 它是怎么来的?</p>
-<h2 id="GoSocksProxy"><a href="#GoSocksProxy" class="headerlink" title="GoSocksProxy"></a><a target="_blank" rel="noopener" href="https://github.com/Yu2erer/GoSocksProxy">GoSocksProxy</a></h2><p>一个 Golang 所写的网络混淆代理 是学习 SOCKS5 协议时的副产品 为此还做了一张图</p>
-<p><img src="/images/GoSocksProxy.jpg" alt="GoSocksProxy"></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E5%AE%9E%E7%8E%B0-SOCKS5-%E7%BD%91%E7%BB%9C%E6%B7%B7%E6%B7%86%E4%BB%A3%E7%90%86/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2408,7 +2410,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">55</span>
+                    <span class="site-state-item-count">56</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2451,7 +2453,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">15</span>
+                      
+                    
+                    <span class="site-state-item-count">16</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2618,7 +2622,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">77</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">79</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
