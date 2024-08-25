@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/avatar.jpeg?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/avatar.jpeg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Searching...","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"找到约 ${hits} 个结果 用时 ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="为什么要叫原生版本?因为我觉得这一块是 C++ 自带的表达式 表达式里面 去调用 C语言的 CRT 库中的 malloc 和 free 但这篇 只讲自带的表达式 而不去深究 CRT 中的内存分配函数 所以只叫原生版本 常见的内存分配   分配 释放 类属 可否重载    malloc() free() C 函数 否   new delete C++ 表达式 否   ::operator new()">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ 内存管理 之 原生版本">
+<meta property="og:url" content="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/index.html">
+<meta property="og:site_name" content="Yuerer&#39;s Blog">
+<meta property="og:description" content="为什么要叫原生版本?因为我觉得这一块是 C++ 自带的表达式 表达式里面 去调用 C语言的 CRT 库中的 malloc 和 free 但这篇 只讲自带的表达式 而不去深究 CRT 中的内存分配函数 所以只叫原生版本 常见的内存分配   分配 释放 类属 可否重载    malloc() free() C 函数 否   new delete C++ 表达式 否   ::operator new()">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-11-04T01:02:20.000Z">
+<meta property="article:modified_time" content="2024-01-14T12:08:15.694Z">
+<meta property="article:author" content="Yuerer">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="内存管理">
+<meta name="twitter:card" content="summary">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="https://yuerer.com/C++内存管理-之-原生版本/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>C++ 内存管理 之 原生版本 | Yuerer's Blog</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-129491388-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-129491388-1');
+</script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yuerer's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">钰儿的Blog</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">C++ 内存管理 之 原生版本
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-04 09:02:20" itemprop="dateCreated datePublished" datetime="2019-11-04T09:02:20+08:00">2019-11-04</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2024-01-14 20:08:15" itemprop="dateModified" datetime="2024-01-14T20:08:15+08:00">2024-01-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" class="leancloud_visitors" data-flag-title="C++ 内存管理 之 原生版本">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="为什么要叫原生版本"><a href="#为什么要叫原生版本" class="headerlink" title="为什么要叫原生版本?"></a>为什么要叫原生版本?</h2><p>因为我觉得这一块是 C++ 自带的表达式 表达式里面 去调用 C语言的 CRT 库中的 <code>malloc</code> 和 <code>free</code> 但这篇 只讲自带的表达式 而不去深究 CRT 中的内存分配函数 所以只叫原生版本</p>
+<h2 id="常见的内存分配"><a href="#常见的内存分配" class="headerlink" title="常见的内存分配"></a>常见的内存分配</h2><table>
+<thead>
+<tr>
+<th>分配</th>
+<th>释放</th>
+<th>类属</th>
+<th>可否重载</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>malloc()</td>
+<td>free()</td>
+<td>C 函数</td>
+<td>否</td>
+</tr>
+<tr>
+<td>new</td>
+<td>delete</td>
+<td>C++ 表达式</td>
+<td>否</td>
+</tr>
+<tr>
+<td>::operator new()</td>
+<td>::operator delete()</td>
+<td>C++ 函数</td>
+<td>可</td>
+</tr>
+<tr>
+<td>allocator<T>::allocate()</td>
+<td>allocator<T>::deallocate()</td>
+<td>C++ 标准库</td>
+<td>自由设计搭配的容器</td>
+</tr>
+</tbody></table>
+<h3 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h3><p>其中 <code>::operator new() 和 ::operator delete()</code> 调用了 <code>malloc() 和 free()</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">    <span class="type">void</span> *p1 = <span class="built_in">malloc</span>(<span class="number">512</span>);</span><br><span class="line">    <span class="built_in">free</span>(p1);</span><br><span class="line">    </span><br><span class="line">    complex&lt;<span class="type">int</span>&gt; *p2 = <span class="keyword">new</span> complex&lt;<span class="type">int</span>&gt;;</span><br><span class="line">    <span class="keyword">delete</span> p2;</span><br><span class="line">    </span><br><span class="line">    <span class="type">void</span> *p3 = ::<span class="keyword">operator</span> <span class="built_in">new</span>(<span class="number">512</span>);</span><br><span class="line">    ::<span class="function"><span class="keyword">operator</span> <span class="title">delete</span><span class="params">(p3)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> _MSC_VER</span></span><br><span class="line">    <span class="comment">// 属于 non-static 要先实例化object再调用</span></span><br><span class="line">    <span class="type">int</span> *p4 = <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">allocate</span>(<span class="number">3</span>, (<span class="type">int</span>*)<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">deallocate</span>(p4, <span class="number">3</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __GUNC__</span></span><br><span class="line">    <span class="comment">// 早期 GNU-C++ 2.9 版本</span></span><br><span class="line">    <span class="comment">// void *p4 = alloc::allocate(512);</span></span><br><span class="line">    <span class="comment">// alloc::deallocate(p4, 512);</span></span><br><span class="line">    <span class="comment">// alloc 换名字了</span></span><br><span class="line">    <span class="type">void</span> *p5 = __gnu_cxx::__pool_alloc&lt;<span class="type">int</span>&gt;().<span class="built_in">allocate</span>(<span class="number">9</span>);</span><br><span class="line">    __gnu_cxx::__pool_alloc&lt;<span class="type">int</span>&gt;().<span class="built_in">deallocate</span>((<span class="type">int</span>*)p5, <span class="number">9</span>);</span><br><span class="line">    <span class="comment">// 4.9 版本之后</span></span><br><span class="line">    <span class="type">void</span> *p4 = <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">allocate</span>(<span class="number">7</span>);</span><br><span class="line">    <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">deallocate</span>((<span class="type">int</span>*)p4, <span class="number">7</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h2 id="new-表达式"><a href="#new-表达式" class="headerlink" title="new 表达式"></a>new 表达式</h2><p><code>Object *p = new Object(1);</code></p>
+<p>编译器 在内部将其转化为</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Object *p;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// operator new 可以被重载 如果没重载 调用全局版本</span></span><br><span class="line"></span><br><span class="line">    <span class="type">void</span> *mem = <span class="keyword">operator</span> <span class="built_in">new</span>(<span class="built_in">sizeof</span>(Object)); <span class="comment">// 1. 分配内存</span></span><br><span class="line">    p = <span class="built_in">static_cast</span>&lt;Object*&gt;(mem); <span class="comment">// 2. 转换类型</span></span><br><span class="line">    <span class="comment">// 实际上只有编译器才能这样调用 构造函数</span></span><br><span class="line">    <span class="comment">// 然鹅在 VC 6.0 下可以这样调用</span></span><br><span class="line">    <span class="comment">// p-&gt;Object::Object(1);</span></span><br><span class="line">    <span class="comment">// 可以通过 placement new 直接调用 构造函数</span></span><br><span class="line">    <span class="keyword">new</span> (p) <span class="built_in">Object</span>(<span class="number">1</span>); <span class="comment">// 3. 调用构造函数</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">catch</span> () &#123;</span><br><span class="line">    <span class="comment">// 分配内存失败 则不执行 构造函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="operator-new"><a href="#operator-new" class="headerlink" title="operator new"></a>operator new</h3><p>前面说过 里面调用的是 <code>malloc()</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 来自于 vc98/crt/src/newop2.cpp</span></span><br><span class="line"><span class="comment">// const std::nothrow_t &amp; 不抛异常</span></span><br><span class="line"><span class="comment">// C++ 11 用 noexcept 代表不会抛出异常 如果抛出 则会调用 std::terminate() 终止程序 防止异常传播</span></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span> size, <span class="type">const</span> std::<span class="type">nothrow_t</span> &amp;)</span> _<span class="title">THROW0</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">void</span> *p;</span><br><span class="line">    <span class="comment">// 分配内存成功 就直接返回 如果失败 进入循环</span></span><br><span class="line">    <span class="comment">// 会调用 _callnewh =&gt; newhandler 是一个由你设定的函数 去找找有什么办法可以释放掉一些内存 使得有机会成功分配内存</span></span><br><span class="line">    <span class="keyword">while</span> ((p = <span class="built_in">malloc</span>(size)) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="function">_TRY_BEGIN</span></span><br><span class="line"><span class="function">            <span class="title">if</span> <span class="params">(_callnewh(size) == <span class="number">0</span>)</span> <span class="keyword">break</span></span>;</span><br><span class="line">        _CATCH(std::bad_alloc) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        _CATCH_END</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (p);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="delete-表达式"><a href="#delete-表达式" class="headerlink" title="delete 表达式"></a>delete 表达式</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Object *p = <span class="keyword">new</span> <span class="built_in">Object</span>(<span class="number">1</span>);</span><br><span class="line"><span class="keyword">delete</span> p;</span><br></pre></td></tr></table></figure>
+
+<p>编译器 将 <code>delete</code> 转化为</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p-&gt;~<span class="built_in">Object</span>(); <span class="comment">// 先调用析构函数</span></span><br><span class="line"><span class="function"><span class="keyword">operator</span> <span class="title">delete</span><span class="params">(p)</span></span>; <span class="comment">// 再释放内存</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="operator-delete"><a href="#operator-delete" class="headerlink" title="operator delete"></a>operator delete</h3><p>会调用 <code>free()</code> 来释放内存</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 来自于 vc98/crt/src/delop.cpp</span></span><br><span class="line"><span class="function"><span class="type">void</span> __cdecl <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span> *p)</span> _<span class="title">THROW0</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="array-new-array-delete"><a href="#array-new-array-delete" class="headerlink" title="array new, array delete"></a>array new, array delete</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 调用三次构造函数 按顺序构造</span></span><br><span class="line">Object *p = <span class="keyword">new</span> Object[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// 调用三次析构函数 逆序析构</span></span><br><span class="line"><span class="keyword">delete</span>[] p;</span><br></pre></td></tr></table></figure>
+
+<p>如果 没配套使用的话 不一定会发生内存泄漏</p>
+<ul>
+<li>对 class without ptr member 可能没影响</li>
+<li>对 class with ptr member 通常有影响</li>
+</ul>
+<p>先看第一种情况 </p>
+<table>
+<thead>
+<tr>
+<th>cookie</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Object 1</td>
+</tr>
+<tr>
+<td>Object 2</td>
+</tr>
+<tr>
+<td>Object 3</td>
+</tr>
+</tbody></table>
+<p><code>cookie</code> 是调用 <code>malloc()</code> 的时候 一起带来的 记录了这块内存的大小 相当于是额外的开销<br>此时 这个 class 没有 ptr member 那么 delete 的时候 只会调用 一次析构函数 但是没关系 这里面没有指针成员 因此 析构完了以后 <code>free()</code> 会看 <code>cookie</code> 知道了整块内存的大小 直接将其 释放 没有发生内存泄漏</p>
+<p>第二种情况</p>
+<p>假设这个 class 有 ptr member 那么 <code>delete</code> 的时候 只调用了 一次析构函数 那另外两个 class 里面 开辟的内存 因为没有调用到析构函数 没能被成功回收 因此发生了内存泄漏</p>
+<p>因此发生内存泄漏不是 数组本身 而是 class 中 有可能开了内存</p>
+<h2 id="placement-new"><a href="#placement-new" class="headerlink" title="placement new"></a>placement new</h2><p>将 object 构建在 已经分配好的内存中</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;new&gt;</span></span></span><br><span class="line"><span class="type">char</span> *buf = <span class="keyword">new</span> <span class="type">char</span>[<span class="built_in">sizeof</span>(Object) * <span class="number">3</span>];</span><br><span class="line">Object *p = <span class="built_in">new</span> (buf) <span class="built_in">Object</span>(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span> []buf;</span><br></pre></td></tr></table></figure>
+
+<p>会被编译器转换为</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Object *p;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 多了第二参数</span></span><br><span class="line">    <span class="type">void</span> *mem = <span class="keyword">operator</span> <span class="built_in">new</span>(<span class="built_in">sizeof</span>(Object), buf);</span><br><span class="line">    p = <span class="built_in">static_cast</span>&lt;Object*&gt;(mem);</span><br><span class="line">    p-&gt;Object::<span class="built_in">Object</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">catch</span> () &#123;</span><br><span class="line">    <span class="comment">// 分配内存失败 则不执行 构造函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时 调用的 operator new 为</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span>, <span class="type">void</span> *loc)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> loc;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>相当于 不分配内存 直接把已经有的内存指针 返回回去 然后在其上面调用构造函数</p>
+<h2 id="重载-operator-new-operator-delete"><a href="#重载-operator-new-operator-delete" class="headerlink" title="重载 operator new, operator delete"></a>重载 operator new, operator delete</h2><p>重载 <code>operator new / operator delete</code> 可分为 全局重载 和 局部重载 其中全局重载影响太广了 一般是局部重载</p>
+<p>要注意的点是 这两个函数 一定要是 <code>static</code> 不然你这个类都没有实例化 怎么能调到这两个函数 但是这两个函数就是拿来实例化的 产生了驳论 不过 C++ 编译器会默认给这两个函数 加上 <code>static</code> 所以你写不写 没啥所谓</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> *opeartor <span class="title">new</span><span class="params">(<span class="type">size_t</span>)</span></span>;</span><br><span class="line">    <span class="comment">// 第二参数 可有可无</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>*, <span class="type">size_t</span>)</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="重载-placement-new-placement-delete"><a href="#重载-placement-new-placement-delete" class="headerlink" title="重载 placement new, placement delete"></a>重载 placement new, placement delete</h2><p>和 重载 <code>operator new</code> 类似</p>
+<p>其实这真的能说是重载 <code>placement new</code> 吗? <code>placement new</code> 是在指定位置下进行构造函数</p>
+<p>而这个 则很像 <code>operator new</code> 的重载了 唯一不同是参数个数不同和使用方式不同了</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 第一个参数 必须是 size_t 这是为了 自动传入大小 不然没法 new</span></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span> size, <span class="type">long</span> extra, <span class="type">char</span> init)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">malloc</span>(size + extra);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* p, <span class="type">long</span>, <span class="type">char</span>)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// placement delete 重载 </span></span><br><span class="line"><span class="comment">// 就算和 placement new 没有一一对应也没关系</span></span><br><span class="line"><span class="comment">// 因为重载的 placement delete</span></span><br><span class="line"><span class="comment">// 只在 placement new 后 ctor 后失败(抛出异常) 时 才会被调用</span></span><br><span class="line"><span class="comment">// 如果不对应起来 就可以看做是 你放弃处理 ctor 发出的异常</span></span><br><span class="line"><span class="comment">// 注意 全局局部重载的效果都是一样的 delete 的时候不会去调用 placement delete</span></span><br></pre></td></tr></table></figure>
+
+<p>使用方式 <code>Foo *pf = new(300, &#39;c) Foo;</code></p>
+<h3 id="basic-string-使用-new-extra-扩充申请内存量"><a href="#basic-string-使用-new-extra-扩充申请内存量" class="headerlink" title="basic_string 使用 new(extra) 扩充申请内存量"></a>basic_string 使用 new(extra) 扩充申请内存量</h3><p>basic_string 重载了 <code>placement new</code> 来多申请内存 因为 string 内部有引用计数 多申请一块内存来存放这些信息</p>
+<p><code>inline static void *operator new(size_t, size_t)</code></p>
+<h2 id="new-handler"><a href="#new-handler" class="headerlink" title="new handler"></a>new handler</h2><p>当 <code>operator new</code> 没能力分配你要的内存时 要么 抛出 <code>std::bad_alloc</code> 异常 要么则是直接返回 0 这也是为什么要检查分配出来的内存 是否可用</p>
+<p>强行要求 编译器 不抛出异常 <code>new (nothrow) obj;</code></p>
+<p>new handler 的设定方式</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(*new_handler)</span><span class="params">()</span></span>;</span><br><span class="line"><span class="comment">// 为什么要传回来一个new handler 回来</span></span><br><span class="line"><span class="comment">// 假如你之前 已经有一个 A handler 此时你传进去一个 B handler</span></span><br><span class="line"><span class="comment">// 通过返回回来 你就能把 A handler 保存起来</span></span><br><span class="line"><span class="function">new_handler <span class="title">set_new_handler</span><span class="params">(new_handler p)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>new handler 只有两种选择</p>
+<ol>
+<li>想办法释放内存</li>
+<li>调用 abort() 或 exit()</li>
+</ol>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/C/" rel="tag"># C++</a>
+          
+            <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag"># 内存管理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" rel="next" title="离线安装 VSCode Remote-SSH">
+                <i class="fa fa-chevron-left"></i> 离线安装 VSCode Remote-SSH
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-STL%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" rel="prev" title="C++ 内存管理 之 STL内存分配实现原理">
+                C++ 内存管理 之 STL内存分配实现原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="Yuerer" />
+            
+              <p class="site-author-name" itemprop="name">Yuerer</p>
+              <p class="site-description motion-element" itemprop="description">钰儿的Blog</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/%20%7C%7C%20archive">
+                
+                    <span class="site-state-item-count">57</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">16</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">79</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Yu2erer" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:yu2erer@gmail.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8F%AB%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC"><span class="nav-text">为什么要叫原生版本?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="nav-text">常见的内存分配</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">使用示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#new-%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-text">new 表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#operator-new"><span class="nav-text">operator new</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#delete-%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-text">delete 表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#operator-delete"><span class="nav-text">operator delete</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#array-new-array-delete"><span class="nav-text">array new, array delete</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#placement-new"><span class="nav-text">placement new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E8%BD%BD-operator-new-operator-delete"><span class="nav-text">重载 operator new, operator delete</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E8%BD%BD-placement-new-placement-delete"><span class="nav-text">重载 placement new, placement delete</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#basic-string-%E4%BD%BF%E7%94%A8-new-extra-%E6%89%A9%E5%85%85%E7%94%B3%E8%AF%B7%E5%86%85%E5%AD%98%E9%87%8F"><span class="nav-text">basic_string 使用 new(extra) 扩充申请内存量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#new-handler"><span class="nav-text">new handler</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2024</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuerer</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//code.bdstatic.com/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '4c1E52qAqL8mu0dHBxYy5MxV-MdYXbMMI',
+        appKey: 'FUYa35QiKu2nxrabaP2R8Cpp',
+        placeholder: '说些什么?',
+        avatar:'retro',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: true,
+        serverURLs: 'https://4c1e52qa.api.lncldglobal.com'
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
