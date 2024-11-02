@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/avatar.jpeg?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/avatar.jpeg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Searching...","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"找到约 ${hits} 个结果 用时 ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="近期在改 Lua 5.4 的垃圾回收，虽然之前也写过分代垃圾回收的原理，但这次改完之后对其更有感悟，就简单记录一下Lua 5.4 的分代垃圾回收的实现原理。  简介分代垃圾回收认为对象分为年轻代和老年代，其中年轻代对象很快就会被释放(比如临时对象)，而老年代对象存在的时间比较长，不容易被释放，因此也就不需要经常去扫描老年代，只需要经常去扫描年轻代，等到年轻代垃圾回收的时候实在收不回对象，再进行一次">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lua 5.4 分代垃圾回收">
+<meta property="og:url" content="https://yuerer.com/Lua%205.4%20%E5%88%86%E4%BB%A3%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/index.html">
+<meta property="og:site_name" content="Yuerer&#39;s Blog">
+<meta property="og:description" content="近期在改 Lua 5.4 的垃圾回收，虽然之前也写过分代垃圾回收的原理，但这次改完之后对其更有感悟，就简单记录一下Lua 5.4 的分代垃圾回收的实现原理。  简介分代垃圾回收认为对象分为年轻代和老年代，其中年轻代对象很快就会被释放(比如临时对象)，而老年代对象存在的时间比较长，不容易被释放，因此也就不需要经常去扫描老年代，只需要经常去扫描年轻代，等到年轻代垃圾回收的时候实在收不回对象，再进行一次">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-08-25T06:54:20.000Z">
+<meta property="article:modified_time" content="2024-11-02T05:44:33.882Z">
+<meta property="article:author" content="Yuerer">
+<meta property="article:tag" content="Lua">
+<meta property="article:tag" content="Lua虚拟机">
+<meta name="twitter:card" content="summary">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="https://yuerer.com/Lua 5.4 分代垃圾回收/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Lua 5.4 分代垃圾回收 | Yuerer's Blog</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-129491388-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-129491388-1');
+</script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yuerer's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">钰儿的Blog</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua%205.4%20%E5%88%86%E4%BB%A3%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Lua 5.4 分代垃圾回收
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2024-08-25 14:54:20" itemprop="dateCreated datePublished" datetime="2024-08-25T14:54:20+08:00">2024-08-25</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2024-11-02 13:44:33" itemprop="dateModified" datetime="2024-11-02T13:44:33+08:00">2024-11-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua%205.4%20%E5%88%86%E4%BB%A3%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua%205.4%20%E5%88%86%E4%BB%A3%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua%205.4%20%E5%88%86%E4%BB%A3%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" class="leancloud_visitors" data-flag-title="Lua 5.4 分代垃圾回收">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>近期在改 Lua 5.4 的垃圾回收，虽然之前也写过分代垃圾回收的原理，但这次改完之后对其更有感悟，就简单记录一下Lua 5.4 的分代垃圾回收的实现原理。 </p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>分代垃圾回收认为对象分为年轻代和老年代，其中年轻代对象很快就会被释放(比如临时对象)，而老年代对象存在的时间比较长，不容易被释放，因此也就不需要经常去扫描老年代，只需要经常去扫描年轻代，等到年轻代垃圾回收的时候实在收不回对象，再进行一次全量垃圾回收。</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>Lua 的 age 总共占用 3 Bit，刚创建出来的对象为 <code>G_NEW</code> ，当它活过一轮垃圾回收后，提升为 <code>G_SURVIVAL</code> ，若再活过一轮垃圾回收，则彻底进入 <code>G_OLD</code> 老年代，不在年轻代中扫描它。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> G_NEW		0	<span class="comment">/* created in current cycle */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> G_SURVIVAL	1	<span class="comment">/* created in previous cycle */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> G_OLD0		2	<span class="comment">/* marked old by frw. barrier in this cycle */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> G_OLD1		3	<span class="comment">/* first full cycle as old */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> G_OLD		4	<span class="comment">/* really old object (not to be visited) */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> G_TOUCHED1	5	<span class="comment">/* old object touched this cycle */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> G_TOUCHED2	6	<span class="comment">/* old object touched in previous cycle */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> AGEBITS		7  <span class="comment">/* all age bits (111) */</span></span></span><br></pre></td></tr></table></figure>
+
+<p>这里面的 <code>G_OLD0</code> 是用于 Barrier forward，假设你创建了一个新对象，它本该是 <code>G_NEW</code> 但因为它被老年代对象引用，所以必须要强行将它改为老年代，否则会发生跨代引用，该新对象直接被清理掉。</p>
+<p>同理 <code>G_TOUCHED1</code> 则是用于 Barrier back，假设你创建了一个新对象，然后放置在一个老年代的 table中，此时为了不频繁触发该 table 的 barrier，则将其修改为 <code>G_TOUCHED1</code> ，同时将其放置在 <code>grayagain</code> 链表中，这是因为老年代table是不会在年轻代的垃圾回收中被扫描到，但此时老年代又确实引用了年轻代对象，所以要将它放在一条特殊链表中，使其能在年轻代中被扫描到。</p>
+<span id="more"></span>
+
+<p>对 <code>G_TOUCHED2</code> 的理解就更为简单，前面我们知道新对象需要两轮年轻代垃圾回收才会进入老年代，为了不出现跨代引用，我们的老年代table也需要两轮年轻代的垃圾回收才能彻底放心的移出 <code>grayagain</code> 链表，因此 <code>G_TOUCHED1</code> -&gt; <code>G_TOUCHED2</code> -&gt; <code>G_OLD</code> 也是两轮垃圾回收。</p>
+<p>而 <code>G_OLD1</code> 也是为了拖延 <code>G_OLD0</code> 真正变成 <code>G_OLD</code> 的时间，新对象就因为被老年代对象引用，它就直接变老年代是不合理的，需要让它也经历两轮年轻代垃圾回收再提升为真正的 <code>G_OLD</code>。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>若能理解以上的 barrier，则可进入学习实现阶段。</p>
+<p>假设当前 Lua VM 处于渐进GC模式，此时切入分代GC，只需要将未完成的GC完成，同时将所有已存在对象置为 <code>OLD</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> lu_mem <span class="title function_">entergen</span> <span class="params">(lua_State *L, global_State *g)</span> &#123;</span><br><span class="line">  lu_mem numobjs;</span><br><span class="line">  luaC_runtilstate(L, bitmask(GCSpause));  <span class="comment">/* prepare to start a new cycle */</span></span><br><span class="line">  luaC_runtilstate(L, bitmask(GCSpropagate));  <span class="comment">/* start new cycle */</span></span><br><span class="line">  numobjs = atomic(L);  <span class="comment">/* propagates all and then do the atomic stuff */</span></span><br><span class="line">  atomic2gen(L, g);</span><br><span class="line">  setminordebt(g);  <span class="comment">/* set debt assuming next cycle will be minor */</span></span><br><span class="line">  <span class="keyword">return</span> numobjs;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对 <code>allgc</code> 链表设置游标，认为所有对象都是旧的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">atomic2gen</span> <span class="params">(lua_State *L, global_State *g)</span> &#123;</span><br><span class="line">  cleargraylists(g);</span><br><span class="line">  <span class="comment">/* sweep all elements making them old */</span></span><br><span class="line">  g-&gt;gcstate = GCSswpallgc;</span><br><span class="line">  sweep2old(L, &amp;g-&gt;allgc);</span><br><span class="line">  <span class="comment">/* everything alive now is old */</span></span><br><span class="line">  g-&gt;reallyold = g-&gt;old1 = g-&gt;survival = g-&gt;allgc;</span><br><span class="line">  g-&gt;firstold1 = <span class="literal">NULL</span>;  <span class="comment">/* there are no OLD1 objects anywhere */</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* repeat for &#x27;finobj&#x27; lists */</span></span><br><span class="line">  sweep2old(L, &amp;g-&gt;finobj);</span><br><span class="line">  g-&gt;finobjrold = g-&gt;finobjold1 = g-&gt;finobjsur = g-&gt;finobj;</span><br><span class="line"></span><br><span class="line">  sweep2old(L, &amp;g-&gt;tobefnz);</span><br><span class="line"></span><br><span class="line">  g-&gt;gckind = KGC_GEN;</span><br><span class="line">  g-&gt;lastatomic = <span class="number">0</span>;</span><br><span class="line">  g-&gt;GCestimate = gettotalbytes(g);  <span class="comment">/* base for memory control */</span></span><br><span class="line">  finishgencycle(L, g);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>后续年轻代垃圾回收遍历 <code>allgc</code> 链表时，只需要遍历到指定位置(也就是之前设置的游标处)就可以结束本轮垃圾回收，大幅提高垃圾回收的速度。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> GCObject **<span class="title function_">sweepgen</span> <span class="params">(lua_State *L, global_State *g, GCObject **p,</span></span><br><span class="line"><span class="params">                            GCObject *limit, GCObject **pfirstold1)</span> &#123;</span><br><span class="line">  <span class="type">static</span> <span class="type">const</span> lu_byte nextage[] = &#123;</span><br><span class="line">    G_SURVIVAL,  <span class="comment">/* from G_NEW */</span></span><br><span class="line">    G_OLD1,      <span class="comment">/* from G_SURVIVAL */</span></span><br><span class="line">    G_OLD1,      <span class="comment">/* from G_OLD0 */</span></span><br><span class="line">    G_OLD,       <span class="comment">/* from G_OLD1 */</span></span><br><span class="line">    G_OLD,       <span class="comment">/* from G_OLD (do not change) */</span></span><br><span class="line">    G_TOUCHED1,  <span class="comment">/* from G_TOUCHED1 (do not change) */</span></span><br><span class="line">    G_TOUCHED2   <span class="comment">/* from G_TOUCHED2 (do not change) */</span></span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="type">int</span> white = luaC_white(g);</span><br><span class="line">  GCObject *curr;</span><br><span class="line">  <span class="keyword">while</span> ((curr = *p) != limit) &#123;</span><br><span class="line">    <span class="keyword">if</span> (iswhite(curr)) &#123;  <span class="comment">/* is &#x27;curr&#x27; dead? */</span></span><br><span class="line">      lua_assert(!isold(curr) &amp;&amp; isdead(g, curr));</span><br><span class="line">      *p = curr-&gt;next;  <span class="comment">/* remove &#x27;curr&#x27; from list */</span></span><br><span class="line">      freeobj(L, curr);  <span class="comment">/* erase &#x27;curr&#x27; */</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;  <span class="comment">/* correct mark and age */</span></span><br><span class="line">      <span class="keyword">if</span> (getage(curr) == G_NEW) &#123;  <span class="comment">/* new objects go back to white */</span></span><br><span class="line">        <span class="type">int</span> marked = curr-&gt;marked &amp; ~maskgcbits;  <span class="comment">/* erase GC bits */</span></span><br><span class="line">        curr-&gt;marked = cast_byte(marked | G_SURVIVAL | white);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> &#123;  <span class="comment">/* all other objects will be old, and so keep their color */</span></span><br><span class="line">        setage(curr, nextage[getage(curr)]);</span><br><span class="line">        <span class="keyword">if</span> (getage(curr) == G_OLD1 &amp;&amp; *pfirstold1 == <span class="literal">NULL</span>)</span><br><span class="line">          *pfirstold1 = curr;  <span class="comment">/* first OLD1 object in the list */</span></span><br><span class="line">      &#125;</span><br><span class="line">      p = &amp;curr-&gt;next;  <span class="comment">/* go to next element */</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Lua/" rel="tag"># Lua</a>
+          
+            <a href="/tags/Lua%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="tag"># Lua虚拟机</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E4%B8%80%E4%B8%AA%E5%A5%BD%E7%90%86%E8%A7%A3%E7%9A%84Tracing-JIT-Compiler/" rel="next" title="一个好理解的Tracing JIT Compiler">
+                <i class="fa fa-chevron-left"></i> 一个好理解的Tracing JIT Compiler
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E4%B8%80)%20%E5%8F%AF%E9%9D%A0UDP/" rel="prev" title="UE5 网络剖析(一) 可靠UDP">
+                UE5 网络剖析(一) 可靠UDP <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="Yuerer" />
+            
+              <p class="site-author-name" itemprop="name">Yuerer</p>
+              <p class="site-description motion-element" itemprop="description">钰儿的Blog</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/%20%7C%7C%20archive">
+                
+                    <span class="site-state-item-count">58</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">82</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Yu2erer" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:yu2erer@gmail.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2024</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuerer</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//code.bdstatic.com/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '4c1E52qAqL8mu0dHBxYy5MxV-MdYXbMMI',
+        appKey: 'FUYa35QiKu2nxrabaP2R8Cpp',
+        placeholder: '说些什么?',
+        avatar:'retro',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: true,
+        serverURLs: 'https://4c1e52qa.api.lncldglobal.com'
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

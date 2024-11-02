@@ -319,6 +319,205 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/" itemprop="url">
+                  Lua 5.3 设计实现(二) Table与Metatable
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-10-26 13:12:20" itemprop="dateCreated datePublished" datetime="2020-10-26T13:12:20+08:00">2020-10-26</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2024-01-20 22:27:31" itemprop="dateModified" datetime="2024-01-20T22:27:31+08:00">2024-01-20</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(二) Table与Metatable">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>上一篇主要讲了 Lua代码 的运作过程，这一篇主讲 Lua Table 和 基于 <code>MetaTable</code> 实现的 <code>MetaMethod</code>。</p>
+<p>其实我觉得，Lua之所以能大放异彩，其一是它非常精小，其二是其开源，其三则是因为它的<code>MetaMethod</code> 的设计。</p>
+<h2 id="Lua-类型"><a href="#Lua-类型" class="headerlink" title="Lua 类型"></a>Lua 类型</h2><p>虽然本篇主要讲 table，不过在那之前，最好先来认识一下 Lua 其他类型在 Lua解释器中的实现。</p>
+<p>UserData 暂且不谈，NUMBER细分为浮点数和整数，字符串则分长短字符串，函数又分Lua函数和C函数还有轻量的C函数，这一部分会分别留到字符串和闭包的时候再谈论。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TNIL		0</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TBOOLEAN		1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TLIGHTUSERDATA	2</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TNUMBER		3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TSTRING		4</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TTABLE		5</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TFUNCTION		6</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TUSERDATA		7</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TTHREAD		8</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TNUMFLT	(LUA_TNUMBER | (0 &lt;&lt; 4))  <span class="comment">/* float numbers */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TNUMINT	(LUA_TNUMBER | (1 &lt;&lt; 4))  <span class="comment">/* integer numbers */</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TSHRSTR	(LUA_TSTRING | (0 &lt;&lt; 4))  <span class="comment">/* short strings */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TLNGSTR	(LUA_TSTRING | (1 &lt;&lt; 4))  <span class="comment">/* long strings */</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TLCL	(LUA_TFUNCTION | (0 &lt;&lt; 4))  <span class="comment">/* Lua closure */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TLCF	(LUA_TFUNCTION | (1 &lt;&lt; 4))  <span class="comment">/* light C function */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LUA_TCCL	(LUA_TFUNCTION | (2 &lt;&lt; 4))  <span class="comment">/* C closure */</span></span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%BA%8C)-Table%E4%B8%8EMetatable/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2162,205 +2361,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" itemprop="url">
-                  离线安装 VSCode Remote-SSH
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-05-23 22:17:20" itemprop="dateCreated datePublished" datetime="2019-05-23T22:17:20+08:00">2019-05-23</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2024-01-20 22:27:31" itemprop="dateModified" datetime="2024-01-20T22:27:31+08:00">2024-01-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%90%9E%E4%B8%9C%E6%90%9E%E8%A5%BF/" itemprop="url" rel="index"><span itemprop="name">搞东搞西</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/" class="leancloud_visitors" data-flag-title="离线安装 VSCode Remote-SSH">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>VSCode 近期推出了 Remote-SSH 这个工具 使得 Linux开发者 能够在本地(Windows 机)上直接对开发机源码进行修改 简直拯救了一大批人啊… 但是却没有提到 如何离线安装 因此本文可能是最早 尝试离线安装的教程</p>
-<h2 id="离线安装"><a href="#离线安装" class="headerlink" title="离线安装"></a>离线安装</h2><ol>
-<li>本地上下载好 <a target="_blank" rel="noopener" href="https://code.visualstudio.com/insiders/">VSCode Insiders</a></li>
-<li>安装 <code>Remote-SSH</code> 插件</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2412,7 +2412,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">57</span>
+                    <span class="site-state-item-count">58</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
