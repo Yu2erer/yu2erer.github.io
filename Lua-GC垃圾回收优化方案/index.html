@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/avatar.jpeg?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/avatar.jpeg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Searching...","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"找到约 ${hits} 个结果 用时 ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="最近接手的一个游戏项目是重 Lua 的结构（网络模块在 C++，其余逻辑全在 Lua）。和许多用 Lua 的游戏项目一样，遇到了 Lua 的垃圾回收的性能问题，经常跑着跑着就会掉帧，因此花了一周的时间，给 Lua 虚拟机写了个模块，把 Lua 垃圾回收的速度提高了一个量级。 思路这个思路其实在之前的一篇博客中也有提到，想要 垃圾回收快，无非就那么几种思路。  使用内存池 减少对象生成 垃圾回收提速">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lua GC垃圾回收优化方案">
+<meta property="og:url" content="https://yuerer.com/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="Yuerer&#39;s Blog">
+<meta property="og:description" content="最近接手的一个游戏项目是重 Lua 的结构（网络模块在 C++，其余逻辑全在 Lua）。和许多用 Lua 的游戏项目一样，遇到了 Lua 的垃圾回收的性能问题，经常跑着跑着就会掉帧，因此花了一周的时间，给 Lua 虚拟机写了个模块，把 Lua 垃圾回收的速度提高了一个量级。 思路这个思路其实在之前的一篇博客中也有提到，想要 垃圾回收快，无非就那么几种思路。  使用内存池 减少对象生成 垃圾回收提速">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-12-19T02:09:20.000Z">
+<meta property="article:modified_time" content="2024-01-20T14:27:31.983Z">
+<meta property="article:author" content="Yuerer">
+<meta property="article:tag" content="Lua">
+<meta property="article:tag" content="Lua虚拟机">
+<meta name="twitter:card" content="summary">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Yuerer's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="https://yuerer.com/Lua-GC垃圾回收优化方案/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Lua GC垃圾回收优化方案 | Yuerer's Blog</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-129491388-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-129491388-1');
+</script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yuerer's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">钰儿的Blog</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Lua GC垃圾回收优化方案
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-12-19 10:09:20" itemprop="dateCreated datePublished" datetime="2020-12-19T10:09:20+08:00">2020-12-19</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2024-01-20 22:27:31" itemprop="dateModified" datetime="2024-01-20T22:27:31+08:00">2024-01-20</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/Lua-GC%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" class="leancloud_visitors" data-flag-title="Lua GC垃圾回收优化方案">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近接手的一个游戏项目是重 <code>Lua</code> 的结构（网络模块在 C++，其余逻辑全在 Lua）。和许多用 Lua 的游戏项目一样，遇到了 Lua 的垃圾回收的性能问题，经常跑着跑着就会掉帧，因此花了一周的时间，给 Lua 虚拟机写了个模块，把 Lua 垃圾回收的速度提高了一个量级。</p>
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><p>这个思路其实在之前的一篇博客中也有提到，想要 垃圾回收快，无非就那么几种思路。</p>
+<ol>
+<li>使用内存池</li>
+<li>减少对象生成</li>
+<li>垃圾回收提速</li>
+</ol>
+<h3 id="使用内存池"><a href="#使用内存池" class="headerlink" title="使用内存池"></a>使用内存池</h3><p>第一种思路，我觉得不合理，因为现代的内存分配器早就有内存池的设计了，手写一个内存池的收益并不大。</p>
+<h3 id="减少对象生成"><a href="#减少对象生成" class="headerlink" title="减少对象生成"></a>减少对象生成</h3><p>第二种思路，是比较合理的。因为我在项目的代码中发现很多处地方有动态生成 <code>Closure</code> 的情况。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span><span class="params">()</span></span></span><br><span class="line">  <span class="keyword">local</span> fn = <span class="function"><span class="keyword">function</span><span class="params">()</span></span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;test&quot;</span>)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  fn()</span><br><span class="line">  fn()</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>上面那个例子，每次调用到 <code>test</code> 函数的时候，都会动态根据 <code>fn</code> 的 函数原型，生成一个 <code>Closure</code> </p>
+<p>可能有人会问，Proto 不是有一个 cache 指向 <code>Closure</code> 吗？按道理这里 没有 <code>UpValue</code>（即代表UpValue 完全相同），应该会复用啊，但是很可惜，执行完这个函数以后，因为没有对象指向 <code>Closure</code> 用完再不久的将来又会被回收。</p>
+<p>因此，少写这种代码就可以减少对象的生成。</p>
+<h2 id="垃圾回收提速"><a href="#垃圾回收提速" class="headerlink" title="垃圾回收提速"></a>垃圾回收提速</h2><p>第三种思路，我的想法是，让垃圾回收所要遍历的对象大幅减少，就可以为垃圾回收提速了，由于我们是重 Lua 的框架，因此我们的所有配置都存在于 Lua 的 table中，而这一部分肯定是不需要被回收的，但是每次垃圾回收的时候，又会不停的扫描递归遍历，不合理。同时代码中的很多全局函数，也是根本不需要被回收的，也会被扫描到，于是就想到一个想法，给这些对象打上标记，让他们不被遍历不被清理，就可以大幅度的提速了。</p>
+<p>原理简单，但是做起来确实挺难受的，要注意要手动关闭 <code>UpValue</code> 将其保留下来。</p>
+<p>目前已经开源，<a target="_blank" rel="noopener" href="https://github.com/Yu2erer/LuaJIT-5.3.6">LuaJIT-5.3.6</a>源码。</p>
+<span id="more"></span>
+
+<h2 id="如何使用呢？"><a href="#如何使用呢？" class="headerlink" title="如何使用呢？"></a>如何使用呢？</h2><p>说的那么好，那如何使用呢？</p>
+<p>目前提供了四个接口。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nogc(<span class="string">&quot;open&quot;</span>, Table) <span class="comment">-- 这一整个 Table 都不被扫描不被清理</span></span><br><span class="line">nogc(<span class="string">&quot;close&quot;</span>, Table) <span class="comment">-- 相当于 open 的反方法</span></span><br><span class="line">nogc(<span class="string">&quot;len&quot;</span>) <span class="comment">-- 当前不被 垃圾回收管理的对象个数</span></span><br><span class="line">nogc(<span class="string">&quot;count&quot;</span>) <span class="comment">-- 当前不被 垃圾回收管理的对象的总内存大小 单位为k</span></span><br></pre></td></tr></table></figure>
+
+<p>Table 中的元素支持，字符串，整数，浮点数，布尔值，表，Lua 闭包。</p>
+<p>不支持 当 Table 是弱表的情况。</p>
+<p>需要注意的是，当一个 Table 被打上标记之后，就不能够再修改其内部的数据，因为有可能会创建出一个新的对象，但是又不会被 Lua 的垃圾回收扫描到，导致这个对象被回收，发生段错误。</p>
+<h3 id="接入-Lua"><a href="#接入-Lua" class="headerlink" title="接入 Lua"></a>接入 Lua</h3><p>首先需要引入我写的两个文件， <code>YGC.c, YGC.h</code> 。</p>
+<p>然后跟着我的步伐修改以下几个文件。</p>
+<h3 id="lbaselib-c"><a href="#lbaselib-c" class="headerlink" title="lbaselib.c"></a>lbaselib.c</h3><p>添加头文件，然后导出  <code>nogc</code> 函数给 Lua 使用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;YGC.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> luaL_Reg base_funcs[] = &#123;</span><br><span class="line">  ....</span><br><span class="line">  &#123;<span class="string">&quot;nogc&quot;</span>, nogc&#125;,</span><br><span class="line">  &#123;<span class="literal">NULL</span>, <span class="literal">NULL</span>&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="lvm-c"><a href="#lvm-c" class="headerlink" title="lvm.c"></a>lvm.c</h3><p>添加头文件，在 <code>pushclosure</code> 函数这里， <code>if (!isblack(p))</code>  改为以下的代码。</p>
+<p>这是因为，当我们标记的 Table 中含有的闭包，被执行到的时候，会动态的生成 <code>Closure</code> ，但是这个 <code>Closure</code> 是没办法被标记到的，因为是动态生成的，因此不应该指过去。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;YGC.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!isblack(p) &amp;&amp; !Y_isnogc(p) &amp;&amp; !Y_isnogc(ncl))</span><br><span class="line">  p-&gt;cache = ncl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="lstate-h"><a href="#lstate-h" class="headerlink" title="lstate.h"></a>lstate.h</h3><p>在 <code>global_State</code> 记录两个辅助的值，其中一个是 nogc 的对象内存大小，另一个是 不参与GC的链表，都是为了方便调试用的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">global_State</span> &#123;</span></span><br><span class="line">  ....</span><br><span class="line">  lu_mem Y_GCmemnogc; <span class="comment">/* memory size of nogc linked list */</span></span><br><span class="line">  GCObject *Y_nogc;  <span class="comment">/* list of objects not to be traversed or collected */</span></span><br><span class="line">  ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="lstate-c"><a href="#lstate-c" class="headerlink" title="lstate.c"></a>lstate.c</h3><p>初始化上面的对象</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">LUA_API lua_State *<span class="title function_">lua_newstate</span> <span class="params">(lua_Alloc f, <span class="type">void</span> *ud)</span> &#123;</span><br><span class="line">  ....</span><br><span class="line">  g-&gt;Y_GCmemnogc = <span class="number">0</span>;</span><br><span class="line">  g-&gt;Y_nogc = <span class="literal">NULL</span>;</span><br><span class="line">  ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="lgc-c"><a href="#lgc-c" class="headerlink" title="lgc.c"></a>lgc.c</h3><p>这是最后一个文件了，依然是添加头文件。然后将以下代码进行对比替换。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;YGC.h&quot;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>提前返回对象，减少垃圾回收耗时。</p>
+<p>将 以下代码 进行替换，简单的来说就是将不需要GC的对象，移出 <code>allgc</code> 链表。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> GCObject **<span class="title function_">sweeplist</span> <span class="params">(lua_State *L, GCObject **p, lu_mem count)</span> &#123;</span><br><span class="line">  global_State *g = G(L);</span><br><span class="line">  <span class="type">int</span> ow = otherwhite(g);</span><br><span class="line">  <span class="type">int</span> white = luaC_white(g);  <span class="comment">/* current white */</span></span><br><span class="line">  <span class="keyword">while</span> (*p != <span class="literal">NULL</span> &amp;&amp; count-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    GCObject *curr = *p;</span><br><span class="line">    <span class="type">int</span> marked = curr-&gt;marked;</span><br><span class="line">    <span class="keyword">if</span> (isdeadm(ow, marked)) &#123;  <span class="comment">/* is &#x27;curr&#x27; dead? */</span></span><br><span class="line">      *p = curr-&gt;next;  <span class="comment">/* remove &#x27;curr&#x27; from list */</span></span><br><span class="line">      freeobj(L, curr);  <span class="comment">/* erase &#x27;curr&#x27; */</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;  <span class="comment">/* change mark to &#x27;white&#x27; */</span></span><br><span class="line">      curr-&gt;marked = cast_byte((marked &amp; maskcolors) | white);</span><br><span class="line">      p = &amp;curr-&gt;next;  <span class="comment">/* go to next element */</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> (*p == <span class="literal">NULL</span>) ? <span class="literal">NULL</span> : p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>替换为以下这段。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> GCObject **<span class="title function_">sweeplist</span> <span class="params">(lua_State *L, GCObject **p, lu_mem count)</span> &#123;</span><br><span class="line">  global_State *g = G(L);</span><br><span class="line">  <span class="type">int</span> ow = otherwhite(g);</span><br><span class="line">  <span class="type">int</span> white = luaC_white(g);  <span class="comment">/* current white */</span></span><br><span class="line">  <span class="keyword">while</span> (*p != <span class="literal">NULL</span> &amp;&amp; count-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    GCObject *curr = *p;</span><br><span class="line">    <span class="keyword">if</span> (g-&gt;gcstate == GCSswpallgc &amp;&amp; Y_isnogc(curr)) &#123;</span><br><span class="line">      *p = curr-&gt;next;</span><br><span class="line">      curr-&gt;next = g-&gt;Y_nogc;</span><br><span class="line">      g-&gt;Y_nogc = curr;</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> marked = curr-&gt;marked;</span><br><span class="line">    <span class="keyword">if</span> (isdeadm(ow, marked)) &#123;  <span class="comment">/* is &#x27;curr&#x27; dead? */</span></span><br><span class="line">      *p = curr-&gt;next;  <span class="comment">/* remove &#x27;curr&#x27; from list */</span></span><br><span class="line">      freeobj(L, curr);  <span class="comment">/* erase &#x27;curr&#x27; */</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;  <span class="comment">/* change mark to &#x27;white&#x27; */</span></span><br><span class="line">      curr-&gt;marked = cast_byte((marked &amp; maskcolors) | white);</span><br><span class="line">      p = &amp;curr-&gt;next;  <span class="comment">/* go to next element */</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> (*p == <span class="literal">NULL</span>) ? <span class="literal">NULL</span> : p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>propagatemark 的修改主要是为了提前返回，不要遍历不需要GC的对象。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">propagatemark</span> <span class="params">(global_State *g)</span> &#123;</span><br><span class="line">  lu_mem size;</span><br><span class="line">  GCObject *o = g-&gt;gray;</span><br><span class="line">  lua_assert(isgray(o));</span><br><span class="line">  gray2black(o);</span><br><span class="line">  <span class="keyword">switch</span> (o-&gt;tt) &#123;</span><br><span class="line">    <span class="keyword">case</span> LUA_TTABLE: &#123;</span><br><span class="line">      Table *h = gco2t(o);</span><br><span class="line">      g-&gt;gray = h-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = traversetable(g, h);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TLCL: &#123;</span><br><span class="line">      LClosure *cl = gco2lcl(o);</span><br><span class="line">      g-&gt;gray = cl-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = traverseLclosure(g, cl);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TCCL: &#123;</span><br><span class="line">      CClosure *cl = gco2ccl(o);</span><br><span class="line">      g-&gt;gray = cl-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = traverseCclosure(g, cl);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TTHREAD: &#123;</span><br><span class="line">      lua_State *th = gco2th(o);</span><br><span class="line">      g-&gt;gray = th-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      linkgclist(th, g-&gt;grayagain);  <span class="comment">/* insert into &#x27;grayagain&#x27; list */</span></span><br><span class="line">      black2gray(o);</span><br><span class="line">      size = traversethread(g, th);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TPROTO: &#123;</span><br><span class="line">      Proto *p = gco2p(o);</span><br><span class="line">      g-&gt;gray = p-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = traverseproto(g, p);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">default</span>: lua_assert(<span class="number">0</span>); <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  g-&gt;GCmemtrav += size;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>替换为。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">propagatemark</span> <span class="params">(global_State *g)</span> &#123;</span><br><span class="line">  lu_mem size;</span><br><span class="line">  GCObject *o = g-&gt;gray;</span><br><span class="line">  lua_assert(isgray(o));</span><br><span class="line">  gray2black(o);</span><br><span class="line">  <span class="keyword">switch</span> (o-&gt;tt) &#123;</span><br><span class="line">    <span class="keyword">case</span> LUA_TTABLE: &#123;</span><br><span class="line">      Table *h = gco2t(o);</span><br><span class="line">      g-&gt;gray = h-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = (Y_isnogc(o) ? <span class="number">0</span> : traversetable(g, h));</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TLCL: &#123;</span><br><span class="line">      LClosure *cl = gco2lcl(o);</span><br><span class="line">      g-&gt;gray = cl-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = (Y_isnogc(cl) ? <span class="number">0</span> : traverseLclosure(g, cl));</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TCCL: &#123;</span><br><span class="line">      CClosure *cl = gco2ccl(o);</span><br><span class="line">      g-&gt;gray = cl-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = traverseCclosure(g, cl);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TTHREAD: &#123;</span><br><span class="line">      lua_State *th = gco2th(o);</span><br><span class="line">      g-&gt;gray = th-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      linkgclist(th, g-&gt;grayagain);  <span class="comment">/* insert into &#x27;grayagain&#x27; list */</span></span><br><span class="line">      black2gray(o);</span><br><span class="line">      size = traversethread(g, th);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LUA_TPROTO: &#123;</span><br><span class="line">      Proto *p = gco2p(o);</span><br><span class="line">      g-&gt;gray = p-&gt;gclist;  <span class="comment">/* remove from &#x27;gray&#x27; list */</span></span><br><span class="line">      size = (Y_isnogc(p) ? <span class="number">0</span> : traverseproto(g, p));</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">default</span>: lua_assert(<span class="number">0</span>); <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  g-&gt;GCmemtrav += size;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>至此完结，享受提速后的快感吧。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Lua/" rel="tag"># Lua</a>
+          
+            <a href="/tags/Lua%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="tag"># Lua虚拟机</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/Lua%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%83%AD%E6%9B%B4%E6%96%B0/" rel="next" title="Lua 服务端热更新">
+                <i class="fa fa-chevron-left"></i> Lua 服务端热更新
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/ptmalloc2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="prev" title="ptmalloc2 内存管理">
+                ptmalloc2 内存管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="Yuerer" />
+            
+              <p class="site-author-name" itemprop="name">Yuerer</p>
+              <p class="site-description motion-element" itemprop="description">钰儿的Blog</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/%20%7C%7C%20archive">
+                
+                    <span class="site-state-item-count">57</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">82</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Yu2erer" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:yu2erer@gmail.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF"><span class="nav-text">思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98%E6%B1%A0"><span class="nav-text">使用内存池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%8F%E5%B0%91%E5%AF%B9%E8%B1%A1%E7%94%9F%E6%88%90"><span class="nav-text">减少对象生成</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%8F%90%E9%80%9F"><span class="nav-text">垃圾回收提速</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E5%91%A2%EF%BC%9F"><span class="nav-text">如何使用呢？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E5%85%A5-Lua"><span class="nav-text">接入 Lua</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lbaselib-c"><span class="nav-text">lbaselib.c</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lvm-c"><span class="nav-text">lvm.c</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lstate-h"><span class="nav-text">lstate.h</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lstate-c"><span class="nav-text">lstate.c</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lgc-c"><span class="nav-text">lgc.c</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2024</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuerer</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//code.bdstatic.com/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '4c1E52qAqL8mu0dHBxYy5MxV-MdYXbMMI',
+        appKey: 'FUYa35QiKu2nxrabaP2R8Cpp',
+        placeholder: '说些什么?',
+        avatar:'retro',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: true,
+        serverURLs: 'https://4c1e52qa.api.lncldglobal.com'
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
