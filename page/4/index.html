@@ -319,6 +319,237 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" itemprop="url">
+                  C++ 内存管理 之 原生版本
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-04 09:02:20" itemprop="dateCreated datePublished" datetime="2019-11-04T09:02:20+08:00">2019-11-04</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2024-01-20 22:27:31" itemprop="dateModified" datetime="2024-01-20T22:27:31+08:00">2024-01-20</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/" class="leancloud_visitors" data-flag-title="C++ 内存管理 之 原生版本">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="为什么要叫原生版本"><a href="#为什么要叫原生版本" class="headerlink" title="为什么要叫原生版本?"></a>为什么要叫原生版本?</h2><p>因为我觉得这一块是 C++ 自带的表达式 表达式里面 去调用 C语言的 CRT 库中的 <code>malloc</code> 和 <code>free</code> 但这篇 只讲自带的表达式 而不去深究 CRT 中的内存分配函数 所以只叫原生版本</p>
+<h2 id="常见的内存分配"><a href="#常见的内存分配" class="headerlink" title="常见的内存分配"></a>常见的内存分配</h2><table>
+<thead>
+<tr>
+<th>分配</th>
+<th>释放</th>
+<th>类属</th>
+<th>可否重载</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>malloc()</td>
+<td>free()</td>
+<td>C 函数</td>
+<td>否</td>
+</tr>
+<tr>
+<td>new</td>
+<td>delete</td>
+<td>C++ 表达式</td>
+<td>否</td>
+</tr>
+<tr>
+<td>::operator new()</td>
+<td>::operator delete()</td>
+<td>C++ 函数</td>
+<td>可</td>
+</tr>
+<tr>
+<td>allocator<T>::allocate()</td>
+<td>allocator<T>::deallocate()</td>
+<td>C++ 标准库</td>
+<td>自由设计搭配的容器</td>
+</tr>
+</tbody></table>
+<h3 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h3><p>其中 <code>::operator new() 和 ::operator delete()</code> 调用了 <code>malloc() 和 free()</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">    <span class="type">void</span> *p1 = <span class="built_in">malloc</span>(<span class="number">512</span>);</span><br><span class="line">    <span class="built_in">free</span>(p1);</span><br><span class="line">    </span><br><span class="line">    complex&lt;<span class="type">int</span>&gt; *p2 = <span class="keyword">new</span> complex&lt;<span class="type">int</span>&gt;;</span><br><span class="line">    <span class="keyword">delete</span> p2;</span><br><span class="line">    </span><br><span class="line">    <span class="type">void</span> *p3 = ::<span class="keyword">operator</span> <span class="built_in">new</span>(<span class="number">512</span>);</span><br><span class="line">    ::<span class="function"><span class="keyword">operator</span> <span class="title">delete</span><span class="params">(p3)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> _MSC_VER</span></span><br><span class="line">    <span class="comment">// 属于 non-static 要先实例化object再调用</span></span><br><span class="line">    <span class="type">int</span> *p4 = <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">allocate</span>(<span class="number">3</span>, (<span class="type">int</span>*)<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">deallocate</span>(p4, <span class="number">3</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __GUNC__</span></span><br><span class="line">    <span class="comment">// 早期 GNU-C++ 2.9 版本</span></span><br><span class="line">    <span class="comment">// void *p4 = alloc::allocate(512);</span></span><br><span class="line">    <span class="comment">// alloc::deallocate(p4, 512);</span></span><br><span class="line">    <span class="comment">// alloc 换名字了</span></span><br><span class="line">    <span class="type">void</span> *p5 = __gnu_cxx::__pool_alloc&lt;<span class="type">int</span>&gt;().<span class="built_in">allocate</span>(<span class="number">9</span>);</span><br><span class="line">    __gnu_cxx::__pool_alloc&lt;<span class="type">int</span>&gt;().<span class="built_in">deallocate</span>((<span class="type">int</span>*)p5, <span class="number">9</span>);</span><br><span class="line">    <span class="comment">// 4.9 版本之后</span></span><br><span class="line">    <span class="type">void</span> *p4 = <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">allocate</span>(<span class="number">7</span>);</span><br><span class="line">    <span class="built_in">allocator</span>&lt;<span class="type">int</span>&gt;().<span class="built_in">deallocate</span>((<span class="type">int</span>*)p4, <span class="number">7</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E4%B9%8B-%E5%8E%9F%E7%94%9F%E7%89%88%E6%9C%AC/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85VSCode-Remote-SSH/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2117,213 +2348,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E4%BF%A1%E5%8F%B7%E9%87%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E4%BF%A1%E5%8F%B7%E9%87%8F/" itemprop="url">
-                  操作系统之 信号量
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-12-24 10:36:20" itemprop="dateCreated datePublished" datetime="2018-12-24T10:36:20+08:00">2018-12-24</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2024-01-20 22:27:31" itemprop="dateModified" datetime="2024-01-20T22:27:31+08:00">2024-01-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">操作系统</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E4%BF%A1%E5%8F%B7%E9%87%8F/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E4%BF%A1%E5%8F%B7%E9%87%8F/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="leancloud_visitors" data-flag-title="操作系统之 信号量">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="信号量-Semaphore"><a href="#信号量-Semaphore" class="headerlink" title="信号量(Semaphore)"></a>信号量(Semaphore)</h2><p>操作系统提供的一种协调共享资源访问的方法 由 Dijkstra 提出</p>
-<ul>
-<li>软件同步是平等线程间的一种同步协调机制</li>
-<li>OS是管理者 地位高于进程</li>
-<li>用信号量表示系统资源数量</li>
-<li>早期操作系统主要同步机制(现在很少用)</li>
-<li>信号量是一种抽象数据类型<ul>
-<li>由一个整型变量(sem)和两个原子操作组成</li>
-<li>P() sem - 1 若 sem &lt; 0 进入等待 否则继续</li>
-<li>V() sem + 1 若 sem &lt;&#x3D; 0 唤醒一个等待进程</li>
-</ul>
-</li>
-</ul>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B9%8B-%E4%BF%A1%E5%8F%B7%E9%87%8F/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2375,7 +2399,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">58</span>
+                    <span class="site-state-item-count">59</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
