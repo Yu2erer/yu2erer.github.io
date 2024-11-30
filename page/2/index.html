@@ -319,6 +319,206 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/LuaJIT-5.3.6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/LuaJIT-5.3.6/" itemprop="url">
+                  LuaJIT 5.3.6 方案
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2021-07-04 10:02:20" itemprop="dateCreated datePublished" datetime="2021-07-04T10:02:20+08:00">2021-07-04</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2024-11-02 13:44:33" itemprop="dateModified" datetime="2024-11-02T13:44:33+08:00">2024-11-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/LuaJIT-5.3.6/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/LuaJIT-5.3.6/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/LuaJIT-5.3.6/" class="leancloud_visitors" data-flag-title="LuaJIT 5.3.6 方案">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>截止至上一次发博文已经过了接近三个月时间，这么长的一段时间我主要是去做了以下几件事情，一个是实现 <code>Lua 多线程的垃圾回收</code> 方案，另一个则是 <code>LuaJIT 5.3.6</code> 实现。其实也没用到三个月，实现代码加上测试一共花了一个月。</p>
+<h2 id="Lua-多线程垃圾回收"><a href="#Lua-多线程垃圾回收" class="headerlink" title="Lua 多线程垃圾回收"></a>Lua 多线程垃圾回收</h2><p>这一块的思路主要是从 <code>Redis</code> 通过子线程释放内存这块学来的，通过这个小优化，使得我们游戏服务器在大量玩家下线时，不再出现大规模的掉帧，效果还是非常显著的。</p>
+<h2 id="LuaJIT-5-3-6"><a href="#LuaJIT-5-3-6" class="headerlink" title="LuaJIT 5.3.6"></a>LuaJIT 5.3.6</h2><p>之所以实现这个 <code>Lua 5.3.6 JIT</code>，其实是因为 <code>LuaJIT 2.0</code> 不支持 5.3的新扩展，而项目已经进行到了中后期，没有时间去调整代码了，最后花了半个月的时间去实现了一个小版本，通过了 Lua 的官方测试用例，也在项目用上了。性能方面提高了2-5倍，接入成本为0，不需要修改任何逻辑代码。</p>
+<p>至于解释器部分，借鉴了 <code>Lua 5.4</code> 的一个小优化点，将 <code>switch case</code> 修改为了 <code>computed goto</code> ，提升了约 <code>5%</code> 的性能，之后可能会学习 <code>Lua 5.4</code> 扩展字节码。如果这个项目还做下去的话(我有时间的话)，我会想尝试解释器执行脚本时记录各个操作数的类型，实现动态替换字节码，减少不必要的类型判断，从而提升一定的解释器速度。不过这个方案风险太大，暂时先搁置。</p>
+<p>在实现 <code>LuaJIT 5.3.6</code> 的过程中，顺带复习了一下编译原理的前端部分，实现了一些官方不支持的语法，比如 ‘+&#x3D;’，自增表达式(当然没有提交)，还是非常有趣的。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>以上的代码实现已经开源，合并之前的 <code>NOGC</code> 优化思路，<a target="_blank" rel="noopener" href="https://github.com/Yu2erer/LuaJIT-5.3.6">LuaJIT-5.3.6</a>，欢迎 <code>Star</code> ，这对我很重要。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/LuaJIT-5.3.6/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/Redis-6-%E5%89%96%E6%9E%90(%E4%BA%8C)-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2155,207 +2355,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/" itemprop="url">
-                  Lua 5.3 设计实现(四) Closure与Upvalues
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-12-05 22:29:20" itemprop="dateCreated datePublished" datetime="2020-12-05T22:29:20+08:00">2020-12-05</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2024-01-20 22:27:31" itemprop="dateModified" datetime="2024-01-20T22:27:31+08:00">2024-01-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/" class="leancloud_visitors" data-flag-title="Lua 5.3 设计实现(四) Closure与Upvalues">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><code>Closure</code> 其实对于 <code>C/C++</code> 程序员可以简单理解为 函数。不过由于有了 <code>Upvalues</code> 的概念，会让人理解起来不那么容易，但是 Lua 中的所有函数 其实都是 闭包，包括我们第一篇 <a href="https://yuerer.com/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E4%B8%80)-Lua%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84/">Lua 5.3 设计实现(一) Lua是怎么跑起来的？</a>) 文章中提到的运行流程的第一个主函数，其实也是一个闭包。</p>
-<p>本文中 函数与闭包的名字会混用，请根据其是否含有 Upvalue 进行区分。</p>
-<h2 id="Closure"><a href="#Closure" class="headerlink" title="Closure"></a>Closure</h2><p>闭包是由 函数原型（Proto）+ （UpValue）组合而成的。</p>
-<p>而 <code>Proto</code> 其实就是拥有所有执行所需要的信息，因为这一块在第一篇已经讲过，故大幅度跳过。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Proto</span> &#123;</span></span><br><span class="line">  CommonHeader;</span><br><span class="line">  lu_byte numparams;  <span class="comment">// 固定函数个数</span></span><br><span class="line">  lu_byte is_vararg;  <span class="comment">// 是否是可变长参数</span></span><br><span class="line">  lu_byte maxstacksize;  <span class="comment">// 寄存器数量，用栈模拟</span></span><br><span class="line">  <span class="type">int</span> sizeupvalues;  <span class="comment">// Upvalues 个数</span></span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> sizek;  <span class="comment">/* size of &#x27;k&#x27; */</span></span><br><span class="line">  <span class="type">int</span> sizecode;</span><br><span class="line">  <span class="type">int</span> sizelineinfo;</span><br><span class="line">  <span class="type">int</span> sizep;  <span class="comment">/* size of &#x27;p&#x27; */</span></span><br><span class="line">  <span class="type">int</span> sizelocvars;</span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> linedefined;  <span class="comment">// 开始行号</span></span><br><span class="line">  <span class="type">int</span> lastlinedefined;  <span class="comment">// 结束行号</span></span><br><span class="line">  TString  *source; <span class="comment">// 源文件名</span></span><br><span class="line"></span><br><span class="line">  TValue *k;  <span class="comment">// 常量表</span></span><br><span class="line">  Instruction *code;  <span class="comment">// 指令表</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">Proto</span> **<span class="title">p</span>;</span>  <span class="comment">// 子函数原型表</span></span><br><span class="line">  <span class="type">int</span> *lineinfo;  <span class="comment">// 行号表 行号与指令对应</span></span><br><span class="line">  LocVar *locvars;  <span class="comment">// 局部变量表</span></span><br><span class="line">  Upvaldesc *upvalues;  <span class="comment">// Upvalue 表</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">LClosure</span> *<span class="title">cache</span>;</span>  <span class="comment">/* last-created closure with this prototype */</span></span><br><span class="line">  GCObject *gclist;</span><br><span class="line">&#125; Proto;</span><br></pre></td></tr></table></figure>
-
-<p>我们更关注的是 <code>Upvalues</code>。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Lua5.3-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E7%8E%B0(%E5%9B%9B)-Closure%E4%B8%8EUpvalues/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2407,7 +2406,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">59</span>
+                    <span class="site-state-item-count">60</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2631,7 +2630,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">82</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">84</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
