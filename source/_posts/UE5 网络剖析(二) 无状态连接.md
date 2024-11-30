@@ -2,8 +2,8 @@
 title: UE5 网络剖析(二) 无状态连接
 categories: UE
 date: 2024-11-23 10:38:20
-keywords: UE5, UDP
-tags: [UE5, 网络]
+keywords: UE5, UDP, PacketHandler, Packet, Bunch, StatelessConnectHandlerComponent
+tags: [UE5, 网络, Packet, Bunch]
 ---
 
 本文主要剖析 UE5 中客户端是如何与DS建立连接，构建基础 Channel，以及无状态握手流程。
@@ -578,7 +578,7 @@ void UNetConnection::ReceivedRawPacket( void* InData, int32 Count )
 }
 ```
 
-`bConnectionlessPacket` 为 true 为服务端流程，为 false 为客户端流程。
+在握手阶段 `bConnectionlessPacket` 为 true 为服务端流程，为 false 为客户端流程。而握手结束后，双方都会走 `Incoming` 流程。
 
 ```cpp
 EIncomingResult PacketHandler::Incoming_Internal(FReceivedPacketView& PacketView)
@@ -709,7 +709,7 @@ void StatelessConnectHandlerComponent::Incoming(FBitReader& Packet)
 
 ## 断线重连
 
-当客户端出现切换网络时，可能会带着新的地址连接至服务端(带着旧Cookie)，若服务端能通过该地址找到该条连接，则复用。若不能，则判断是否为握手包，是握手包走握手流程，否则触发重新握手流程，通知客户端重新握手。
+当客户端出现切换网络时，可能会带着新的地址连接至服务端，服务端发现无法根据该地址找到连接，因此会下发重新握手的请求。
 
 ```cpp
 void StatelessConnectHandlerComponent::IncomingConnectionless(FIncomingPacketRef PacketRef)
