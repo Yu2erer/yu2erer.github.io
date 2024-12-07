@@ -319,6 +319,198 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yuerer.com/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E5%9B%9B)%20%E5%B1%9E%E6%80%A7%E5%90%8C%E6%AD%A5%E4%B8%8ERPC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Yuerer">
+      <meta itemprop="description" content="钰儿的Blog">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yuerer's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E5%9B%9B)%20%E5%B1%9E%E6%80%A7%E5%90%8C%E6%AD%A5%E4%B8%8ERPC/" itemprop="url">
+                  UE5 网络剖析(四) 属性同步与RPC
+                </a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2024-12-07 10:59:20 / 修改时间：11:04:16" itemprop="dateCreated datePublished" datetime="2024-12-07T10:59:20+08:00">2024-12-07</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/UE/" itemprop="url" rel="index"><span itemprop="name">UE</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E5%9B%9B)%20%E5%B1%9E%E6%80%A7%E5%90%8C%E6%AD%A5%E4%B8%8ERPC/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E5%9B%9B)%20%E5%B1%9E%E6%80%A7%E5%90%8C%E6%AD%A5%E4%B8%8ERPC/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E5%9B%9B)%20%E5%B1%9E%E6%80%A7%E5%90%8C%E6%AD%A5%E4%B8%8ERPC/" class="leancloud_visitors" data-flag-title="UE5 网络剖析(四) 属性同步与RPC">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文主要剖析 UE5 网络中是如何进行属性同步和RPC的。</p>
+<h2 id="同步-Actor"><a href="#同步-Actor" class="headerlink" title="同步 Actor"></a>同步 Actor</h2><p>要进行属性同步，首先就要先同步 Actor，但更要知道哪些 Actor 需要网络同步。</p>
+<h3 id="哪些-Actor-需要网络同步"><a href="#哪些-Actor-需要网络同步" class="headerlink" title="哪些 Actor 需要网络同步"></a>哪些 Actor 需要网络同步</h3><p>Actor 需要设置 <code>bReplicates</code> 为 true，才会进行同步，</p>
+<p>以 Spawn Pawn 为例，玩家登录之后会由 <code>GameMode</code> 创建 Pawn 实例。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">AActor* <span class="title">UWorld::SpawnActor</span><span class="params">( UClass* Class, FVector <span class="type">const</span>* Location, FRotator <span class="type">const</span>* Rotation, <span class="type">const</span> FActorSpawnParameters&amp; SpawnParameters )</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">		...</span><br><span class="line">    AActor* <span class="type">const</span> Actor = <span class="built_in">NewObject</span>&lt;AActor&gt;(LevelToSpawnIn, Class, NewActorName, ActorFlags, Template, <span class="literal">false</span><span class="comment">/*bCopyTransientsFromClassDefaults*/</span>, <span class="literal">nullptr</span><span class="comment">/*InInstanceGraph*/</span>, ExternalPackage);</span><br><span class="line">    <span class="comment">// Add this newly spawned actor to the network actor list. Do this after PostSpawnInitialize so that actor has &quot;finished&quot; spawning.</span></span><br><span class="line">    <span class="built_in">AddNetworkActor</span>( Actor );</span><br><span class="line">    <span class="keyword">return</span> Actor;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>若 <code>bReplicates</code> 为 true，则 RemoteRole 为 ROLE_SimulatedProxy，表示是远端为模拟代理。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">AActor::PostInitProperties</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::<span class="built_in">PostInitProperties</span>();</span><br><span class="line">    RemoteRole = (bReplicates ? ROLE_SimulatedProxy : ROLE_None);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将需要同步的 Actor 加入到 NetDriver中的一个集合里， 至此就找到了要网络同步的 Actor，需要注意一点是 <code>Replicate</code> 是支持动态开关的。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E5%9B%9B)%20%E5%B1%9E%E6%80%A7%E5%90%8C%E6%AD%A5%E4%B8%8ERPC/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://yuerer.com/UE5%20%E7%BD%91%E7%BB%9C%E5%89%96%E6%9E%90(%E4%B8%89)%20%E7%99%BB%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2095,214 +2287,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yuerer.com/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Yuerer">
-      <meta itemprop="description" content="钰儿的Blog">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yuerer's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/" itemprop="url">
-                  Python3 源码剖析(一)-float诞生
-                </a>
-              
-            
-          </h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2022-04-05 10:30:54" itemprop="dateCreated datePublished" datetime="2022-04-05T10:30:54+08:00">2022-04-05</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2024-01-20 22:27:31" itemprop="dateModified" datetime="2024-01-20T22:27:31+08:00">2024-01-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Python3/" itemprop="url" rel="index"><span itemprop="name">Python3</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/" class="leancloud_visitors" data-flag-title="Python3 源码剖析(一)-float诞生">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数：</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>去年 <code>2021</code> 年的时候，我的工作主要集中在改进 <code>Lua虚拟机</code> ，后来由于工作变动，现在主要的工作语言已经切换为了 <code>Python</code> ，因此打算阅读下 <code>Python 3.10</code> 的源码，学习一下它的设计，对比 <code>Lua</code> 的优势。</p>
-<p>希望在接下来的阅读过程中，能够体会到一种 <code>回家</code> 的畅快感。</p>
-<p>本篇将以 <code>float</code> 作为起点，了解如何创建出一个浮点对象，深入剖析 <code>float</code> 其内部实现。</p>
-<h2 id="一切皆对象"><a href="#一切皆对象" class="headerlink" title="一切皆对象"></a>一切皆对象</h2><p>一切皆对象 这句话都要被讲烂了，但是还要讲多一次。</p>
-<p><code>Python</code> 是一门面向对象的强类型动态语言，里面的任何东西都是对象，以浮点数为例。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># a 是一个浮点实例对象，类型是 float</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a = <span class="number">3.14159</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">type</span>(a)</span><br><span class="line">&lt;<span class="keyword">class</span> <span class="string">&#x27;float&#x27;</span>&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># float 也是个对象，但它是 类型对象</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">float</span></span><br><span class="line">&lt;<span class="keyword">class</span> <span class="string">&#x27;float&#x27;</span>&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">float</span>()</span><br><span class="line"><span class="number">0.0</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># float这个类型对象的类型是 type</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">type</span>(<span class="built_in">float</span>)</span><br><span class="line">&lt;<span class="keyword">class</span> <span class="string">&#x27;type&#x27;</span>&gt;</span><br></pre></td></tr></table></figure>
-
-<p>以上我们可以确定，<code>Python</code> 中类型也是对象。</p>
-<p>此外所有对象的类型都是 <code>type</code> ，可以称其为元类。而所有对象都继承自 <code>object</code> 。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/Python3-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90(%E4%B8%80)-float%E8%AF%9E%E7%94%9F/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
   </nav>
 
 
@@ -2349,7 +2338,7 @@
                 
                   <a href="/archives/%20%7C%7C%20archive">
                 
-                    <span class="site-state-item-count">60</span>
+                    <span class="site-state-item-count">61</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
