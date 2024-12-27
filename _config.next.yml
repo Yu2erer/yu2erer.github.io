@@ -908,16 +908,16 @@ vendors:
   # The CDN provider of NexT internal scripts.
   # Available values: local | jsdelivr | unpkg | cdnjs | custom
   # Warning: If you are using the latest master branch of NexT, please set `internal: local`
-  internal: local
+  internal: custom
   # The default CDN provider of third-party plugins.
   # Available values: local | jsdelivr | unpkg | cdnjs | custom
   # Dependencies for `plugins: local`: https://github.com/next-theme/plugins
-  plugins: unpkg
+  plugins: custom
   # Custom CDN URL
   # For example:
   # custom_cdn_url: https://cdn.jsdelivr.net/npm/${npm_name}@${version}/${minified}
   # custom_cdn_url: https://cdnjs.cloudflare.com/ajax/libs/${cdnjs_name}/${version}/${cdnjs_file}
-  custom_cdn_url: https://s4.zstatic.net/ajax/libs//${cdnjs_name}/${version}/${cdnjs_file}
+  custom_cdn_url: https://s4.zstatic.net/ajax/libs/${cdnjs_name}/${version}/${cdnjs_file}
 
 # Assets
 # Accelerate delivery of static files using a CDN
@@ -932,10 +932,10 @@ images: images
 # - https://waline.js.org/reference/component.html
 waline:
   # New! Whether enable this plugin
-  enable: false
+  enable: true
 
   # Waline server address url, you should set this to your own link
-  serverURL: https://waline.vercel.app
+  serverURL: https://yuerer-comment-xufei-0bea01e6f05-1307930306.ap-shanghai.app.tcloudbase.com
 
   # Waline library CDN url, you can set this to your preferred CDN
   # libUrl: https://unpkg.com/@waline/client@v2/dist/waline.js
