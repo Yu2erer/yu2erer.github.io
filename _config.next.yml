@@ -939,11 +939,11 @@ waline:
 
   # Waline library CDN url, you can set this to your preferred CDN
   # libUrl: https://unpkg.com/@waline/client@v2/dist/waline.js
-  libUrl: https://s4.zstatic.net/ajax/libs/waline/3.2.6/waline.js
+  libUrl: https://s4.zstatic.net/ajax/libs/waline/2.15.8/waline.js
 
   # Waline CSS styles CDN url, you can set this to your preferred CDN
   # cssUrl: https://unpkg.com/@waline/client@v2/dist/waline.css
-  cssUrl: https://s4.zstatic.net/ajax/libs/waline/3.2.6/waline.css
+  cssUrl: https://s4.zstatic.net/ajax/libs/waline/2.15.8/waline.css
 
   # Custom locales
   locale:
