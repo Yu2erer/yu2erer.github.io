@@ -938,12 +938,12 @@ waline:
   serverURL: https://yuerer-comment-xufei-0bea01e6f05-1307930306.ap-shanghai.app.tcloudbase.com
 
   # Waline library CDN url, you can set this to your preferred CDN
-  libUrl: https://unpkg.com/@waline/client@v2/dist/waline.js
-  # libUrl: https://lf6-unpkg.zstaticcdn.com/@waline/client@v2/dist/waline.js
+  # libUrl: https://unpkg.com/@waline/client@v2/dist/waline.js
+  libUrl: https://s4.zstatic.net/ajax/libs/waline/3.2.6/waline.js
 
   # Waline CSS styles CDN url, you can set this to your preferred CDN
-  cssUrl: https://unpkg.com/@waline/client@v2/dist/waline.css
-  # cssUrl: https://lf6-unpkg.zstaticcdn.com/@waline/client@v2/dist/waline.css
+  # cssUrl: https://unpkg.com/@waline/client@v2/dist/waline.css
+  cssUrl: https://s4.zstatic.net/ajax/libs/waline/3.2.6/waline.css
 
   # Custom locales
   locale:
