@@ -939,11 +939,11 @@ waline:
 
   # Waline library CDN url, you can set this to your preferred CDN
   # libUrl: https://unpkg.com/@waline/client@v2/dist/waline.js
-  libUrl: https://s4.zstatic.net/npm/@waline/client@v2/dist/waline.js
+  libUrl: https://lf6-unpkg.zstaticcdn.com/@waline/client@v2/dist/waline.js
 
   # Waline CSS styles CDN url, you can set this to your preferred CDN
   # cssUrl: https://unpkg.com/@waline/client@v2/dist/waline.css
-  cssUrl: https://s4.zstatic.net/npm/@waline/client@v2/dist/waline.css
+  cssUrl: https://lf6-unpkg.zstaticcdn.com/@waline/client@v2/dist/waline.css
 
   # Custom locales
   locale:
@@ -960,7 +960,7 @@ waline:
   #   - https://unpkg.com/@waline/emojis@1.0.1/weibo
   #   - https://unpkg.com/@waline/emojis@1.0.1/alus
   #   - https://unpkg.com/@waline/emojis@1.0.1/bilibili
-    - https://s4.zstatic.net/npm/@waline/emojis@1.0.1/qq
+    - https://lf6-unpkg.zstaticcdn.com/@waline/emojis@1.0.1/qq
   #   - https://unpkg.com/@waline/emojis@1.0.1/tieba
   #   - https://unpkg.com/@waline/emojis@1.0.1/tw-emoji
 
