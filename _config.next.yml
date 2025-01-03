@@ -53,8 +53,8 @@ darkmode: false
 favicon:
   small: /images/favicon-16x16.ico
   medium: /images/favicon-32x32.ico
-  apple_touch_icon: https://7975-yuerer-comment-xufei-0bea01e6f05-1307930306.tcb.qcloud.la/avatar.jpg
-  safari_pinned_tab: https://7975-yuerer-comment-xufei-0bea01e6f05-1307930306.tcb.qcloud.la/avatar.jpg
+  apple_touch_icon: /images/avatar.jpeg
+  safari_pinned_tab: /images/avatar.jpeg
   #android_manifest: /manifest.json
 
 # Custom Logo (Warning: Do not support scheme Mist)
@@ -143,7 +143,7 @@ sidebar:
 # Sidebar Avatar
 avatar:
   # Replace the default image and set the url here.
-  url: https://7975-yuerer-comment-xufei-0bea01e6f05-1307930306.tcb.qcloud.la/avatar.jpg
+  url: /images/avatar.jpeg
   # If true, the avatar will be displayed in circle.
   rounded: true
   # If true, the avatar will be rotated with the cursor.
@@ -158,7 +158,7 @@ site_state: true
 # Value before `||` delimiter is the target permalink, value after `||` delimiter is the name of Font Awesome icon.
 social:
   GitHub: https://github.com/Yu2erer || fab fa-github
-  E-Mail: mailto:yu2erer@gmail.com || fa fa-envelope
+  E-Mail: mailto:yu2erer#gmail.com || fa fa-envelope
   #Weibo: https://weibo.com/yourname || fab fa-weibo
   #Twitter: https://twitter.com/yourname || fab fa-twitter
   #FB Page: https://www.facebook.com/yourname || fab fa-facebook
@@ -768,7 +768,7 @@ addtoany:
 # Google Analytics
 # See: https://analytics.google.com
 google_analytics:
-  tracking_id: # <app_id>
+  tracking_id: UA-129491388-1
   # By default, NexT will load an external gtag.js script on your site.
   # If you only need the pageview feature, set the following option to true to get a better performance.
   only_pageview: false
@@ -912,7 +912,7 @@ vendors:
   # The default CDN provider of third-party plugins.
   # Available values: local | jsdelivr | unpkg | cdnjs | custom
   # Dependencies for `plugins: local`: https://github.com/next-theme/plugins
-  plugins: custom
+  plugins: unpkg
   # Custom CDN URL
   # For example:
   # custom_cdn_url: https://cdn.jsdelivr.net/npm/${npm_name}@${version}/${minified}
