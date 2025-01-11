@@ -176,7 +176,7 @@ struct Z_CompiledInDeferFile_FID_Users_yuerer_Desktop_reflection_Source_Reflecti
             &Z_Registration_Info_UEnum_EMyEnumClass,
             CONSTRUCT_RELOAD_VERSION_INFO(FEnumReloadVersionInfo, 4010083278U)
         },
-	};
+    };
 };
 static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_yuerer_Desktop_reflection_Source_Reflection_Public_Enum_MyEnumClass_h_2660371430(
     TEXT("/Script/Reflection"),
@@ -586,11 +586,11 @@ UFunction* Z_Construct_UFunction_UMyObject_MyFunc()
 #define RESULT_DECL void*const RESULT_PARAM
 void UMyObject::execMyFunc( UObject* Context, FFrame& Stack, RESULT_DECL )
 {
-	P_GET_PROPERTY(FIntProperty,Z_Param_i);
-	P_FINISH;
-	P_NATIVE_BEGIN;
-	*(int32*)Z_Param__Result=P_THIS->MyFunc(Z_Param_i);
-	P_NATIVE_END;
+    P_GET_PROPERTY(FIntProperty,Z_Param_i);
+    P_FINISH;
+    P_NATIVE_BEGIN;
+    *(int32*)Z_Param__Result=P_THIS->MyFunc(Z_Param_i);
+    P_NATIVE_END;
 }
 ```
 
