@@ -389,11 +389,11 @@ back2top:
 
 # Reading progress bar
 reading_progress:
-  enable: false
+  enable: true
   # Available values: left | right
   start_at: left
   # Available values: top | bottom
-  position: top
+  position: bottom
   reversed: false
   color: "#37c6c0"
   height: 3px
@@ -978,7 +978,7 @@ waline:
   lang: zh-CN
 
   # Word limit, no limit when setting to 0
-  wordLimit: 3
+  wordLimit: 0
 
   # Whether enable login, can choose from 'enable', 'disable' and 'force'
   login: disable
