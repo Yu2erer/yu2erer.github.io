@@ -252,7 +252,7 @@ post_meta:
   item_text: true
   created_at: true
   updated_at:
-    enable: true
+    enable: false
     another_day: true
   categories: true
 
@@ -377,7 +377,7 @@ codeblock:
     style: flat
   # Fold code block
   fold:
-    enable: false
+    enable: true
     height: 500
 
 back2top:
