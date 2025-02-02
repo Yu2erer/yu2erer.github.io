@@ -1122,4 +1122,4 @@ for (FCompilerData& CompilerData : CurrentlyCompilingBPs)
 
 # FlushReinstancingQueueImpl
 
-最后这一部分则是替换实例了，比如场景有个 BP_Actor，这次编译了该蓝图资源，就会用新的 `GeneratedClass` 的 CDO 去 SpawnActor 来替换它。
+最后这一部分则是替换实例了，比如场景有个 BP_Actor，这次编译了该蓝图资源，就会用新的 `GeneratedClass` 去 SpawnActor 来替换它。

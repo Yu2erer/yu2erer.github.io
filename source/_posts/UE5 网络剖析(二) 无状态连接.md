@@ -22,7 +22,7 @@ UNetDriver 默认有两个子类， IpNetDriver 和 DemoNetDriver 后面一个�
 UNetDriver* CreateNetDriver_Local(UEngine* Engine, FWorldContext& Context, FName NetDriverDefinition, FName InNetDriverName)
 {
     Definition = Engine->NetDriverDefinitions.FindByPredicate(FindNetDriverDefPred);
-    UClass* NetDriverClass = StaticLoadClass(UNetDriver::StaticClass(), nullptr, *Definition->DriverClassName.ToString(), nullptr， LOAD_Quiet);
+    UClass* NetDriverClass = StaticLoadClass(UNetDriver::StaticClass(), nullptr, *Definition->DriverClassName.ToString(), nullptr, LOAD_Quiet);
     ReturnVal = NewObject<UNetDriver>(GetTransientPackage(), NetDriverClass);
     // 数组 重载了 operator new
     new(Context.ActiveNetDrivers) FNamedNetDriver(ReturnVal, Definition);
