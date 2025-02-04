@@ -1,7 +1,7 @@
 ---
 title: UE5 网络剖析(四) 属性同步与RPC
 categories: UE
-keywords: 'UE5, UDP, Bunch, Replicator'
+keywords: UE5, UDP, Bunch, Replicator, UE4, RPC
 tags:
   - UE5
   - 网络

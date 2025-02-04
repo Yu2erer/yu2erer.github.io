@@ -2,7 +2,7 @@
 title: UE5 网络剖析(二) 无状态连接
 categories: UE
 date: 2024-11-23 10:38:20
-keywords: UE5, UDP, PacketHandler, Packet, Bunch, StatelessConnectHandlerComponent
+keywords: UE5, UDP, PacketHandler, Packet, Bunch, StatelessConnectHandlerComponent, UE4
 tags: [UE5, 网络, Packet, Bunch]
 ---
 
