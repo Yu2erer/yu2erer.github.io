@@ -102,7 +102,7 @@ theme: next
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: git@github.com:Yu2erer/yu2erer.github.io.git
+  repo: https://github.com/Yu2erer/yu2erer.github.io.git
   branch: master
 
 sitemap:
