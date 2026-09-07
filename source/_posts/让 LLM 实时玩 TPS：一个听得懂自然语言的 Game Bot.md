@@ -1,5 +1,6 @@
 ---
 title: 让 LLM 实时玩 TPS：一个听得懂自然语言的 Game Bot
+seo_description: 让 LLM 实时玩射击游戏：通过 LoRA 后训练 Qwen 小模型，根据游戏状态与自然语言指令实时做出战术决策。本文介绍 Game Bot 的策略设计、模型训练与实时运行，并展示 AI 队友和游戏自动化测试的应用。
 categories: AI
 date: 2026-09-06 15:05:00
 keywords: LLM, TPS, Game AI, Qwen, Game Bot, Post-training
