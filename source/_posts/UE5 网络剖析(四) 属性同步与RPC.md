@@ -1,5 +1,6 @@
 ---
 title: UE5 网络剖析(四) 属性同步与RPC
+seo_description: "剖析 UE5 的 Actor 同步、属性复制与 RPC 调用流程，说明同步对象筛选、FRepLayout 与 ShadowBuffer、属性差异比较、丢包处理和对象引用同步，以及 RPC 参数的组织方式。"
 categories: UE
 keywords: UE5, UDP, Bunch, Replicator, UE4, RPC
 tags:

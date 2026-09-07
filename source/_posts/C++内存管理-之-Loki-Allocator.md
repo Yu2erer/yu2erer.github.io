@@ -1,5 +1,6 @@
 ---
 title: C++ 内存管理 之 Loki Allocator
+seo_description: "剖析 Loki 小对象内存分配器的三层结构：Chunk、FixedAllocator 和 SmallObjAllocator。结合源码说明空闲块管理、内存分配与回收，以及空闲 Chunk 的释放和容器整理。"
 categories: C++
 date: 2019-11-8 15:00:20
 keywords: C++, 内存管理, 内存分配原理, Loki, Allocator

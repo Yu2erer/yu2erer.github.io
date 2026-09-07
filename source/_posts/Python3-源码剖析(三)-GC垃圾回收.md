@@ -1,5 +1,6 @@
 ---
 title: Python3-源码剖析(三)-GC垃圾回收
+seo_description: "剖析 CPython 垃圾回收中的引用计数、循环引用检测和分代收集机制，讨论对象跟踪与 __del__ 对回收的影响，并提出渐进分代、减少跟踪对象等优化思路。"
 categories: Python3
 date: 2022-05-01 14:34:28
 keywords: Python3, CPython, Garbage, Collect

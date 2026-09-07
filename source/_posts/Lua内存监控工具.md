@@ -1,5 +1,6 @@
 ---
 title: Lua 内存监控工具
+seo_description: "介绍一种 Lua 内存监控工具的实现：通过自定义 frealloc 记录对象分配位置与大小，结合调用栈、文件名和行号定位内存来源，并处理释放、扩缩容及记录开销的优化。"
 categories: Lua
 date: 2023-08-25 22:42:20
 keywords: Lua, Garbage Collect, Memory

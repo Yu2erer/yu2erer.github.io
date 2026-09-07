@@ -1,5 +1,6 @@
 ---
 title: UE5 网络剖析(三) 登录
+seo_description: "梳理 UE5 客户端与专用服务器完成握手后的登录流程，跟踪 Hello、Challenge、Login、Welcome 和 Join 等控制消息，并分析 Channel 中 Bunch 的发送、接收与分发。"
 categories: UE
 date: 2024-11-30 10:19:20
 keywords: UE5, UDP, Bunch, UE4

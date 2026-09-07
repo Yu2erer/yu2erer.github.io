@@ -1,5 +1,6 @@
 ---
 title: Lua GC垃圾回收优化方案
+seo_description: "介绍一种面向游戏项目的 Lua GC 优化方案：将长期不变的配置表和相关对象移出常规扫描范围，减少重复遍历。说明 NOGC 接口、虚拟机接入改动，以及弱表和标记后修改对象的限制。"
 categories: Lua
 date: 2020-12-19 10:09:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机, GC, 垃圾回收

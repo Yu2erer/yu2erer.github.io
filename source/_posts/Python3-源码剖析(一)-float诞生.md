@@ -1,5 +1,6 @@
 ---
 title: Python3 源码剖析(一)-float诞生
+seo_description: "以 CPython 3.10 的 float 对象为入口，解析 PyObject、PyTypeObject 和 PyFloatObject 的关系，跟踪浮点数的初始化、创建、缓存与销毁，并讨论比较运算等实现细节。"
 categories: Python3
 date: 2022-04-05 10:30:54
 keywords: Python3, CPython, float, floatobject

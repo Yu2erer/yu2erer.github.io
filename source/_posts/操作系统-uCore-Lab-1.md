@@ -1,5 +1,6 @@
 ---
 title: 操作系统 uCore Lab 1 含 Challenge
+seo_description: "记录 uCore Lab 1 的实验分析与实现，涵盖内核镜像生成、QEMU 调试、bootloader 进入保护模式和加载 ELF 内核、调用栈跟踪、中断处理，以及用户态与内核态切换的扩展练习。"
 categories: 操作系统
 date: 2018-11-04 22:12:20
 keywords: 操作系统, ucore, lab 1, challenge
@@ -37,9 +38,9 @@ $(bootblock): $(call toobj,$(bootfiles)) | $(call totarget,sign)
 $(call create_target,bootblock)
 ```
 
-![](/images/lab1_gcc.png)
+![uCore Lab 1 编译输出：将 bootasm.S、bootmain.c 和 sign.c 编译为目标文件或工具。](/images/lab1_gcc.png)
 
-![](/images/lab1_ld_bootblock.png)
+![uCore Lab 1 引导块链接输出：链接 bootblock，并生成 512 字节的引导扇区。](/images/lab1_ld_bootblock.png)
 
 生成 Kernel
 
@@ -59,7 +60,7 @@ $(kernel): $(KOBJS)
 $(call create_target,kernel)
 将 kern 下面的所有文件 编译 生成 目标文件 再进行链接
 ```
-![](/images/lab1_ld_kernel.png)
+![uCore Lab 1 内核链接命令：使用 kernel.ld 链接内核及公共库目标文件，生成 bin/kernel。](/images/lab1_ld_kernel.png)
 
 - -ggdb 生成可供gdb使用的调试信息 
 - -m32 生成适用于32位环境的代码 
@@ -384,7 +385,7 @@ void print_stackframe(void) {
 最后一行输出的 ebp为 0x00007bf8 但是 bootloader 起始地址是 0x7c00 说明 压入了 两个东西 其中一个是 返回地址 另一个是 ebp 最后将 esp 赋给 ebp
 ```
 
-![](/images/stack.png)
+![x86 函数栈帧布局：参数、返回地址和保存的 EBP 位于高地址侧，局部变量沿低地址方向分配。](/images/stack.png)
 esp 栈顶指针 
 ebp 栈底指针 
 eip 寄存器存放的CPU下一条指令的地址
@@ -394,7 +395,7 @@ eip 寄存器存放的CPU下一条指令的地址
 请完成编码工作和回答如下问题：
 1. 中断描述符表（也可简称为保护模式下的中断向量表）中一个表项占多少字节？其中哪几位代表中断处理代码的入口？
 
-![](/images/trapgate.png)
+![x86 陷阱门描述符格式，标出处理程序入口偏移、代码段选择子、DPL、P 位和类型字段。](/images/trapgate.png)
 ```c
 /* Gate descriptors for interrupts and traps */
 struct gatedesc {
@@ -439,7 +440,7 @@ kern/trap/trap.c 138:
         break;
 ```
 
-![](/images/lab1.png)
+![QEMU 运行 uCore Lab 1 的输出，显示函数调用栈及周期性的 100 ticks 时钟中断信息。](/images/lab1.png)
 
 ### 扩展练习 
 #### 扩展练习 Challenge 1
@@ -507,7 +508,7 @@ static void trap_dispatch(struct trapframe *tf)
 ```
 
 根据这张图 可以看出 内核态和用户态的转换 首先是留下 SS 和 ESP 的位置 然后 调用中断 改中断栈里面的内容 最后退出中断的时候 跳到内核态中 最后将 ebp 赋给 esp 修复 esp 的位置
-![](/images/pcb.png)
+![PCB 中的栈布局示意，标出中断栈 intr_stack、线程栈 thread_stack 和栈顶指针 self_kstack。](/images/pcb.png)
 
 #### 扩展练习 Challenge 2
 用键盘实现用户模式内核模式切换。具体目标是：“键盘输入3时切换到用户模式，键盘输入0时切换到内核模式”。 基本思路是借鉴软中断(syscall功能)的代码，并且把trap.c中软中断处理的设置语句拿过来。

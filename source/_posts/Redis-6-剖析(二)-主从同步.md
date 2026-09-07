@@ -1,5 +1,6 @@
 ---
 title: Redis 6 剖析(二) 主从同步
+seo_description: "沿 Redis 6 从库与主库两条流程分析主从同步，涵盖连接握手、部分重同步、全量 RDB 传输和复制状态推进，并讨论同步过程中的延迟、过期数据等问题。"
 categories: Redis
 date: 2021-04-03 23:31:20
 keywords: Redis, Master, Slave, 主从, Replication

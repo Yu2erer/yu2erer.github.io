@@ -1,5 +1,6 @@
 ---
 title: UE5 网络剖析(一) 可靠UDP
+seo_description: "解析 UE5 在 UDP 之上组织 Packet 与 Bunch 的思路，重点说明序列号、确认信息、接收历史窗口和保序处理，并梳理相关收发调用流程，理解可靠传输机制的基础。"
 categories: UE
 date: 2024-11-02 13:30:20
 keywords: UE5, UDP, Packet, Bunch, UE4
@@ -116,7 +117,7 @@ Bunch[?]
 TerminateBit: 1
 ```
 
-![](/images/UE5_packet.png)
+![UE5 Packet 数据布局：序列号、确认序列号和接收历史之后，依次存放时间信息、Bunch 数据与结束位。](/images/UE5_packet.png)
 
 ## 保序
 

@@ -1,5 +1,6 @@
 ---
 title: Linux系统编程(一) 之时间编程
+seo_description: "从 Linux 时间 API 入手，梳理时间获取、格式转换与定时器的使用，并进一步分析 alarm、setitimer、POSIX Timer、时间轮和高精度 Hrtimer 的内核实现及中断机制。"
 categories: Linux系统编程
 date: 2020-07-29 13:14:20
 keywords: Linux, 系统编程, 时间编程

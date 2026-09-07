@@ -1,5 +1,6 @@
 ---
 title: Python3-源码剖析(二)-指令特化
+seo_description: "结合 PEP 659 与 CPython 3.11 的对象相加示例，解析指令特化的预热、自适应指令、内联缓存和特化执行流程，并跟踪操作数类型变化时的失效与回退机制。"
 categories: Python3
 date: 2022-04-09 15:19:28
 keywords: Python3, CPython, Specializing

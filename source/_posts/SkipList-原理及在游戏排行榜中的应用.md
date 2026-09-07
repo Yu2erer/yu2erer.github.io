@@ -1,5 +1,6 @@
 ---
 title: SkipList 原理及在游戏排行榜中的应用
+seo_description: "从通用游戏排行榜的需求出发，比较实时排序的数据结构选择，结合 Redis 跳表实现分析节点插入、跨度维护、按对象查排名和按排名查对象，并讨论排行榜服务的数据组织。"
 categories: 游戏设计
 date: 2020-09-12 15:05:20
 keywords: Redis, SkipList, 游戏服务器, 排行榜

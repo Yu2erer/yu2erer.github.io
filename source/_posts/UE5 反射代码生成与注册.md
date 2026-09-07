@@ -1,5 +1,6 @@
 ---
 title: UE5 反射代码生成与注册
+seo_description: "以 UE5.4 为基准，解析 UHT 为 Enum、Struct、Class 和 Interface 生成的反射辅助代码，梳理 generated.h、gen.cpp 中的关键结构，以及反射信息在引擎启动时的注册与构建流程。"
 categories: UE
 date: 2025-01-11 22:17:20
 keywords: UE5, 反射, UClass, UFunction, UE5反射, UE4, UE4反射

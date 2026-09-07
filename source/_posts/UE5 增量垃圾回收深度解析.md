@@ -103,7 +103,7 @@ class FChunkedFixedUObjectArray
     FUObjectItem* PreAllocatedObjects;
 };
 ```
-![](/images/UE5增量垃圾回收算法解析-1761635111650.png)
+![FUObjectArray 的分块存储结构：FChunkedFixedUObjectArray 管理多个 Chunk，每块包含 FUObjectItem 条目。](/images/UE5增量垃圾回收算法解析-1761635111650.png)
 ### FUObjectItem（对象条目）
 为每个 `UObject` 提供 GC 所需的元数据：内部 Flags、簇信息、序列号、强引用计数等。
 每个 `UObject` 实例都会对应一个 `FUObjectItem` 结构。
@@ -125,7 +125,7 @@ struct FUObjectItem
 ```
 ### Disregard 区（非 GC 对象区）
 引擎初始化阶段开启 `IsOpenForDisregardForGC()` 时，允许分配 **不参与 GC** 的对象，之后 GC 会跳过此区段扫描。
-![](/images/UE5增量垃圾回收算法解析-1761634938385.png)
+![GUObjectArray 的索引区间示意：DisregardForGC 对象区与参与 GC 管理的对象区分开存放。](/images/UE5增量垃圾回收算法解析-1761634938385.png)
 ### Cluster（簇）
 将强相关对象聚合为 **簇**。当扫描到 **簇根** 时，可一次性把整簇标记为可达，显著降低图遍历成本。
 
@@ -602,7 +602,7 @@ bool GatherUnreachableObjects(UE::GC::EGatherOptions Options, double TimeLimit /
     GGatherUnreachableObjectsState.Finish(GUnreachableObjects);
 }
 ```
-![](/images/UE5增量垃圾回收算法解析.png)
+![UE5 增量可达性分析流程：重置标记、收集强引用、处理写屏障、扫描与标记引用，并保存下一轮扫描任务。](/images/UE5增量垃圾回收算法解析.png)
 ### 清理（Sweep / Purge）
 根据对象状态依次执行
 - `BeginDestroy()`

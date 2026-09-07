@@ -1,5 +1,6 @@
 ---
 title: Lua 服务端热更新
+seo_description: "介绍 Lua 游戏服务端 HotFix 的实现，说明如何在替换函数时保留状态，并通过 __RELOAD 控制数据更新。结合错误案例分析 _ENV、共享 Upvalue 和引用关系对热更新的影响。"
 categories: Lua
 date: 2020-12-15 12:19:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机, 服务端, 热更新

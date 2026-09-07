@@ -1,5 +1,6 @@
 ---
 title: LuaJIT 5.3.6 方案
+seo_description: "记录作者为 Lua 5.3.6 实现 JIT 的项目实践，介绍兼容已有脚本的动机、通过子线程释放内存的 GC 优化和 computed goto 解释器改动，并提供相关开源项目入口。"
 categories: Lua
 date: 2021-07-04 10:02:20
 keywords: Lua, LuaJIT, Lua5.3.6JIT

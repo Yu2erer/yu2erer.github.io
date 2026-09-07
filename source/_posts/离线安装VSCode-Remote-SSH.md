@@ -1,5 +1,6 @@
 ---
 title: 离线安装 VSCode Remote-SSH
+seo_description: "记录 2019 年使用 VSCode Insiders 与 Remote-SSH 的离线安装方法，介绍识别远端安装版本、在联网机器下载并上传服务端文件，以及手动安装远端扩展的操作过程。"
 categories: 搞东搞西
 date: 2019-05-23 22:17:20
 keywords: VSCode, Remote, SSH, 离线安装

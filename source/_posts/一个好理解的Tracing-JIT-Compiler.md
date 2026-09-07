@@ -8,7 +8,7 @@ tags: [编译器, tracing jit]
 
 ## 前言
 
-Lua 开发者通常听说或使用过 LuaJIT，但是可能因为种种原因未能理解其工作原理，在这里分享一篇 Jakob Erlandsson 和 Simon Kärrman 的硕士毕业论文，**TigerShrimp: An Understandable Tracing JIT Compiler**，该论文讲述了如何为 JVM 开发一个 Tracing JIT，并附带了[源码]((https://github.com/TigerShrimp/TracingJITCompiler))以及可视化工具。下文将简要剖析一些其实现原理。
+Lua 开发者通常听说或使用过 LuaJIT，但是可能因为种种原因未能理解其工作原理，在这里分享一篇 Jakob Erlandsson 和 Simon Kärrman 的硕士毕业论文，**TigerShrimp: An Understandable Tracing JIT Compiler**，该论文讲述了如何为 JVM 开发一个 Tracing JIT，并附带了[源码](https://github.com/TigerShrimp/TracingJITCompiler)以及可视化工具。下文将简要剖析一些其实现原理。
 
 ## 编译流程
 
@@ -22,7 +22,7 @@ TigerShrimp 内部有个简单的 `Interpreter`，用以直接执行 `bytecode`�
 
 <!-- more -->
 
-![](/images/TigerShrimp.png)
+![TigerShrimp 执行流程：解释字节码、统计热循环、记录与编译轨迹，并在已有机器码和解释器之间切换。](/images/TigerShrimp.png)
 
 ## 记录流程
 
@@ -115,7 +115,7 @@ asm("_handleTraceExit:;"
 
 查找当前退出 `pc` 是否有一条热路径，若有则直接跳入继续执行，没有就将退出 `pc` 返回回去。
 
-![](/images/TigerShrimp_Stitching.png)
+![TigerShrimp 轨迹拼接对比：左侧使用 Call 和 Return，右侧使用 JMP 串联原生轨迹与分支轨迹。](/images/TigerShrimp_Stitching.png)
 
 使用 `JMP` 尾调用，避免多次函数调用的性能损耗。
 

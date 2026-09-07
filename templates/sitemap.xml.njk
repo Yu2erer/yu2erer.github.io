@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  {% for post in posts %}
+  <url>
+    <loc>{{ post.permalink | uriencode | escape }}</loc>
+    {# Unknown modification dates must not fall back to publication or build time. #}
+    {% if post.updated %}
+    <lastmod>{{ post.updated.toISOString() }}</lastmod>
+    {% endif %}
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  {% endfor %}
+
+  {# Aggregate pages have no reliable content modification date yet. #}
+  <url>
+    <loc>{{ config.url | uriencode | escape }}</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  {% for tag in tags %}
+  <url>
+    <loc>{{ tag.permalink | uriencode | escape }}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  {% endfor %}
+
+  {% for cat in categories %}
+  <url>
+    <loc>{{ cat.permalink | uriencode | escape }}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  {% endfor %}
+</urlset>

@@ -1,5 +1,6 @@
 ---
 title: C++ 内存管理 之 原生版本
+seo_description: "梳理 C++ 中 new、delete 表达式与 operator new、operator delete 的关系，分析对象构造和析构、数组分配、placement new、分配函数重载及 new handler 的调用机制。"
 categories: C++
 date: 2019-11-4 09:02:20
 keywords: C++, 内存管理

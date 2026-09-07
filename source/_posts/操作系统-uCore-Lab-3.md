@@ -1,5 +1,6 @@
 ---
 title: 操作系统 uCore Lab 3 含 Challenge
+seo_description: "解析 uCore Lab 3 的虚拟内存管理，说明 mm_struct 与 vma_struct 的作用，实现缺页处理和 FIFO 页面置换，并完成识别脏页位的扩展 Clock 页面置换算法。"
 categories: 操作系统
 date: 2018-11-27 18:08:20
 keywords: 操作系统, ucore, lab 3, challenge

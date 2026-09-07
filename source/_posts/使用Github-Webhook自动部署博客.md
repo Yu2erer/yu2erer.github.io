@@ -1,5 +1,6 @@
 ---
 title: 使用 Github Webhook 自动部署 博客
+seo_description: "记录使用 GitHub Webhook 自动部署 Hexo 博客的早期实践：用 Go 接收推送事件，校验请求签名，再调用脚本更新服务器上的静态页面，并说明 Webhook 的配置过程。"
 categories: 搞东搞西
 date: 2018-11-27 19:06:20
 keywords: github, webhook, blog, deploy

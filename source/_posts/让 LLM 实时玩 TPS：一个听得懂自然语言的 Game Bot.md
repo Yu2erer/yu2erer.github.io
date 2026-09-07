@@ -3,10 +3,10 @@ title: 让 LLM 实时玩 TPS：一个听得懂自然语言的 Game Bot
 categories: AI
 date: 2026-09-06 15:05:00
 keywords: LLM, TPS, Game AI, Qwen, Game Bot, Post-training
-tags: [LLM, TPS, GameAI, Qwen]
+tags: [LLM, TPS, GameAI, Qwen, 游戏]
 ---
 
-近期在做一个 LLM Game Bot，目标是让大语言模型在 TPS 对局中实时读取游戏状态，根据自然语言指令控制角色游玩策略。
+近期在做一个让 LLM 玩游戏的项目：将大语言模型接入 TPS（第三人称射击）对局，让它实时读取游戏状态，根据自然语言指令决定角色的行动策略。这个 LLM Game Bot 由小模型负责策略决策，再由游戏执行器完成移动、瞄准和射击等连续动作。
 
 目前 Qwen3.5-0.8B 和 2B 都已经完成了基础训练和游戏接入，其中 0.8B 已经可以在本地模型服务上持续参与对局。
 
@@ -18,14 +18,14 @@ tags: [LLM, TPS, GameAI, Qwen]
 
 1. 原地蹲下并持续瞄准敌人，无论发生什么都不要开枪。
 
-{% video /videos/student-clip_01.mp4 %}
+{% video /videos/student-clip_01.mp4 /images/video-posters/student-clip_01.jpg %}
 
 
 换一条指令：
 
 2. 原地站稳并持续瞄准敌人，每次连续打三发。
 
-{% video /videos/student-clip_03.mp4 %}
+{% video /videos/student-clip_03.mp4 /images/video-posters/student-clip_03.jpg %}
 
 这两句话要求 Bot 产生完全不同的移动、姿态和武器行为。
 
@@ -114,7 +114,7 @@ if (LowHealth)
 
 这些文字仍然需要训练数据支持，但至少它提供了一种新的工作流：
 
-![](/images/llm-bot.png)
+![Bot 策略调整流程对比：传统方式需修改行为树或参数，LLM Bot 通过自然语言策略描述驱动游戏中的行为变化。](/images/llm-bot.png)
 
 这里我觉得比较重要的一点是：**它调整的是行为策略，而不只是传统意义上的 Bot 难度。**
 
@@ -139,7 +139,7 @@ Aggressive = 0.8
 
 此处举例：主动寻找并消灭敌人，尽量生存并赢下这场对局。
 
-{% video /videos/student-clip_05.mp4 %}
+{% video /videos/student-clip_05.mp4 /images/video-posters/student-clip_05.jpg %}
 
 
 ### 2. Gameplay 自动化测试
@@ -254,13 +254,13 @@ Qwen 0.8B / 2B Student 实时运行
 
 这里附上一个 Teacher 游玩视频，它经过剪辑和加速，使得观感上看起来流畅，它在里面会寻找掩体，然后快速击杀敌人。
 
-{% video /videos/teacher-Qwen-3.8-27b.mp4 %} 
+{% video /videos/teacher-Qwen-3.8-27b.mp4 /images/video-posters/teacher-Qwen-3.8-27b.jpg %}
 
 ## 整体思路
 
 整个系统可以拆成训练和运行两部分。
 
-![](/images/llm-train.png)
+![LLM Game Bot 的训练与运行流程：Teacher 生成动作标签训练 Student，运行时由 Student 输出动作交给 TPS 执行器。](/images/llm-train.png)
 
 这里 Student 也不是每一个 Game Tick 都运行一次，模型负责相对高层的策略决策，游戏执行器负责两个决策之间的连续行为。
 
@@ -575,8 +575,8 @@ Game Tick
 
 1. 向敌人推进并持续瞄准，武器一就绪就快速连续射击。
 
-{% video /videos/student-clip_04.mp4 %}
+{% video /videos/student-clip_04.mp4 /images/video-posters/student-clip_04.jpg %}
 
 2. 原地站稳并持续瞄准敌人，每次只打一发。
 
-{% video /videos/student-clip_02.mp4 %}
+{% video /videos/student-clip_02.mp4 /images/video-posters/student-clip_02.jpg %}

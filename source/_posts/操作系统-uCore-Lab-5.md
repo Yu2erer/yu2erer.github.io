@@ -1,5 +1,6 @@
 ---
 title: 操作系统 uCore Lab 5
+seo_description: "解析 uCore Lab 5 的用户进程管理，跟踪应用程序加载、父子进程地址空间复制和系统调用处理，梳理 fork、exec、wait、exit 的实现与进程状态转换。"
 categories: 操作系统
 date: 2018-12-12 13:36:20
 keywords: 操作系统, ucore, lab 5

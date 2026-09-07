@@ -1,5 +1,6 @@
 ---
 title: 操作系统 uCore Lab 7
+seo_description: "记录 uCore Lab 7 同步互斥实验，解析内核信号量、等待队列与条件变量的协作方式，并通过哲学家就餐问题比较基于信号量和管程的同步实现。"
 categories: 操作系统
 date: 2018-12-25 11:32:20
 keywords: 操作系统, ucore, lab 7, lab7, 信号量, 同步互斥, 管程, 哲学家就餐

@@ -1,5 +1,6 @@
 ---
 title: 操作系统 uCore Lab 4
+seo_description: "记录 uCore Lab 4 内核线程管理实验，分析进程控制块的分配初始化、内核栈和上下文准备，以及 proc_run、switch_to 如何完成进程切换和执行现场恢复。"
 categories: 操作系统
 date: 2018-12-10 13:12:20
 keywords: 操作系统, ucore, lab 4, 进程控制块, pcb

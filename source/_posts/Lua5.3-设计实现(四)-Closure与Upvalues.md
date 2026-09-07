@@ -1,5 +1,6 @@
 ---
 title: Lua 5.3 设计实现(四) Closure与Upvalues
+seo_description: "解析 Lua 5.3 中 Closure 与 Upvalue 的结构和关联方式，说明局部变量如何被闭包捕获、多个闭包如何共享 Upvalue，以及变量离开栈后如何继续保存，结合字节码示例理解闭包行为。"
 categories: Lua
 date: 2020-12-5 22:29:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机

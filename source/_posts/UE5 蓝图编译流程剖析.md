@@ -1,5 +1,6 @@
 ---
 title: UE5 蓝图编译流程剖析
+seo_description: "以 UE5.4 为基准，按蓝图编译的 16 个阶段梳理依赖收集、骨架生成、节点重建、类布局与函数编译、字节码生成及实例替换，说明编辑器触发编译后的主要调用流程。"
 categories: UE
 date: 2025-02-02 22:46:20
 keywords: UE5, 蓝图编译, UE5蓝图编译, UE4, UE4蓝图编译
@@ -1120,6 +1121,6 @@ for (FCompilerData& CompilerData : CurrentlyCompilingBPs)
 
 阶段16：收尾工作，清理标记，设置好蓝图状态，广播编译完成。
 
-# FlushReinstancingQueueImpl
+## FlushReinstancingQueueImpl
 
 最后这一部分则是替换实例了，比如场景有个 BP_Actor，这次编译了该蓝图资源，就会用新的 `GeneratedClass` 去 SpawnActor 来替换它。

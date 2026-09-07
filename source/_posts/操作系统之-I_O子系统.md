@@ -1,5 +1,6 @@
 ---
 title: 操作系统之 I/O子系统
+seo_description: "梳理操作系统 I/O 子系统的设备接口、内核结构和请求生命周期，介绍轮询、中断与数据传输方式，并比较常见磁盘调度算法和缓存策略对 I/O 性能的影响。"
 categories: 操作系统
 date: 2019-01-15 12:53:20
 keywords: 操作系统, 轮询, 设备中断, 设备接口, 磁盘调度算法, SCAN, FIFO, CSCAN, FSCAN

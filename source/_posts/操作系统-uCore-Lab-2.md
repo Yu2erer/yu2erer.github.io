@@ -1,5 +1,6 @@
 ---
 title: 操作系统 uCore Lab 2
+seo_description: "梳理 x86 特权级、TSS、分段与分页机制，并结合 uCore Lab 2 分析物理内存探测、First Fit 分配、页表项查找和页面映射解除，串联地址转换与物理内存管理的实现。"
 categories: 操作系统
 date: 2018-11-19 14:24:20
 keywords: 操作系统, ucore, lab 2
@@ -24,11 +25,11 @@ RPL 请求特权级 DS ES GS FS 数据段
 
 CPL 当前特权级 存在于 CS / SS 的低2位
 
-![](/images/segmentregister.png)
+![x86 段选择子的位布局：高位为描述符索引，低位包含 TI 表选择位和 RPL 请求特权级。](/images/segmentregister.png)
 
 DPL 段或者门的特权级
 
-![](/images/segmentdescriptor.png)
+![x86 段描述符的位布局，标出段基址、段限长、DPL 特权级、类型及其他属性位。](/images/segmentdescriptor.png)
 
 访问门时 CPL <= DPL[门] && CPL >= DPL[段]
 访问段时 MAX(CPL, RPL) <= DPL[段]
@@ -36,20 +37,20 @@ DPL 段或者门的特权级
 #### x86 通过中断切换特权级
 首先在中断描述符表里 建立好 中断门 来实现中断切换特权级
 
-![](/images/interruptgate.png)
+![x86 中断门描述符格式，标出处理程序入口偏移、代码段选择子、DPL、P 位和类型字段。](/images/interruptgate.png)
 
 ##### RING 0 to RING 3
 当 ring 0 内核态发生中断的时候 首先因为发生中断的时候还是在 ring 0 所以不会将 ss esp 压入堆栈中 只会压入 Eflags cs eip 和 中断错误码
 
 因此 为了实现从 ring 0 到 ring 3 的特权级转换 将其 ss 改成特权级3的栈 cs 改为用户代码段 最后通过 IRET 将这些信息 POP 出栈 此时 运行环境就进入了用户态中了 
 
-![](/images/ring0toring3.png)
+![从 Ring 0 切换到 Ring 3 的栈变化：在中断栈中准备用户态 SS、ESP、CS 和 EIP，供返回时恢复。](/images/ring0toring3.png)
 
 ##### RING 3 to RING 0
 当 ring 3 用户态发生中断时 会将 ss esp 压入堆栈中 这是为了 跳出中断的时候 还能返回到这个用户态中 但是我们是为了实现 从 ring 3 到 ring 0 的特权级转换
 因此 ss esp 是不需要的 将它们给去掉 同时将 cs 改为 内核态代码段 最后 还是 通过 IRET 将这些信息 POP 出栈 就回到了 ring 0 内核态中
 
-![](/images/ring3toring0.png)
+![从 Ring 3 切换到 Ring 0 的栈变化：调整中断栈中的段选择子和返回信息，并恢复内核态执行栈。](/images/ring3toring0.png)
 
 ##### TSS 任务状态段 (Task State Segment)
 TSS 的位置 可以从 全局描述符表 中的 任务状态描述符 (Task State Descriptor) 中找到
@@ -57,7 +58,7 @@ TSS 的位置 可以从 全局描述符表 中的 任务状态描述符 (Task St
 因为 IDT 中断描述符表 中的 中断门 有 代码段选择子 可以用它作为索引从 GDT 全局描述符表中 找到实际的代码段的内存地址 但是 ss 和 esp 是不存在于 中断门中的
 它们 存在于 TSS 中. TR(Task Register) 寄存器会缓存 TSS 从而实现 任务的切换
 
-![](/images/tss.png)
+![x86 TSS 任务状态段布局，包含寄存器保存区、页目录地址以及 Ring 0 至 Ring 2 的栈段和栈指针。](/images/tss.png)
 
 tss 在里面 只会保存 ring 0 ~ ring 2 的 ss 和 esp 之所以不保存 ring 3 的 ss 和 esp 是因为 CPU 默认只支持 从低特权级跳到高特权级 而 ring 3 是最低的特权级 不会有其他的特权级跳过去了 因此 不保存 ring 3 的 ss 和 esp
 
@@ -65,7 +66,7 @@ tss 在里面 只会保存 ring 0 ~ ring 2 的 ss 和 esp 之所以不保存 rin
 ##### 段机制
 首先通过段选择子作为索引 在 GDT 全局描述符表中找到 段描述符 若没启动页机制的话 那么现在就找到 线性地址 
 
-![](/images/segment_based.png)
+![x86 段寄存器通过段描述符中的基址、限长和访问属性，映射代码、数据及栈等线性地址区域。](/images/segment_based.png)
 
 GDT 存在于内存当中 因为它所占空间比较大 但是由于内存比较慢 每次去访问 段表的时候 耗费比较大 因此 硬件会将 GDT 中的描述信息(Base Address, Limit...) 放在 CPU 来加快段的映射过程 
 ##### 页机制
@@ -74,7 +75,7 @@ GDT 存在于内存当中 因为它所占空间比较大 但是由于内存比�
 2. PTE 页表物理地址+ 线性地址中间 10位 找到 物理页基址 
 3. 物理页基址 加上 线性地址的 低 12位 找到物理地址
 
-![](/images/coarsepagetable.png)
+![二级页表地址转换示例：CR3 定位页目录，结合目录索引、页表索引和页内偏移得到物理地址。](/images/coarsepagetable.png)
 
 页目录表项和页表项的高20位为物理页表地址/物理页地址 之所以只用到 20 位 是因为页是以 4K 为单位 地址都是 4K的倍数 后面12位都为 0 所以 可以将多余的 12 位用作属性位
 
@@ -89,7 +90,7 @@ GDT 存在于内存当中 因为它所占空间比较大 但是由于内存比�
 * RW Read/Write 读写位
 * P Present 存在位 (虚拟页式存储的关键位 若为 0 则发起缺页异常)
 
-![](/images/pagetableentries.png)
+![x86 页目录项与页表项的位布局，包含物理地址高位和 P、RW、US、A、D 等属性字段。](/images/pagetableentries.png)
 
 ##### 如何开启页机制
 
@@ -310,7 +311,7 @@ static void default_free_pages(struct Page *base, size_t n) {
 ### 练习2：实现寻找虚拟地址对应的页表项
 通过设置页表和对应的页表项，可建立虚拟内存地址和物理内存地址的对应关系。其中的get_pte函数是设置页表项环节中的一个重要步骤。此函数找到一个虚地址对应的二级页表项的内核虚地址，如果此二级页表项不存在，则分配一个包含此项的二级页表。本练习需要补全get_pte函数 in kern/mm/pmm.c，实现其功能。请仔细查看和理解get_pte函数中的注释。get_pte函数的调用关系图如下所示：
 
-![](/images/lab2_ex.2.png)
+![uCore get_pte 的调用关系图，展示启动映射、页面查询、插入与删除等操作对页表项查找的调用。](/images/lab2_ex.2.png)
 
 这道题和下面一道题比较简单
 原理就是 给我一个虚拟地址 然后我根据这个虚拟地址 的 高 10 位 找到 页目录表 中的 PDE项 前20位是页表项 (二级页表)的线性地址 后 12位 为属性 然后 判断一下 PDE 是否存在(就是判断 P位) 不存在 则 获取一个物理页 然后将这个物理页的线性地址写入到 PDE 中 最后返回 PTE 项
@@ -357,7 +358,7 @@ PDE 和 PTE 的组成部分含义在上面
 ### 练习3：释放某虚地址所在的页并取消对应二级页表项的映射
 当释放一个包含某虚地址的物理内存页时，需要让对应此物理内存页的管理数据结构Page做相关的清除处理，使得此物理内存页成为空闲；另外还需把表示虚地址与物理地址对应关系的二级页表项清除。请仔细查看和理解page_remove_pte函数中的注释。为此，需要补全在 kern/mm/pmm.c中的page_remove_pte函数。page_remove_pte函数的调用关系图如下所示：
 
-![](/images/lab2_ex.3.png)
+![uCore page_remove_pte 的调用关系图，展示页面删除与插入操作如何调用映射清理函数。](/images/lab2_ex.3.png)
 
 ```c
 static inline void page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {

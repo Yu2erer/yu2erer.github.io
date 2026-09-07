@@ -1,5 +1,6 @@
 ---
 title: UE5 网络剖析(二) 无状态连接
+seo_description: "解析 UE5 客户端与专用服务器的连接建立过程，梳理 NetDriver、NetConnection 和基础 Channel 的创建，跟踪基于 Cookie 的无状态握手消息，并介绍断线重连的处理流程。"
 categories: UE
 date: 2024-11-23 10:38:20
 keywords: UE5, UDP, PacketHandler, Packet, Bunch, StatelessConnectHandlerComponent, UE4

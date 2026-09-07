@@ -1,5 +1,6 @@
 ---
 title: Lua 5.3 设计实现(一) Lua是怎么跑起来的?
+seo_description: "以 Lua 5.3.6 为基础，梳理 Lua 从源码编译、Chunk 加载到字节码执行的启动流程，介绍 lua_State、lua_newstate 和调用前的准备过程，帮助建立阅读 Lua 虚拟机源码的整体思路。"
 categories: Lua
 date: 2020-10-25 13:12:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机

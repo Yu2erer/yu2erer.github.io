@@ -1,5 +1,6 @@
 ---
 title: Lua 5.3 设计实现(五) Coroutine
+seo_description: "解析 Lua 5.3 协程的 create、resume 和 yield 实现，梳理独立调用栈、挂起与恢复流程，并讨论 Lua 与 C 函数交错调用时的 yield 限制、延续执行和异常恢复机制。"
 categories: Lua
 date: 2020-12-9 12:20:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机, 协程, Coroutine

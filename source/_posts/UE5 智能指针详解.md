@@ -1,5 +1,6 @@
 ---
 title: UE5 智能指针详解
+seo_description: "以 UE5.4 为基准，剖析 TSharedPtr、TWeakPtr、TSharedRef、TSharedFromThis 和 TUniquePtr 的实现，说明引用计数、线程安全模式及对象释放机制，比较共享指针与共享引用的约束。"
 categories: UE
 date: 2025-02-16 12:50:20
 keywords: UE5, 智能指针, TSharedPtr, TSharedRef, TWeakPtr, TUniquePtr

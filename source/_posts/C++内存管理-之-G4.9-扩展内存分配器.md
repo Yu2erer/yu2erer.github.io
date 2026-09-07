@@ -1,5 +1,6 @@
 ---
 title: C++ 内存管理 之 G4.9 扩展内存分配器
+seo_description: "介绍 GNU C++ 4.9 的七种扩展内存分配器，重点分析 pool_allocator、array_allocator 和 bitmap_allocator 的组织方式、分配与回收流程，并比较不同分配器的实现思路。"
 categories: C++
 date: 2019-11-7 13:24:20
 keywords: C++, 内存管理, GNU, GNU4.9, STL, 扩展内存分配器

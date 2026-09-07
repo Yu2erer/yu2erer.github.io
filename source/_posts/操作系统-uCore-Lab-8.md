@@ -1,11 +1,12 @@
 ---
 title: 操作系统 uCore Lab 8
+seo_description: "解析 uCore Lab 8 的文件系统实验，跟踪读文件操作的实现，并将程序加载改为从文件系统读取 ELF 文件，说明用户程序执行时的加载流程和参数栈布局。"
 categories: 操作系统
 date: 2019-01-14 14:58:20
 keywords: 操作系统, ucore, lab 8, lab8, 文件系统
 tags: [操作系统, uCore, Lab, 文件系统]
 ---
-### 练习0：填写已有实验
+## 练习0：填写已有实验
 请把你做的实验代码填入本实验中代码中有“LAB1”/“LAB2”/“LAB3”/“LAB4”/“LAB5”/“LAB6” /“LAB7”的注释相应部分。并确保编译通过。注意：为了能够正确执行lab8的测试应用程序，可能需对已完成的实验1/2/3/4/5/6/7的代码进行进一步改进。
 
 ```c
@@ -25,7 +26,7 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
 
 <!-- more -->
 
-### 练习1: 完成读文件操作的实现
+## 练习1: 完成读文件操作的实现
 首先了解打开文件的处理流程，然后参考本实验后续的文件读写操作的过程分析，编写在sfs_inode.c中sfs_io_nolock读文件中数据的实现代码。
 
 
@@ -76,7 +77,7 @@ static int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, o
 }
 ```
 
-### 练习2: 完成基于文件系统的执行程序机制的实现
+## 练习2: 完成基于文件系统的执行程序机制的实现
 改写proc.c中的load_icode函数和其他相关函数，实现基于文件系统的执行程序机制。执行：make qemu。如果能看看到sh用户程序的执行界面，则基本成功了。如果在sh用户界面上可以执行”ls”,”hello”等其他放置在sfs文件系统中的其他执行程序，则可以认为本实验基本成功。
 
 可以在 Lab 7 的基础上进行修改 读elf文件变成了从磁盘上读 而不是直接在内存中读
@@ -263,7 +264,7 @@ bad_mm:
 }
 ```
 
-# 祝贺我通过自己的努力，完成了uCore OS lab1 - lab8！
+## 祝贺我通过自己的努力，完成了uCore OS lab1 - lab8！
 三个月从0到1 断断续续的做 机房做 宿舍做 回家做 终于完成了! 继续努力!
 
 整个实验的[代码](https://github.com/Yu2erer/ucore_os_lab)

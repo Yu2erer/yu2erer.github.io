@@ -1,5 +1,6 @@
 ---
 title: C++ 内存管理 之 内存池实现
+seo_description: "通过重载 operator new 和 operator delete，逐步实现 C++ 小对象内存池，并将分配逻辑抽取为可复用的分配器。结合 pool_allocator 思路，讨论分配开销、内存碎片和自由链表管理。"
 categories: C++
 date: 2019-11-8 11:48:20
 keywords: C++, 内存管理, 内存池

@@ -1,5 +1,6 @@
 ---
 title: UE5 UnLua 脚本方案原理
+seo_description: "解析 UE5 中 UnLua 接入 Lua 的核心机制：UObject 与 Lua 对象绑定、反射属性与函数查找、UFunction 调用、Latent 异步回调、委托、函数覆写及对象生命周期。结合源码与 Lua 伪代码，梳理 UE 与 Lua 之间的调用流程。"
 categories: UE
 date: 2025-10-24 23:21:20
 keywords: UE5, UnLua
@@ -267,7 +268,7 @@ function M:SayHi(name)
     self.Overridden.SayHi(self, name)
 end
 ```
-![](/images/UE5_UnLua_脚本方案原理-1760930848012.png)
+![UnLua 对象绑定关系：实例表的元表指向 Lua 模块表，模块表再指向 UObject 元表。](/images/UE5_UnLua_脚本方案原理-1760930848012.png)
 我个人觉得，只需要创建出 `Object` 的实例表就够了，但这确实是创建多了一个 `Class` 实例表，简单删了这句，好像也没有问题，如果有熟悉这块的可以给我解答一下。
 ## 属性、函数查找
 前面已经熟悉了 UE5 怎么把对象和 Lua 脚本绑定关联起来，但从始至终我们都没有导出过任何一个属性、函数到 Lua，只导出了一些元方法出去，因为 UnLua 是动态导出的，只有访问到的东西才会导出，并添加缓存。
@@ -385,7 +386,7 @@ if (!bValid && bIsScriptStruct && !Struct->IsNative())
     }
 ```
 还找不到，就尝试去 `UClass` 中查找了。
-![](/images/UE5_UnLua_脚本方案原理-1760941234186.png)
+![UnLua 反射字段查找流程：依次查找属性、类函数和脚本结构体字段，必要时继续查找外层结构。](/images/UE5_UnLua_脚本方案原理-1760941234186.png)
 #### 找到属性（Property）
 假设已经找到了一个 `Property`，此时 Lua 栈顶上会存放一个 `userdata`：
 ```c++
@@ -520,7 +521,7 @@ int32 FFunctionDesc::CallUE(lua_State *L, int32 NumParams, void *Userdata)
 }
 ```
 `PreCall` 和 `PostCall` 只是参数和返回值读入写出操作，如果 Lua 传递的参数不足，则考虑用函数声明的默认值去填充，若连函数声明的默认值也没有，就用初始化值。
-![](/images/UE5_UnLua_脚本方案原理-1760959091705.png)
+![Lua 调用 UE 函数的流程：解析对象与调用空间，转换参数，执行本地或远程 UFunction，再转换返回值。](/images/UE5_UnLua_脚本方案原理-1760959091705.png)
 ## Latent 函数
 是一种 **可以在蓝图或 C++ 中异步执行的函数**，可以简单理解为开了个协程。
 以下为 `UKismetSystemLibrary` 的 `Delay` 函数声明。
@@ -602,7 +603,7 @@ bool UUnLuaManager::BindClass(UClass* Class, const FString& InModuleName, FStrin
 ```c++
     ULuaFunction::GetOverridableFunctions(Class, BindInfo.UEFunctions);
 ```
-![](/images/UE5_UnLua_脚本方案原理-1761016392303.png)
+![UnLua 可覆写函数收集流程：遍历类及继承的函数，筛选可覆写项，并加入 RepNotify 属性对应的回调。](/images/UE5_UnLua_脚本方案原理-1761016392303.png)
 判定规则为：
 ```c++
 bool ULuaFunction::IsOverridable(const UFunction* Function)  

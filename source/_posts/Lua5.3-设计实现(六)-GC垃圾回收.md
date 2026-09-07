@@ -1,5 +1,6 @@
 ---
 title: Lua 5.3 设计实现(六) GC 垃圾回收
+seo_description: "梳理 Lua 垃圾回收机制的演进，并结合 Lua 5.3 源码分析三色标记、渐进扫描和对象回收流程。重点讨论 Upvalue 与 Closure 的回收关系，以及减少长期存活对象扫描的优化思路。"
 categories: Lua
 date: 2020-12-11 20:20:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机, GC, 垃圾回收

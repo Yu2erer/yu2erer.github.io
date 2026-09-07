@@ -1,5 +1,6 @@
 ---
 title: 实现 SOCKS5 网络混淆代理
+seo_description: "以 GoSocksProxy 为例介绍用 Go 实现 SOCKS5 代理的思路，解析握手、认证方式协商和目标地址请求格式，并说明本地代理与远端服务之间的数据转发流程。"
 categories: 
 - [搞东搞西]
 - [计算机网络]

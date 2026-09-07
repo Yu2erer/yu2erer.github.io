@@ -1,5 +1,6 @@
 ---
 title: Raft 共识算法解析
+seo_description: "从角色转换、领导者选举、日志复制和集群成员变化理解 Raft，再结合 HashiCorp raft 源码分析 Follower、Candidate 与 Leader 的运行流程，并讨论日志传输与选举的改进方向。"
 categories: 分布式
 date: 2021-03-14 10:01:20
 keywords: raft, gossip, cap

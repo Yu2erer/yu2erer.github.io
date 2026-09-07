@@ -1,5 +1,6 @@
 ---
 title: Lua 5.4 分代垃圾回收
+seo_description: "解析 Lua 5.4 分代垃圾回收的对象年龄状态、年轻代与老年代转换，以及前向、后向写屏障如何处理跨代引用。结合 grayagain 链表和 allgc 游标，说明年轻代扫描范围的控制方式。"
 categories: Lua
 date: 2024-08-25 14:54:20
 keywords: Lua, Lua5.4, LuaGC, GC, GenGC

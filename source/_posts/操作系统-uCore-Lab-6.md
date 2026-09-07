@@ -1,5 +1,6 @@
 ---
 title: 操作系统 uCore Lab 6
+seo_description: "结合 uCore Lab 6 分析 Round Robin 时间片轮转调度与 Stride Scheduling 的实现，说明调度队列、优先级和 stride 的关系，并讨论 BIG_STRIDE 取值与整数比较范围。"
 categories: 操作系统
 date: 2018-12-22 10:12:20
 keywords: 操作系统, ucore, lab 6, 调度, Stride, Round Robin, MLFQ, RR

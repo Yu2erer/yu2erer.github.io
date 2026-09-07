@@ -1,5 +1,6 @@
 ---
 title: Redis 6 剖析(一) 异步机制
+seo_description: "剖析 Redis 6 如何通过 I/O 线程、BIO 后台线程和子进程处理耗时任务，跟踪网络读写、惰性删除、AOF 写入与重写、RDB 快照流程，理解单线程命令执行之外的异步机制。"
 categories: Redis
 date: 2021-03-26 23:46:20
 keywords: Redis, ThreadIO

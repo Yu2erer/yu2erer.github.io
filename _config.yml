@@ -17,7 +17,7 @@ url: https://yuerer.com
 permalink: :title/
 permalink_defaults:
 pretty_urls:
-  trailing_index: true # Set to false to remove trailing 'index.html' from permalinks
+  trailing_index: false # Set to false to remove trailing 'index.html' from permalinks
   trailing_html: true # Set to false to remove trailing '.html' from permalinks
 
 # Directory
@@ -80,7 +80,8 @@ meta_generator: true
 date_format: YYYY-MM-DD
 time_format: HH:mm:ss
 ## updated_option supports 'mtime', 'date', 'empty'
-updated_option: 'mtime'
+# Only use an explicit front-matter updated date; file timestamps change on checkout.
+updated_option: 'empty'
 
 # Pagination
 ## Set per_page to 0 to disable pagination
@@ -107,5 +108,6 @@ deploy:
 
 sitemap:
     path: sitemap.xml
+    template: templates/sitemap.xml.njk
 
 all_minifier: true

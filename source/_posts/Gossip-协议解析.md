@@ -1,5 +1,6 @@
 ---
 title: Gossip 协议解析
+seo_description: "介绍 Gossip 的反熵与谣言传播机制，并结合 HashiCorp memberlist 的 SWIM 实现，分析节点探测、间接探测、状态交换和消息传播流程，理解成员发现与故障检测的设计。"
 categories: 分布式
 date: 2021-03-09 16:45:20
 keywords: gossip, raft, cap

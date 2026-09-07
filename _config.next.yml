@@ -27,7 +27,7 @@ custom_file_path:
   #postBodyEnd: source/_data/post-body-end.njk
   #footer: source/_data/footer.njk
   #bodyEnd: source/_data/body-end.njk
-  #variable: source/_data/variables.styl
+  variable: source/_data/variables.styl
   #mixin: source/_data/mixins.styl
   #style: source/_data/styles.styl
 
@@ -158,7 +158,7 @@ site_state: true
 # Value before `||` delimiter is the target permalink, value after `||` delimiter is the name of Font Awesome icon.
 social:
   GitHub: https://github.com/Yu2erer || fab fa-github
-  E-Mail: mailto:yu2erer#gmail.com || fa fa-envelope
+  E-Mail: mailto:yu2erer@gmail.com || fa fa-envelope
   #Weibo: https://weibo.com/yourname || fab fa-weibo
   #Twitter: https://twitter.com/yourname || fab fa-twitter
   #FB Page: https://www.facebook.com/yourname || fab fa-facebook
@@ -241,7 +241,7 @@ footer:
 # ---------------------------------------------------------------
 
 # Use `description` in front-matter to specify post excerpt.
-excerpt_description: true
+excerpt_description: false
 
 # Read more button
 # If true, the read more button will be displayed in excerpt section.
@@ -765,15 +765,9 @@ addtoany:
 # See: https://theme-next.js.org/docs/third-party-services/statistics-and-analytics
 # ---------------------------------------------------------------
 
-# Google Analytics
-# See: https://analytics.google.com
+# Google Analytics 4.
 google_analytics:
-  tracking_id: UA-129491388-1
-  # By default, NexT will load an external gtag.js script on your site.
-  # If you only need the pageview feature, set the following option to true to get a better performance.
-  only_pageview: false
-  # only needed if you are using `only_pageview` mode, https://developers.google.com/analytics/devguides/collection/protocol/ga4
-  measure_protocol_api_secret:
+  tracking_id: G-77P0Y0Q85C
 
 # Baidu Analytics
 # See: https://tongji.baidu.com
@@ -972,7 +966,8 @@ waline:
 
   # Set required meta field, e.g.: [nick] | [nick, mail]
   requiredMeta:
-    - [nick, mail]
+    - nick
+    - mail
 
   # Language, available values: en-US, zh-CN, zh-TW, pt-BR, ru-RU, jp-JP
   lang: zh-CN

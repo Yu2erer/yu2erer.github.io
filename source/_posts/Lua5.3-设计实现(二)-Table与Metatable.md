@@ -1,5 +1,6 @@
 ---
 title: Lua 5.3 设计实现(二) Table与Metatable
+seo_description: "剖析 Lua 5.3 的 Table、Metatable 与元方法机制，说明数组和哈希部分的组织、插入与扩容、长度计算，以及 pairs、ipairs 的遍历实现和修改表时需要注意的行为。"
 categories: Lua
 date: 2020-10-26 13:12:20
 keywords: Lua, Lua解释器, Lua5.3 Lua虚拟机, table, metatable, metamethod
@@ -123,7 +124,7 @@ local a = {1, 2, 3}
 a[3] = 5
 ```
 
-![](/images/Lua5.3(二).png)
+![Lua 字节码示例：SETLIST 初始化数组表，SETTABLE 修改下标为 3 的元素。](/images/Lua5.3(二).png)
 
 可以看出，第一行的操作指令是 `SETLIST`，而第二行则是 `SETTABLE` 。
 
